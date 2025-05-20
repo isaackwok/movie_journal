@@ -22,6 +22,7 @@ class Themes {
         fontWeight: FontWeight.w600,
         fontFamily: 'AvenirNext',
         fontSize: 24,
+        color: Colors.white,
       ),
     ),
   );
