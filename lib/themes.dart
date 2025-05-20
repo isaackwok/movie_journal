@@ -16,19 +16,14 @@ class Themes {
       cursorColor: Color(0xFFFCA311),
     ),
 
-    // appBarTheme: AppBarTheme(
-    //   backgroundColor: Color(0xFF161616),
-    //   titleTextStyle: TextStyle(
-    //     fontWeight: FontWeight.w600,
-    //     fontFamily: 'AvenirNext',
-    //   ),
-    // ),
-
-    // searchBarTheme: SearchBarThemeData(
-    //   hintStyle: WidgetStateProperty.all(
-    //     TextStyle(fontWeight: FontWeight.w600, fontFamily: 'AvenirNext'),
-    //   ),
-    // ),
+    appBarTheme: AppBarTheme(
+      backgroundColor: Color(0xFF161616),
+      titleTextStyle: TextStyle(
+        fontWeight: FontWeight.w600,
+        fontFamily: 'AvenirNext',
+        fontSize: 24,
+      ),
+    ),
   );
 
   static ThemeData light = ThemeData(

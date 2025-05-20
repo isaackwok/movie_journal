@@ -20,14 +20,19 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
     return SearchBar(
       controller: _controller,
       hintText: 'Search movie',
+      textInputAction: TextInputAction.search,
       hintStyle: WidgetStateProperty.all(
         TextStyle(fontWeight: FontWeight.w500, color: Color(0xFFA0A0A0)),
       ),
       textStyle: WidgetStateProperty.all(
         TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
       ),
+      backgroundColor: WidgetStateProperty.all(Colors.white.withAlpha(15)),
+      padding: WidgetStateProperty.all(
+        const EdgeInsets.symmetric(horizontal: 12),
+      ),
+      constraints: const BoxConstraints(maxHeight: 48),
       onChanged: (value) {},
-      textInputAction: TextInputAction.search,
       onSubmitted: _submit,
       trailing: [
         IconButton(

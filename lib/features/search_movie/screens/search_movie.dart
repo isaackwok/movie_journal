@@ -8,10 +8,7 @@ class SearchMovieScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Add Journal',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
+        title: const Text('Add Journal'),
         centerTitle: false,
         leadingWidth: 32,
         leading: IconButton(
