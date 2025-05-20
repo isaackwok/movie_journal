@@ -22,11 +22,20 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
       hintText: 'Search movie',
       textInputAction: TextInputAction.search,
       hintStyle: WidgetStateProperty.all(
-        TextStyle(fontWeight: FontWeight.w500, color: Color(0xFFA0A0A0)),
+        TextStyle(
+          fontWeight: FontWeight.w500,
+          color: Color(0xFFA0A0A0),
+          fontSize: 16,
+        ),
       ),
       textStyle: WidgetStateProperty.all(
-        TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+        TextStyle(
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+          fontSize: 16,
+        ),
       ),
+      shadowColor: WidgetStateProperty.all(Colors.transparent),
       backgroundColor: WidgetStateProperty.all(Colors.white.withAlpha(15)),
       padding: WidgetStateProperty.all(
         const EdgeInsets.symmetric(horizontal: 12),

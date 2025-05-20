@@ -10,12 +10,11 @@ class SearchMovieScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Add Journal'),
         centerTitle: false,
-        leadingWidth: 32,
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: const Icon(Icons.chevron_left, size: 32),
+          icon: const Icon(Icons.chevron_left),
         ),
       ),
       body: Padding(
