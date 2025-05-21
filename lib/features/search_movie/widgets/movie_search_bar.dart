@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class MovieSearchBar extends StatefulWidget {
-  const MovieSearchBar({super.key});
+  const MovieSearchBar({super.key, required this.onSubmit});
+
+  final Function(String) onSubmit;
 
   @override
   State<MovieSearchBar> createState() => _MovieSearchBarState();
@@ -12,7 +14,7 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
 
   void _submit(String value) {
     FocusScope.of(context).unfocus();
-    // TODO: Submit the search
+    widget.onSubmit(value);
   }
 
   @override
