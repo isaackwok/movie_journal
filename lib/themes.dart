@@ -1,29 +1,41 @@
 import 'package:flutter/material.dart';
 
+const Color _darkSurface = Color(0xFF161616);
+const Color _darkOnSurface = Colors.white;
+const Color _darkPrimary = Color(0xFFFCA311);
+const Color _darkOnPrimary = Colors.black;
+
 class Themes {
   static ThemeData dark = ThemeData(
-    scaffoldBackgroundColor: const Color(0xFF161616),
-    primaryColor: const Color(0xFFFCA311),
+    scaffoldBackgroundColor: _darkSurface,
+    primaryColor: _darkPrimary,
     fontFamily: 'AvenirNext',
 
     colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.white,
+      seedColor: _darkOnSurface,
       brightness: Brightness.dark,
-      surface: const Color(0xFF161616),
+      surface: _darkSurface,
     ),
 
-    textSelectionTheme: const TextSelectionThemeData(
-      cursorColor: Color(0xFFFCA311),
-    ),
+    textSelectionTheme: const TextSelectionThemeData(cursorColor: _darkPrimary),
 
     appBarTheme: AppBarTheme(
       centerTitle: false,
-      backgroundColor: Color(0xFF161616),
+      backgroundColor: _darkSurface,
       titleTextStyle: TextStyle(
         fontWeight: FontWeight.w600,
-        fontFamily: 'AvenirNext',
         fontSize: 24,
-        color: Colors.white,
+        color: _darkOnSurface,
+      ),
+    ),
+
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        backgroundColor: _darkPrimary,
+        foregroundColor: _darkOnPrimary,
+        textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
     ),
   );

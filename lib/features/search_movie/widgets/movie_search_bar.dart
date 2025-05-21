@@ -18,6 +18,7 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
   @override
   Widget build(BuildContext context) {
     return SearchBar(
+      keyboardType: TextInputType.text,
       controller: _controller,
       hintText: 'Search movie',
       textInputAction: TextInputAction.search,
@@ -36,7 +37,7 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
         ),
       ),
       shadowColor: WidgetStateProperty.all(Colors.transparent),
-      backgroundColor: WidgetStateProperty.all(Colors.white.withAlpha(15)),
+      backgroundColor: WidgetStateProperty.all(Colors.white.withAlpha(38)),
       padding: WidgetStateProperty.all(
         const EdgeInsets.symmetric(horizontal: 12),
       ),

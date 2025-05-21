@@ -12,12 +12,10 @@ class AddMovieButton extends StatelessWidget {
           MaterialPageRoute(builder: (context) => const SearchMovieScreen()),
         );
       },
-      icon: const Icon(Icons.add, size: 20),
+      icon: const Icon(Icons.add, size: 28),
       style: IconButton.styleFrom(
-        padding: const EdgeInsetsDirectional.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
+        minimumSize: const Size(52, 44),
+        maximumSize: const Size(52, 44),
         backgroundColor: Colors.white.withAlpha(20),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
