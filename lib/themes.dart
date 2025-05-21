@@ -17,6 +17,7 @@ class Themes {
     ),
 
     appBarTheme: AppBarTheme(
+      centerTitle: false,
       backgroundColor: Color(0xFF161616),
       titleTextStyle: TextStyle(
         fontWeight: FontWeight.w600,

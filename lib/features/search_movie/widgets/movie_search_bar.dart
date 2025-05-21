@@ -40,7 +40,7 @@ class _MovieSearchBarState extends State<MovieSearchBar> {
       padding: WidgetStateProperty.all(
         const EdgeInsets.symmetric(horizontal: 12),
       ),
-      constraints: const BoxConstraints(maxHeight: 48),
+      constraints: const BoxConstraints(maxHeight: 44),
       onChanged: (value) {},
       onSubmitted: _submit,
       trailing: [
