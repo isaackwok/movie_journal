@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/search_movie/movie_providers.dart';
 import 'package:movie_journal/features/search_movie/widgets/movie_result_list.dart';
 import 'package:movie_journal/features/search_movie/widgets/movie_search_bar.dart';
-import 'package:movie_journal/themes.dart';
 
 class SearchMovieScreen extends ConsumerStatefulWidget {
   const SearchMovieScreen({super.key});
