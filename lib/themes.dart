@@ -7,6 +7,7 @@ const Color _darkOnPrimary = Colors.black;
 
 class Themes {
   static ThemeData dark = ThemeData(
+    useMaterial3: true,
     scaffoldBackgroundColor: _darkSurface,
     primaryColor: _darkPrimary,
     fontFamily: 'AvenirNext',
@@ -20,6 +21,7 @@ class Themes {
     textSelectionTheme: const TextSelectionThemeData(cursorColor: _darkPrimary),
 
     appBarTheme: AppBarTheme(
+      surfaceTintColor: Colors.transparent,
       centerTitle: false,
       backgroundColor: _darkSurface,
       titleTextStyle: TextStyle(

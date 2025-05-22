@@ -1,8 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/features/search_movie/movie_providers.dart';
+import 'package:movie_journal/features/search_movie/widgets/movie_result_list.dart';
 import 'package:movie_journal/features/search_movie/widgets/movie_search_bar.dart';
+import 'package:movie_journal/themes.dart';
 
-class SearchMovieScreen extends StatelessWidget {
+class SearchMovieScreen extends ConsumerStatefulWidget {
   const SearchMovieScreen({super.key});
+
+  @override
+  ConsumerState<SearchMovieScreen> createState() => _SearchMovieScreenState();
+}
+
+class _SearchMovieScreenState extends ConsumerState<SearchMovieScreen> {
+  final scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    scrollController.addListener(() {
+      final state = ref.read(movieControllerProvider);
+      if (scrollController.position.pixels >=
+              scrollController.position.maxScrollExtent - 200 &&
+          !state.isLoading) {
+        ref.read(movieControllerProvider.notifier).fetchNext();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +48,15 @@ class SearchMovieScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: const MovieSearchBar(),
+        child: Column(
+          spacing: 16,
+          children: [
+            MovieSearchBar(),
+            Expanded(
+              child: MovieResultList(scrollController: scrollController),
+            ),
+          ],
+        ),
       ),
     );
   }

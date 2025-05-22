@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/features/search_movie/movie_providers.dart';
 
-class MovieSearchBar extends StatefulWidget {
-  const MovieSearchBar({super.key, required this.onSubmit});
-
-  final Function(String) onSubmit;
+class MovieSearchBar extends ConsumerStatefulWidget {
+  const MovieSearchBar({super.key});
 
   @override
-  State<MovieSearchBar> createState() => _MovieSearchBarState();
+  ConsumerState<MovieSearchBar> createState() => _MovieSearchBarState();
 }
 
-class _MovieSearchBarState extends State<MovieSearchBar> {
+class _MovieSearchBarState extends ConsumerState<MovieSearchBar> {
   final TextEditingController _controller = TextEditingController();
 
   void _submit(String value) {
     FocusScope.of(context).unfocus();
-    widget.onSubmit(value);
+    ref.read(movieControllerProvider.notifier).search(value);
   }
 
   @override

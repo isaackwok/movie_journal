@@ -36,6 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
   flutter_svg: ^2.1.0
+  dio: ^5.8.0+1
+  flutter_dotenv: ^5.2.1
+  flutter_riverpod: ^2.6.1
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +50,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  custom_lint: ^0.7.5
+  riverpod_lint: ^2.6.5
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -65,7 +70,9 @@ flutter:
   #   - images/a_dot_ham.jpeg
 
   assets:
+    - .env
     - assets/images/avatar.png
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -111,3 +118,6 @@ flutter:
         - asset: fonts/AvenirNextCyr-Heavy.ttf
           weight: 800
 
+analyzer:
+  plugins:
+    - custom_lint

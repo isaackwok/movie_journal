@@ -1,59 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/features/search_movie/data/models/brief_movie.dart';
+import 'package:movie_journal/features/search_movie/movie_providers.dart';
 
-class MovieResultList extends StatefulWidget {
-  const MovieResultList({
-    super.key,
-    required this.results,
-    required this.onLoadMore,
-  });
+class MovieResultList extends ConsumerWidget {
+  final ScrollController scrollController;
 
-  final List<SearchMoviesResultItem> results;
-  final Function() onLoadMore;
-  @override
-  State<MovieResultList> createState() => _MovieResultListState();
-}
-
-class _MovieResultListState extends State<MovieResultList> {
-  final ScrollController _scrollController = ScrollController();
+  const MovieResultList({super.key, required this.scrollController});
 
   @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      widget.onLoadMore();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(movieControllerProvider);
     return ListView.separated(
-      controller: _scrollController,
+      controller: scrollController,
+      itemCount: state.movies.length + (state.isLoading ? 1 : 0),
       itemBuilder: (context, index) {
-        return MovieResultItem(result: widget.results[index]);
+        if (index < state.movies.length) {
+          return MovieResultItem(movie: state.movies[index]);
+        }
+        if (state.isError) {
+          return Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(
+              child: Text(
+                'Error loading movies',
+                style: TextStyle(
+                  color: Color(0xFFFCA311),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          );
+        }
+        return Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(
+            child: CircularProgressIndicator(color: Color(0xFFFCA311)),
+          ),
+        );
       },
       separatorBuilder: (context, index) {
         return const SizedBox(height: 12);
       },
-      itemCount: widget.results.length,
     );
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
   }
 }
 
 class MovieResultItem extends StatelessWidget {
-  const MovieResultItem({super.key, required this.result});
+  const MovieResultItem({super.key, required this.movie});
 
-  final SearchMovieResultItem result;
+  final BriefMovie movie;
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +67,9 @@ class MovieResultItem extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child:
-                  result.posterPath != null
+                  movie.posterPath != null
                       ? Image.network(
-                        'https://image.tmdb.org/t/p/w500/${result.posterPath}',
+                        'https://image.tmdb.org/t/p/w500/${movie.posterPath}',
                         width: 72,
                         height: 95,
                         fit: BoxFit.cover,
@@ -92,7 +89,7 @@ class MovieResultItem extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      result.title,
+                      movie.title,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 16,
@@ -100,7 +97,9 @@ class MovieResultItem extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      result.releaseDate.substring(0, 4),
+                      (movie.releaseDate.length) >= 4
+                          ? movie.releaseDate.substring(0, 4)
+                          : 'Unknown',
                       style: const TextStyle(
                         fontSize: 10,
                         color: Color(0xFFA7A7A7),
@@ -108,7 +107,7 @@ class MovieResultItem extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      result.overview,
+                      movie.overview,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
