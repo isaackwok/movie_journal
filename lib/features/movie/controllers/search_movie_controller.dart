@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/features/movie/data/data_sources/movie_api.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
 import 'package:movie_journal/features/movie/data/repositories/movie_repository.dart';
+
+enum SearchMovieMode { search, popular }
 
 class SearchMovieState {
   final List<BriefMovie> movies;
@@ -9,6 +12,7 @@ class SearchMovieState {
   final bool isLoading;
   final bool hasMore;
   final bool isError;
+  final SearchMovieMode mode;
 
   SearchMovieState({
     this.movies = const [],
@@ -17,6 +21,7 @@ class SearchMovieState {
     this.isLoading = false,
     this.hasMore = true,
     this.isError = false,
+    this.mode = SearchMovieMode.popular,
   });
 
   SearchMovieState copyWith({
@@ -26,14 +31,21 @@ class SearchMovieState {
     bool? isLoading,
     bool? hasMore,
     bool? isError,
+    SearchMovieMode? mode,
   }) {
+    final nextQuery = query ?? this.query;
     return SearchMovieState(
       movies: movies ?? this.movies,
-      query: query ?? this.query,
+      query: nextQuery,
       page: page ?? this.page,
       isLoading: isLoading ?? this.isLoading,
       hasMore: hasMore ?? this.hasMore,
       isError: isError ?? this.isError,
+      mode:
+          mode ??
+          (nextQuery.isEmpty
+              ? SearchMovieMode.popular
+              : SearchMovieMode.search),
     );
   }
 }
@@ -41,7 +53,9 @@ class SearchMovieState {
 class SearchMovieController extends StateNotifier<SearchMovieState> {
   final MovieRepository repository;
 
-  SearchMovieController(this.repository) : super(SearchMovieState());
+  SearchMovieController(this.repository) : super(SearchMovieState()) {
+    fetchNext();
+  }
 
   Future<void> search(String query) async {
     state = SearchMovieState(query: query, isError: false);
@@ -54,10 +68,13 @@ class SearchMovieController extends StateNotifier<SearchMovieState> {
     state = state.copyWith(isLoading: true);
 
     try {
-      final result = await repository.search(
-        query: state.query,
-        page: state.page,
-      );
+      late final MovieListResponse result;
+      if (state.query.isEmpty) {
+        result = await repository.popular(page: state.page);
+      } else {
+        print('currentPage: ${state.page}');
+        result = await repository.search(query: state.query, page: state.page);
+      }
       state = state.copyWith(
         movies: [...state.movies, ...result.results],
         page: state.page + 1,
@@ -66,7 +83,13 @@ class SearchMovieController extends StateNotifier<SearchMovieState> {
         isError: false,
       );
     } catch (e) {
+      print(e);
       state = state.copyWith(isLoading: false, isError: true);
     }
+  }
+
+  void reset() {
+    state = SearchMovieState();
+    fetchNext();
   }
 }

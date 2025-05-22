@@ -31,6 +31,11 @@ class Themes {
       ),
     ),
 
+    bottomAppBarTheme: BottomAppBarTheme(
+      color: _darkSurface,
+      surfaceTintColor: Colors.transparent,
+    ),
+
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: _darkPrimary,
     ),
@@ -40,7 +45,7 @@ class Themes {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         backgroundColor: _darkPrimary,
         foregroundColor: _darkOnPrimary,
-        textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        textStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
     ),

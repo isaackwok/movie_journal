@@ -1,18 +1,21 @@
 class BriefMovie {
-  final bool adult;
-  final String? backdropPath;
-  final List<int>? genreIds;
   final int id;
-  final String originalLanguage;
-  final String originalTitle;
-  final String overview;
-  final double popularity;
-  final String? posterPath;
-  final String releaseDate;
+  final bool adult;
   final String title;
-  final bool video;
-  final double voteAverage;
-  final int voteCount;
+  final String originalTitle;
+  final String originalLanguage;
+  final String overview;
+  final String? backdropPath;
+  final String? posterPath;
+  final List<int>? genreIds;
+  final double? popularity;
+  final String? releaseDate;
+  final bool? video;
+  final double? voteAverage;
+  final int? voteCount;
+
+  // custom field
+  final String year;
 
   const BriefMovie({
     required this.adult,
@@ -29,6 +32,7 @@ class BriefMovie {
     required this.video,
     required this.voteAverage,
     required this.voteCount,
+    required this.year,
   });
 
   factory BriefMovie.fromJson(Map<String, dynamic> json) => BriefMovie(
@@ -46,5 +50,9 @@ class BriefMovie {
     video: json['video'],
     voteAverage: json['vote_average'],
     voteCount: json['vote_count'],
+    year:
+        (json['release_date']?.length ?? 0) >= 4
+            ? json['release_date'].substring(0, 4)
+            : 'Unknown',
   );
 }

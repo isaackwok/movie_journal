@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/features/journal/screens/movie_preview.dart';
+import 'package:movie_journal/features/movie/controllers/search_movie_controller.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 
@@ -12,9 +14,20 @@ class MovieResultList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(searchMovieControllerProvider);
     return ListView.separated(
+      padding: const EdgeInsets.only(bottom: 100),
       controller: scrollController,
       itemCount: state.movies.length + (state.isLoading ? 1 : 0),
       itemBuilder: (context, index) {
+        if (state.mode == SearchMovieMode.popular && index == 0) {
+          return Text(
+            'People watched',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Inter',
+            ),
+          );
+        }
         if (index < state.movies.length) {
           return MovieResultItem(movie: state.movies[index]);
         }
@@ -54,6 +67,12 @@ class MovieResultItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MoviePreviewScreen(movie: movie),
+          ),
+        );
         // TODO: Handle movie selection
       },
       borderRadius: BorderRadius.circular(4),
@@ -100,9 +119,7 @@ class MovieResultItem extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      (movie.releaseDate.length) >= 4
-                          ? movie.releaseDate.substring(0, 4)
-                          : 'Unknown',
+                      movie.year,
                       style: const TextStyle(
                         fontSize: 10,
                         color: Color(0xFFA7A7A7),

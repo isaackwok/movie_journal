@@ -5,11 +5,16 @@ class MovieRepository {
 
   MovieRepository(this.api);
 
-  Future<SearchMoviesResponse> search({
+  Future<MovieListResponse> search({
     required String query,
     required int page,
   }) async {
     final data = await api.searchMovies(query: query, page: page);
+    return data;
+  }
+
+  Future<MovieListResponse> popular({required int page}) async {
+    final data = await api.popularMovies(page: page);
     return data;
   }
 }

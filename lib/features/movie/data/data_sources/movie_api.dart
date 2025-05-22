@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:movie_journal/core/network/tmdb_dio_client.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
 
@@ -12,21 +14,21 @@ typedef SearchMoviesParams =
       int? year,
     });
 
-class SearchMoviesResponse {
+class MovieListResponse {
   final int page;
   final List<BriefMovie> results;
   final int totalPages;
   final int totalResults;
 
-  const SearchMoviesResponse({
+  const MovieListResponse({
     required this.page,
     required this.results,
     required this.totalPages,
     required this.totalResults,
   });
 
-  factory SearchMoviesResponse.fromJson(Map<String, dynamic> json) =>
-      SearchMoviesResponse(
+  factory MovieListResponse.fromJson(Map<String, dynamic> json) =>
+      MovieListResponse(
         page: json['page'],
         results: List<BriefMovie>.from(
           json['results'].map((e) => BriefMovie.fromJson(e)),
@@ -37,11 +39,23 @@ class SearchMoviesResponse {
 }
 
 class MovieAPI {
-  Future<SearchMoviesResponse> searchMovies({
+  Future<MovieListResponse> popularMovies({
+    required int page,
+    String language = 'en-US',
+    String? region,
+  }) async {
+    final response = await TmdbDioClient.get(
+      '/movie/popular',
+      queryParameters: {'page': page, 'language': language, 'region': region},
+    );
+    return MovieListResponse.fromJson(response.data);
+  }
+
+  Future<MovieListResponse> searchMovies({
     required String query,
     required int page,
-    bool? includeAdult,
-    String? language,
+    bool includeAdult = false,
+    String language = 'en-US',
     String? region,
     int? primaryReleaseYear,
     int? year,
@@ -51,13 +65,14 @@ class MovieAPI {
       queryParameters: {
         'query': query,
         'page': page,
-        'include_adult': includeAdult ?? false,
-        'language': language ?? 'en-US',
+        'include_adult': includeAdult,
+        'language': language,
         'region': region,
         'primary_release_year': primaryReleaseYear,
         'year': year,
       },
     );
-    return SearchMoviesResponse.fromJson(response.data);
+    // print(jsonEncode(response.data));
+    return MovieListResponse.fromJson(response.data);
   }
 }
