@@ -61,17 +61,21 @@ class _SearchMovieScreenState extends ConsumerState<SearchMovieScreen> {
         ),
         body: Stack(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 16,
-                children: [
-                  MovieSearchBar(),
-                  Expanded(
-                    child: MovieResultList(scrollController: scrollController),
-                  ),
-                ],
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 16,
+                  children: [
+                    MovieSearchBar(),
+                    Expanded(
+                      child: MovieResultList(
+                        scrollController: scrollController,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             Positioned(
