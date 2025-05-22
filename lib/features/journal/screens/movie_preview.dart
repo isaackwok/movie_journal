@@ -22,10 +22,16 @@ class MoviePreviewScreen extends StatelessWidget {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          'https://image.tmdb.org/t/p/w500/${movie.posterPath}',
-                          fit: BoxFit.cover,
-                        ),
+                        child:
+                            movie.backdropPath != null
+                                ? Image.network(
+                                  'https://image.tmdb.org/t/p/w500/${movie.posterPath}',
+                                  fit: BoxFit.cover,
+                                )
+                                : Image.asset(
+                                  'assets/images/avatar.png',
+                                  fit: BoxFit.cover,
+                                ),
                       ),
                       const SizedBox(height: 24),
                       Padding(
