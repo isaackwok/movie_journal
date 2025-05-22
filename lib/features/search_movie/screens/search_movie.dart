@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:movie_journal/features/search_movie/movie_providers.dart';
+import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/search_movie/widgets/movie_result_list.dart';
 import 'package:movie_journal/features/search_movie/widgets/movie_search_bar.dart';
 
@@ -18,11 +18,11 @@ class _SearchMovieScreenState extends ConsumerState<SearchMovieScreen> {
   void initState() {
     super.initState();
     scrollController.addListener(() {
-      final state = ref.read(movieControllerProvider);
+      final state = ref.read(searchMovieControllerProvider);
       if (scrollController.position.pixels >=
               scrollController.position.maxScrollExtent - 200 &&
           !state.isLoading) {
-        ref.read(movieControllerProvider.notifier).fetchNext();
+        ref.read(searchMovieControllerProvider.notifier).fetchNext();
       }
     });
   }

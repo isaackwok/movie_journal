@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:movie_journal/features/search_movie/movie_providers.dart';
+import 'package:movie_journal/features/movie/movie_providers.dart';
 
 class MovieSearchBar extends ConsumerStatefulWidget {
   const MovieSearchBar({super.key});
@@ -14,7 +14,7 @@ class _MovieSearchBarState extends ConsumerState<MovieSearchBar> {
 
   void _submit(String value) {
     FocusScope.of(context).unfocus();
-    ref.read(movieControllerProvider.notifier).search(value);
+    ref.read(searchMovieControllerProvider.notifier).search(value);
   }
 
   @override

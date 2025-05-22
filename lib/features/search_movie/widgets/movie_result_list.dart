@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:movie_journal/features/search_movie/data/models/brief_movie.dart';
-import 'package:movie_journal/features/search_movie/movie_providers.dart';
+import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
+import 'package:movie_journal/features/movie/movie_providers.dart';
 
 class MovieResultList extends ConsumerWidget {
   final ScrollController scrollController;
@@ -10,7 +10,7 @@ class MovieResultList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(movieControllerProvider);
+    final state = ref.watch(searchMovieControllerProvider);
     return ListView.separated(
       controller: scrollController,
       itemCount: state.movies.length + (state.isLoading ? 1 : 0),
@@ -35,9 +35,7 @@ class MovieResultList extends ConsumerWidget {
         }
         return Padding(
           padding: EdgeInsets.all(16),
-          child: Center(
-            child: CircularProgressIndicator(color: Color(0xFFFCA311)),
-          ),
+          child: Center(child: CircularProgressIndicator()),
         );
       },
       separatorBuilder: (context, index) {
@@ -83,10 +81,15 @@ class MovieResultItem extends StatelessWidget {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.only(
+                  right: 16,
+                  top: 2.5,
+                  bottom: 2.5,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 4,
                   children: [
                     Text(
                       movie.title,

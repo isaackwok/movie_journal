@@ -31,6 +31,10 @@ class Themes {
       ),
     ),
 
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
+      color: _darkPrimary,
+    ),
+
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

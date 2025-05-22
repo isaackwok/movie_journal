@@ -1,5 +1,5 @@
 import 'package:movie_journal/core/network/tmdb_dio_client.dart';
-import 'package:movie_journal/features/search_movie/data/models/brief_movie.dart';
+import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
 
 typedef SearchMoviesParams =
     ({

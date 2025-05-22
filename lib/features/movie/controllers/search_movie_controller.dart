@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:movie_journal/features/search_movie/data/models/brief_movie.dart';
-import 'package:movie_journal/features/search_movie/data/repositories/movie_repository.dart';
+import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
+import 'package:movie_journal/features/movie/data/repositories/movie_repository.dart';
 
 class SearchMovieState {
   final List<BriefMovie> movies;
@@ -38,10 +38,10 @@ class SearchMovieState {
   }
 }
 
-class MovieController extends StateNotifier<SearchMovieState> {
+class SearchMovieController extends StateNotifier<SearchMovieState> {
   final MovieRepository repository;
 
-  MovieController(this.repository) : super(SearchMovieState());
+  SearchMovieController(this.repository) : super(SearchMovieState());
 
   Future<void> search(String query) async {
     state = SearchMovieState(query: query, isError: false);
