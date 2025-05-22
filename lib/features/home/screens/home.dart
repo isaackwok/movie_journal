@@ -22,7 +22,7 @@ class HomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Isaac K',
+                      'Jessie',
                       style: GoogleFonts.nothingYouCouldDo(
                         fontSize: 28,
                         fontWeight: FontWeight.w600,
