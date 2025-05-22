@@ -17,6 +17,7 @@ class EmptyPlaceholder extends StatelessWidget {
               Text(
                 'Your personal film archive starts here',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                textAlign: TextAlign.center,
               ),
               SizedBox(height: 4),
               SizedBox(
