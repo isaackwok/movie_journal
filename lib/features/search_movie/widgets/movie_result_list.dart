@@ -96,11 +96,7 @@ class MovieResultItem extends StatelessWidget {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(
-                  right: 16,
-                  top: 2.5,
-                  bottom: 2.5,
-                ),
+                padding: const EdgeInsets.only(right: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
