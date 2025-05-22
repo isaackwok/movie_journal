@@ -4,13 +4,14 @@ const Color _darkSurface = Color(0xFF161616);
 const Color _darkOnSurface = Colors.white;
 const Color _darkPrimary = Color(0xFFFCA311);
 const Color _darkOnPrimary = Colors.black;
+const String _defaultFontFamily = 'Inter';
 
 class Themes {
   static ThemeData dark = ThemeData(
     useMaterial3: true,
     scaffoldBackgroundColor: _darkSurface,
     primaryColor: _darkPrimary,
-    fontFamily: 'AvenirNext',
+    fontFamily: _defaultFontFamily,
 
     colorScheme: ColorScheme.fromSeed(
       seedColor: _darkOnSurface,
@@ -28,6 +29,7 @@ class Themes {
         fontWeight: FontWeight.w600,
         fontSize: 24,
         color: _darkOnSurface,
+        fontFamily: 'AvenirNext',
       ),
     ),
 
@@ -45,7 +47,11 @@ class Themes {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         backgroundColor: _darkPrimary,
         foregroundColor: _darkOnPrimary,
-        textStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+        textStyle: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+          fontFamily: 'AvenirNext',
+        ),
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
     ),
@@ -57,6 +63,6 @@ class Themes {
       brightness: Brightness.light,
     ),
     scaffoldBackgroundColor: Colors.white,
-    fontFamily: 'AvenirNext',
+    fontFamily: _defaultFontFamily,
   );
 }

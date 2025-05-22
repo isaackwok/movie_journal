@@ -16,7 +16,11 @@ class EmptyPlaceholder extends StatelessWidget {
               SizedBox(height: 16),
               Text(
                 'Your personal film archive starts here',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'AvenirNext',
+                ),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 4),
@@ -24,7 +28,11 @@ class EmptyPlaceholder extends StatelessWidget {
                 width: 288,
                 child: Text(
                   'Add your first movie to keep your memories going.',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    fontFamily: 'AvenirNext',
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),

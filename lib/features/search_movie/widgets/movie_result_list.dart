@@ -21,11 +21,7 @@ class MovieResultList extends ConsumerWidget {
         if (state.mode == SearchMovieMode.popular && index == 0) {
           return Text(
             'People watched',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Inter',
-            ),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
           );
         }
         if (index < state.movies.length) {
