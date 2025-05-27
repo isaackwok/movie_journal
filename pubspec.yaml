@@ -39,6 +39,7 @@ dependencies:
   dio: ^5.8.0+1
   flutter_dotenv: ^5.2.1
   flutter_riverpod: ^2.6.1
+  skeletonizer: ^2.0.1
 
 dev_dependencies:
   flutter_test:

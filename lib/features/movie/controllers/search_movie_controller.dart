@@ -50,6 +50,11 @@ class SearchMovieState {
   }
 }
 
+bool movieIntegrityChecker(BriefMovie movie) =>
+    movie.posterPath != null &&
+    movie.overview.isNotEmpty &&
+    movie.title.isNotEmpty;
+
 class SearchMovieController extends StateNotifier<SearchMovieState> {
   final MovieRepository repository;
 
@@ -72,18 +77,19 @@ class SearchMovieController extends StateNotifier<SearchMovieState> {
       if (state.query.isEmpty) {
         result = await repository.popular(page: state.page);
       } else {
-        print('currentPage: ${state.page}');
         result = await repository.search(query: state.query, page: state.page);
       }
       state = state.copyWith(
-        movies: [...state.movies, ...result.results],
+        movies: [
+          ...state.movies,
+          ...result.results.where(movieIntegrityChecker),
+        ],
         page: state.page + 1,
         hasMore: result.page < result.totalPages,
         isLoading: false,
         isError: false,
       );
     } catch (e) {
-      print(e);
       state = state.copyWith(isLoading: false, isError: true);
     }
   }

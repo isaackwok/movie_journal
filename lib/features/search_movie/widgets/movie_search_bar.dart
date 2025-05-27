@@ -11,6 +11,7 @@ class MovieSearchBar extends ConsumerStatefulWidget {
 
 class _MovieSearchBarState extends ConsumerState<MovieSearchBar> {
   final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
 
   void _submit(String value) {
     FocusScope.of(context).unfocus();
@@ -22,11 +23,12 @@ class _MovieSearchBarState extends ConsumerState<MovieSearchBar> {
     return SearchBar(
       keyboardType: TextInputType.text,
       controller: _controller,
+      focusNode: _focusNode,
       hintText: 'Search movie',
       textInputAction: TextInputAction.search,
       hintStyle: WidgetStateProperty.all(
         TextStyle(
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           color: Color(0xFFA0A0A0),
           fontSize: 16,
         ),
@@ -38,15 +40,18 @@ class _MovieSearchBarState extends ConsumerState<MovieSearchBar> {
           fontSize: 16,
         ),
       ),
+      side: WidgetStateProperty.all(
+        BorderSide(color: Colors.white.withAlpha(77), width: 1),
+      ),
       shadowColor: WidgetStateProperty.all(Colors.transparent),
-      backgroundColor: WidgetStateProperty.all(Colors.white.withAlpha(38)),
+      backgroundColor: WidgetStateProperty.all(Colors.transparent),
       padding: WidgetStateProperty.all(
         const EdgeInsets.symmetric(horizontal: 12),
       ),
-      constraints: const BoxConstraints(maxHeight: 44),
-      onChanged: (value) {},
+      constraints: const BoxConstraints(maxHeight: 44, minHeight: 44),
       onSubmitted: _submit,
       trailing: [
+        // TODO: Add clear button when focus and text is not empty
         IconButton(
           onPressed: () {
             _submit(_controller.text);

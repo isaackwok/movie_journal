@@ -1,5 +1,6 @@
 import 'package:movie_journal/core/network/tmdb_dio_client.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
+import 'package:movie_journal/features/movie/data/models/detailed_movie.dart';
 
 typedef SearchMoviesParams =
     ({
@@ -70,7 +71,18 @@ class MovieAPI {
         'year': year,
       },
     );
-    // print(jsonEncode(response.data));
     return MovieListResponse.fromJson(response.data);
+  }
+
+  Future<DetailedMovie> getMovieDetails({
+    required int id,
+    String language = 'en-US',
+  }) async {
+    final response = await TmdbDioClient.get(
+      '/movie/$id',
+      queryParameters: {'language': language, 'append_to_response': 'credits'},
+    );
+    final data = DetailedMovie.fromJson(response.data);
+    return data;
   }
 }

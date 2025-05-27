@@ -4,6 +4,7 @@ import 'package:movie_journal/features/journal/screens/movie_preview.dart';
 import 'package:movie_journal/features/movie/controllers/search_movie_controller.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class MovieResultList extends ConsumerWidget {
   final ScrollController scrollController;
@@ -54,22 +55,28 @@ class MovieResultList extends ConsumerWidget {
   }
 }
 
-class MovieResultItem extends StatelessWidget {
+class MovieResultItem extends ConsumerWidget {
   const MovieResultItem({super.key, required this.movie});
 
   final BriefMovie movie;
 
+  void _onTap(BuildContext context, WidgetRef ref) {
+    ref
+        .read(movieDetailControllerProvider.notifier)
+        .fetchMovieDetails(movie.id);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MoviePreviewScreen(movieId: movie.id),
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MoviePreviewScreen(movie: movie),
-          ),
-        );
-        // TODO: Handle movie selection
+        _onTap(context, ref);
       },
       borderRadius: BorderRadius.circular(4),
       child: SizedBox(
@@ -103,7 +110,7 @@ class MovieResultItem extends StatelessWidget {
                   spacing: 4,
                   children: [
                     Text(
-                      movie.title,
+                      '${movie.title}${movie.originalTitle.isNotEmpty && movie.originalTitle != movie.title ? ' (${movie.originalTitle})' : ''}',
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 16,
