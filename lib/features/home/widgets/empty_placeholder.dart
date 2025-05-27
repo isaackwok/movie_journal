@@ -25,7 +25,7 @@ class EmptyPlaceholder extends StatelessWidget {
                   width: 180,
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 36),
               Text(
                 'Your personal film archive starts here',
                 style: TextStyle(
