@@ -130,10 +130,5 @@
 <path fill-rule="evenodd" clip-rule="evenodd" d="M170.399 158.664C169.679 158.622 168.671 158.425 169.761 157.915C170.453 157.591 171.482 157.568 172.212 157.701C172.716 157.793 173.471 158.21 172.703 158.751C172.253 159.068 170.946 158.679 170.399 158.664Z" fill="black"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M169.593 159.969C169.384 159.945 169.176 159.922 168.969 159.899C169.136 159.596 169.62 159.532 169.593 159.969Z" fill="black"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M170.531 158.633C170.74 158.637 170.949 158.642 171.156 158.647C170.947 158.642 170.739 158.637 170.531 158.633Z" fill="black"/>
-<defs>
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-<feGaussianBlur stdDeviation="10" result="effect1_foregroundBlur_1603_16582"/>
-</filter>
-</defs>
+
 </svg>

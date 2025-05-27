@@ -31,9 +31,9 @@ class HomeScreen extends StatelessWidget {
                     ),
                     Text(
                       '0 movie journals',
-                      style: GoogleFonts.nothingYouCouldDo(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
