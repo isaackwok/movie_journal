@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:movie_journal/features/search_movie/screens/search_movie.dart';
 
 class EmptyPlaceholder extends StatelessWidget {
@@ -11,8 +12,19 @@ class EmptyPlaceholder extends StatelessWidget {
         return Center(
           child: Column(
             children: [
-              SizedBox(height: constraints.maxHeight * 0.3),
-              Text('📝', style: TextStyle(fontSize: 24)),
+              SizedBox(height: constraints.maxHeight * 0.15),
+              Container(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: Color(0xFFFCBF49), blurRadius: 10),
+                  ],
+                ),
+                child: SvgPicture.asset(
+                  'assets/images/empty_placeholder.svg',
+                  width: 180,
+                ),
+              ),
               SizedBox(height: 16),
               Text(
                 'Your personal film archive starts here',
@@ -37,7 +49,21 @@ class EmptyPlaceholder extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 24),
-              TextButton(
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                  overlayColor: Color(0xFFFCA311),
+                  backgroundColor: Colors.transparent,
+                  side: BorderSide(color: Color(0xFFFCA311), width: 1),
+                ),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -46,7 +72,7 @@ class EmptyPlaceholder extends StatelessWidget {
                     ),
                   );
                 },
-                child: Text('Add Movie'),
+                child: Text('Add Movie', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),

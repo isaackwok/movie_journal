@@ -89,7 +89,7 @@ class MoviePreviewScreen extends ConsumerWidget {
                                 ),
                               ),
                               Text(
-                                '${movie.credits.crew.where((e) => e.job == 'Director').first.name} / ${movie.year} ${movie.originCountry.first}',
+                                '${movie.credits.crew.where((e) => e.job == 'Director').firstOrNull?.name ?? 'Unknown'} / ${movie.year} ${movie.originCountry.isNotEmpty ? movie.originCountry.first : ''}',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,

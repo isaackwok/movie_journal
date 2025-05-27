@@ -4,7 +4,6 @@ import 'package:movie_journal/features/journal/screens/movie_preview.dart';
 import 'package:movie_journal/features/movie/controllers/search_movie_controller.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 class MovieResultList extends ConsumerWidget {
   final ScrollController scrollController;
@@ -64,12 +63,14 @@ class MovieResultItem extends ConsumerWidget {
     ref
         .read(movieDetailControllerProvider.notifier)
         .fetchMovieDetails(movie.id);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MoviePreviewScreen(movieId: movie.id),
-      ),
-    );
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MoviePreviewScreen(movieId: movie.id),
+        ),
+      );
+    }
   }
 
   @override
