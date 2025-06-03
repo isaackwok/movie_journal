@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class ProductionCompany {
   final int id;
   final String? logoPath;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/features/journal/screens/journaling.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -140,7 +141,28 @@ class MoviePreviewScreen extends ConsumerWidget {
           clipBehavior: Clip.antiAliasWithSaveLayer,
           shadowColor: Colors.black26,
           child: TextButton(
-            onPressed: () {},
+            style: TextButton.styleFrom(
+              backgroundColor: Color(0xFFD5FC11),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            onPressed: () {
+              if (movie.posterPath != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => JournalingScreen(
+                          movieTitle: movie.title,
+                          moviePosterUrl: movie.posterPath!,
+                        ),
+                  ),
+                );
+              }
+            },
             child: const Text('Start Journaling'),
           ),
         ),
