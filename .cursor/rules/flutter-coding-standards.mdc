@@ -1,0 +1,54 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Flutter Coding Standards
+
+## Widget Development
+- Always use `StatelessWidget` when possible, prefer functional widgets
+- Use `const` constructors whenever possible for performance
+- Follow the single responsibility principle - one widget, one purpose
+- Use descriptive widget names that clearly indicate their purpose
+
+## File Organization
+- Each feature should be self-contained in its own directory under `lib/features/`
+- Within each feature, organize files as:
+  ```
+  feature_name/
+  ├── models/          # Data models
+  ├── providers/       # Riverpod providers
+  ├── screens/         # Screen widgets
+  ├── widgets/         # Feature-specific widgets
+  └── services/        # Feature-specific services
+  ```
+
+## State Management with Riverpod
+- Use appropriate provider types:
+  - `Provider` for simple computed values
+  - `StateProvider` for simple state
+  - `FutureProvider` for async operations
+  - `StreamProvider` for reactive data
+  - `NotifierProvider` for complex state logic
+- Keep providers close to where they're used (feature-specific)
+- Use `ref.watch()` in widgets and `ref.read()` in event handlers
+
+## Naming Conventions
+- Use PascalCase for classes and widgets: `MovieDetailScreen`
+- Use camelCase for variables and functions: `fetchMovieDetails`
+- Use snake_case for file names: `movie_detail_screen.dart`
+- Suffix screen widgets with "Screen": `HomeScreen`
+- Suffix custom widgets with descriptive names: `MovieCard`, `SearchBar`
+
+## Error Handling
+- Always handle errors in async operations
+- Use try-catch blocks for network requests
+- Provide meaningful error messages to users
+- Use Riverpod's `AsyncValue` for handling loading/error states
+
+## Performance
+- Use `const` constructors liberally
+- Avoid rebuilding widgets unnecessarily
+- Use `ListView.builder` for large lists
+- Optimize images and assets
+- Use `Skeletonizer` for loading states as configured in [pubspec.yaml](mdc:pubspec.yaml)

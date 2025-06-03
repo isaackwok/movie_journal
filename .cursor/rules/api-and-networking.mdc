@@ -1,0 +1,71 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# API and Networking Guidelines
+
+## Network Setup
+- All API clients should be created in `lib/core/network/`
+- Use **Dio** as the HTTP client (configured in [pubspec.yaml](mdc:pubspec.yaml))
+- Environment variables should be stored in [.env](mdc:.env) and loaded using `flutter_dotenv`
+- API keys and secrets must never be hardcoded
+
+## API Client Structure
+Create dedicated API clients for different services:
+```dart
+class MovieApiClient {
+  final Dio _dio;
+  final String _baseUrl;
+  final String _apiKey;
+
+  const MovieApiClient({
+    required Dio dio,
+    required String baseUrl,
+    required String apiKey,
+  }) : _dio = dio, _baseUrl = baseUrl, _apiKey = apiKey;
+}
+```
+
+## Movie Database Integration
+This app likely integrates with a movie database API (TMDB, OMDB, etc.):
+- Store API keys in environment variables
+- Implement proper error handling for API failures
+- Cache responses when appropriate
+- Handle rate limiting and request throttling
+
+## Data Models
+- Create strongly-typed data models for API responses
+- Use JSON serialization with code generation if needed
+- Keep models in feature-specific `models/` directories
+- Example: `lib/features/movie/models/movie.dart`
+
+## Riverpod Integration
+Use appropriate providers for network operations:
+```dart
+// For one-time API calls
+final movieProvider = FutureProvider.family<Movie, String>((ref, movieId) async {
+  final apiClient = ref.read(movieApiClientProvider);
+  return apiClient.fetchMovie(movieId);
+});
+
+// For search with auto-refresh
+final movieSearchProvider = StreamProvider.family<List<Movie>, String>((ref, query) {
+  final apiClient = ref.read(movieApiClientProvider);
+  return apiClient.searchMovies(query);
+});
+```
+
+## Error Handling
+- Wrap API calls in try-catch blocks
+- Use custom exception classes for different error types
+- Provide meaningful error messages to users
+- Handle network connectivity issues gracefully
+- Use `AsyncValue` for loading/error/data states in UI
+
+## Best Practices
+- Always validate API responses
+- Implement timeout configurations
+- Use appropriate HTTP status code handling
+- Log network requests in debug mode only
+- Implement retry logic for transient failures

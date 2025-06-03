@@ -1,0 +1,76 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# UI Design System
+
+## Theme Configuration
+- All theme definitions are centralized in [themes.dart](mdc:lib/themes.dart)
+- The app supports both light and dark themes as configured in [main.dart](mdc:lib/main.dart)
+- Default theme mode is set to dark theme
+
+## Typography
+- **Primary Font**: AvenirNext (custom font family loaded from `fonts/`)
+- Font weights available: 100, 200, 300, 400, 500, 700, 800
+- Use Google Fonts as fallback for additional typography needs
+- Reference: [pubspec.yaml](mdc:pubspec.yaml) font configuration
+
+## Color Scheme
+Follow Material Design 3 color scheme:
+- Use `Theme.of(context).colorScheme` for consistent colors
+- Primary colors for main actions and branding
+- Surface colors for cards and containers
+- Error colors for validation and error states
+
+## Component Patterns
+
+### Movie Cards
+Create consistent movie card components:
+- Movie poster image with proper aspect ratio
+- Title, year, and rating information
+- Consistent padding and spacing
+- Tap interactions for navigation
+
+### Loading States
+Use **Skeletonizer** package for loading states:
+- Wrap widgets with `Skeletonizer.zone()`
+- Use `Skeleton.leaf()` for individual loading elements
+- Consistent loading patterns across features
+
+### Navigation
+- Use Material Design navigation patterns
+- Consistent app bar styling
+- Proper back button handling
+- Hero animations for shared elements
+
+## Layout Guidelines
+- Use consistent padding: 16.0 for main content, 8.0 for compact spacing
+- Card elevation: 2.0 for subtle shadows, 4.0 for prominent cards
+- Border radius: 8.0 for subtle curves, 16.0 for prominent rounded corners
+
+## Responsive Design
+- Support both mobile and web (configured for 400px width on web)
+- Use MediaQuery for responsive breakpoints
+- Adapt layouts for different screen sizes
+- Test on various device orientations
+
+## Accessibility
+- Use semantic widgets and labels
+- Ensure sufficient color contrast
+- Provide alternative text for images
+- Support screen readers
+- Keyboard navigation support
+
+## Assets and Images
+- Store images in `assets/images/` directory
+- Use SVG icons with flutter_svg package
+- Optimize image sizes for performance
+- Provide multiple resolutions for different densities
+
+## Animation Guidelines
+- Use Material Design motion principles
+- Hero animations for shared elements between screens
+- Subtle micro-interactions for user feedback
+- Page transition animations
+- Loading state animations with Skeletonizer

@@ -1,0 +1,50 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Project Structure Guide
+
+## Overview
+This is a Flutter movie journal application that allows users to search, view, and journal about movies.
+
+## Key Files and Architecture
+
+### Entry Point
+- [main.dart](mdc:lib/main.dart) - Application entry point with theme setup and provider scope
+- [themes.dart](mdc:lib/themes.dart) - App-wide theme definitions
+
+### Core Architecture
+The app follows a feature-based architecture pattern:
+
+```
+lib/
+├── main.dart              # App entry point
+├── themes.dart           # Theme definitions
+├── core/                 # Shared utilities and services
+│   └── network/         # Network layer and API clients
+└── features/            # Feature modules
+    ├── home/           # Home screen and navigation
+    ├── movie/          # Movie details and display
+    ├── search_movie/   # Movie search functionality
+    └── journal/        # Journaling features
+```
+
+### Configuration
+- [pubspec.yaml](mdc:pubspec.yaml) - Dependencies and project configuration
+- [.env](mdc:.env) - Environment variables (API keys, etc.)
+
+### Assets
+- `assets/images/` - Image assets
+- `fonts/` - Custom AvenirNext font family
+
+## State Management
+The app uses **Riverpod** for state management. All providers should be defined in their respective feature modules.
+
+## Dependencies
+Key packages used:
+- `flutter_riverpod` - State management
+- `dio` - HTTP client for API calls
+- `google_fonts` - Typography
+- `flutter_dotenv` - Environment variables
+- `skeletonizer` - Loading states

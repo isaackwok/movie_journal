@@ -1,0 +1,93 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Feature Development Guide
+
+## Feature Structure
+Each feature should be self-contained in `lib/features/`. Current features include:
+- `home/` - Main navigation and dashboard
+- `movie/` - Movie details and information display
+- `search_movie/` - Movie search functionality  
+- `journal/` - User journaling and notes
+
+## Creating New Features
+When adding a new feature, create this directory structure:
+```
+lib/features/your_feature/
+├── models/              # Data models specific to this feature
+├── providers/           # Riverpod providers for state management
+├── screens/            # Main screen widgets
+├── widgets/            # Feature-specific UI components
+├── services/           # Business logic and external integrations
+└── utils/              # Helper functions and utilities
+```
+
+## Feature Integration Checklist
+
+### 1. Data Layer
+- [ ] Create data models in `models/`
+- [ ] Define API contracts if external data is needed
+- [ ] Implement repository pattern in `services/`
+- [ ] Add error handling and validation
+
+### 2. State Management
+- [ ] Create appropriate Riverpod providers in `providers/`
+- [ ] Use correct provider types (StateProvider, FutureProvider, etc.)
+- [ ] Handle loading, error, and success states
+- [ ] Implement proper provider disposal
+
+### 3. UI Components
+- [ ] Create screen widgets in `screens/`
+- [ ] Build reusable components in `widgets/`
+- [ ] Follow design system guidelines from [ui-design-system.mdc](mdc:.cursor/rules/ui-design-system.mdc)
+- [ ] Implement responsive design patterns
+
+### 4. Navigation
+- [ ] Add navigation routes to appropriate screens
+- [ ] Implement proper navigation flow
+- [ ] Add Hero animations for shared elements
+- [ ] Handle deep linking if needed
+
+### 5. Testing
+- [ ] Write unit tests for business logic
+- [ ] Create widget tests for UI components
+- [ ] Test integration with other features
+- [ ] Verify accessibility compliance
+
+## Movie Journal Specific Features
+
+### Movie-Related Features
+- Always include movie poster, title, year, and rating
+- Use consistent movie card components
+- Implement search with debouncing
+- Cache movie data for offline access
+- Handle API rate limits gracefully
+
+### Journal Features
+- Support rich text formatting for journal entries
+- Allow multiple journal entries per movie
+- Implement tags and categories for organization
+- Add date tracking for watch history
+- Support image attachments to journal entries
+
+### User Experience
+- Implement smooth loading states with Skeletonizer
+- Provide meaningful error messages
+- Add pull-to-refresh functionality
+- Support both light and dark themes
+- Ensure offline functionality where possible
+
+## Integration Points
+- Use shared providers from `core/` for cross-feature functionality
+- Leverage the network layer in `lib/core/network/` for API calls
+- Follow theming guidelines from [themes.dart](mdc:lib/themes.dart)
+- Maintain consistency with existing navigation patterns
+
+## Performance Considerations
+- Lazy load large movie lists
+- Implement image caching for movie posters
+- Use const constructors for static widgets
+- Optimize provider rebuilds
+- Consider pagination for large datasets
