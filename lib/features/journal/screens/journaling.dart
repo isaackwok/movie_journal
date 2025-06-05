@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector.dart';
+import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
+import 'package:movie_journal/features/movie/movie_providers.dart';
 
 class SectionSeperator extends StatelessWidget {
   const SectionSeperator({super.key});
@@ -27,48 +29,46 @@ class JournalingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final movieId = ref.watch(movieDetailControllerProvider).movie?.id;
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        automaticallyImplyLeading: false,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 12,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 12,
-              children: [
-                Text(
-                  movieTitle,
-                  style: GoogleFonts.nothingYouCouldDo(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  Jiffy.now().format(pattern: 'MMM do yyyy'),
-                  style: GoogleFonts.nothingYouCouldDo(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white.withAlpha(179),
-                  ),
-                ),
-              ],
+            Text(
+              movieTitle,
+              style: GoogleFonts.nothingYouCouldDo(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.close),
-              color: Colors.white,
-              style: IconButton.styleFrom(
-                shape: CircleBorder(),
-                side: BorderSide(color: Colors.white.withAlpha(76)),
+            Text(
+              Jiffy.now().format(pattern: 'MMM do yyyy'),
+              style: GoogleFonts.nothingYouCouldDo(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.white.withAlpha(179),
               ),
             ),
           ],
         ),
-        automaticallyImplyLeading: false,
-        centerTitle: false,
+
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: const Icon(Icons.close),
+            color: Colors.white,
+            style: IconButton.styleFrom(
+              shape: CircleBorder(),
+              side: BorderSide(color: Colors.white.withAlpha(76)),
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -78,7 +78,7 @@ class JournalingScreen extends ConsumerWidget {
               const SectionSeperator(),
               EmotionsSelector(),
               const SectionSeperator(),
-              Placeholder(),
+              ScenesSelector(movieId: movieId ?? 0),
             ],
           ),
         ),

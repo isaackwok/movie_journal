@@ -1,5 +1,6 @@
 import 'package:movie_journal/features/movie/data/data_sources/movie_api.dart';
 import 'package:movie_journal/features/movie/data/models/detailed_movie.dart';
+import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 
 class MovieRepository {
   final MovieAPI api;
@@ -21,6 +22,18 @@ class MovieRepository {
 
   Future<DetailedMovie> getMovieDetails(int id) async {
     final data = await api.getMovieDetails(id: id);
+    return data;
+  }
+
+  Future<
+    ({
+      List<MovieImage> posters,
+      List<MovieImage> logos,
+      List<MovieImage> backdrops,
+    })
+  >
+  getMovieImages({required int id, String? language}) async {
+    final data = await api.getMovieImages(id: id, language: language);
     return data;
   }
 }

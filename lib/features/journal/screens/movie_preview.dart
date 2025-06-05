@@ -151,6 +151,9 @@ class MoviePreviewScreen extends ConsumerWidget {
             ),
             onPressed: () {
               if (movie.posterPath != null) {
+                ref
+                    .read(movieImagesControllerProvider.notifier)
+                    .getMovieImages(id: movieId);
                 Navigator.push(
                   context,
                   MaterialPageRoute(

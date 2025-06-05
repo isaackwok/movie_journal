@@ -1,6 +1,7 @@
 import 'package:movie_journal/core/network/tmdb_dio_client.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
 import 'package:movie_journal/features/movie/data/models/detailed_movie.dart';
+import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 
 typedef SearchMoviesParams =
     ({
@@ -84,5 +85,30 @@ class MovieAPI {
     );
     final data = DetailedMovie.fromJson(response.data);
     return data;
+  }
+
+  Future<
+    ({
+      List<MovieImage> posters,
+      List<MovieImage> logos,
+      List<MovieImage> backdrops,
+    })
+  >
+  getMovieImages({required int id, String? language}) async {
+    final response = await TmdbDioClient.get(
+      '/movie/$id/images',
+      queryParameters: language != null ? {'language': language} : null,
+    );
+    return (
+      posters: List<MovieImage>.from(
+        response.data['posters'].map((e) => MovieImage.fromJson(e)),
+      ),
+      logos: List<MovieImage>.from(
+        response.data['logos'].map((e) => MovieImage.fromJson(e)),
+      ),
+      backdrops: List<MovieImage>.from(
+        response.data['backdrops'].map((e) => MovieImage.fromJson(e)),
+      ),
+    );
   }
 }

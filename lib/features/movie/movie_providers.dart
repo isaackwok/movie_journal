@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/controllers/movie_detail_controller.dart';
+import 'package:movie_journal/features/movie/controllers/movie_images_controller.dart';
 import 'package:movie_journal/features/movie/controllers/search_movie_controller.dart';
 import 'package:movie_journal/features/movie/data/data_sources/movie_api.dart';
 import 'package:movie_journal/features/movie/data/repositories/movie_repository.dart';
@@ -18,4 +19,9 @@ final searchMovieControllerProvider =
 final movieDetailControllerProvider =
     StateNotifierProvider<MovieDetailController, MovieDetailState>(
       (ref) => MovieDetailController(ref.read(movieRepoProvider)),
+    );
+
+final movieImagesControllerProvider =
+    StateNotifierProvider<MovieImagesController, MovieImagesState>(
+      (ref) => MovieImagesController(ref.read(movieRepoProvider)),
     );
