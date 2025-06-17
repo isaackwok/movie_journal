@@ -113,42 +113,56 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
     final movieImages = ref.watch(movieImagesControllerProvider);
     final backdrops = movieImages.backdrops;
 
-    return movieImages.isError
-        ? const Center(child: Text('Error loading images'))
-        : Skeletonizer(
-          enabled: movieImages.isLoading,
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 16 / 9,
-              crossAxisSpacing: 4,
-              mainAxisSpacing: 4,
-              mainAxisExtent: 123,
-            ),
-            itemCount: 6,
-            itemBuilder: (context, index) {
-              if (index == 5) {
-                return SceneButton(
-                  imageUrl:
-                      'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
-                  isSelected: selectedScenes.contains(index),
-                  onTap: () {
-                    // TODO: Add a modal to select the scenes
-                  },
-                  overlay: '+${backdrops.length - 6}',
-                );
-              }
-
-              return SceneButton(
-                imageUrl:
-                    'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
-                isSelected: selectedScenes.contains(index),
-                onTap: () => _toggleScene(index),
-              );
-            },
+    return Column(
+      spacing: 16,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'What are the memorable scenes?',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            fontFamily: 'AvenirNext',
           ),
-        );
+        ),
+        movieImages.isError
+            ? const Center(child: Text('Error loading images'))
+            : Skeletonizer(
+              enabled: movieImages.isLoading,
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 16 / 9,
+                  crossAxisSpacing: 4,
+                  mainAxisSpacing: 4,
+                  mainAxisExtent: 123,
+                ),
+                itemCount: 6,
+                itemBuilder: (context, index) {
+                  if (index == 5) {
+                    return SceneButton(
+                      imageUrl:
+                          'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
+                      isSelected: selectedScenes.contains(index),
+                      onTap: () {
+                        // TODO: Add a modal to select the scenes
+                      },
+                      overlay: '+${backdrops.length - 6}',
+                    );
+                  }
+
+                  return SceneButton(
+                    imageUrl:
+                        'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
+                    isSelected: selectedScenes.contains(index),
+                    onTap: () => _toggleScene(index),
+                  );
+                },
+              ),
+            ),
+      ],
+    );
   }
 }
