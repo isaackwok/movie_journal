@@ -33,58 +33,104 @@ class JournalingScreen extends ConsumerWidget {
     final movieId = ref.watch(movieDetailControllerProvider).movie?.id;
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 12,
-          children: [
-            Text(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            pinned: true,
+            floating: true,
+            snap: true,
+            expandedHeight: 150,
+            automaticallyImplyLeading: false,
+            centerTitle: true,
+            title: Text(
               movieTitle,
-              style: GoogleFonts.nothingYouCouldDo(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w500,
+                fontFamily: 'AvenirNext',
               ),
             ),
-            Text(
-              Jiffy.now().format(pattern: 'MMM do yyyy'),
-              style: GoogleFonts.nothingYouCouldDo(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.white.withAlpha(179),
+            // title: Column(
+            //   crossAxisAlignment: CrossAxisAlignment.start,
+            //   spacing: 12,
+            //   children: [
+            //     Text(
+            //       movieTitle,
+            //       style: GoogleFonts.nothingYouCouldDo(
+            //         fontSize: 28,
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     ),
+            //     Text(
+            //       Jiffy.now().format(pattern: 'MMM do yyyy'),
+            //       style: GoogleFonts.nothingYouCouldDo(
+            //         fontSize: 12,
+            //         fontWeight: FontWeight.bold,
+            //         color: Colors.white.withAlpha(179),
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            leading: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.white,
+                size: 16,
+              ),
+              style: IconButton.styleFrom(
+                shape: CircleBorder(),
+                side: BorderSide(color: Color(0xFFA8DADD)),
+                alignment: Alignment.center,
               ),
             ),
-          ],
-        ),
-
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(Icons.close),
-            color: Colors.white,
-            style: IconButton.styleFrom(
-              shape: CircleBorder(),
-              side: BorderSide(color: Colors.white.withAlpha(76)),
+            actions: [
+              ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Color(0xFFA8DADD),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: Text(
+                  'Save',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
+              ),
+              // IconButton(
+              //   onPressed: () {
+              //     Navigator.pop(context);
+              //   },
+              //   icon: const Icon(Icons.close),
+              //   color: Colors.white,
+              //   style: IconButton.styleFrom(
+              //     shape: CircleBorder(),
+              //     side: BorderSide(color: Colors.white.withAlpha(76)),
+              //   ),
+              // ),
+            ],
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  const SectionSeperator(),
+                  EmotionsSelector(),
+                  const SectionSeperator(),
+                  ScenesSelector(movieId: movieId ?? 0),
+                  const SectionSeperator(),
+                  ThoughtsEditor(),
+                ],
+              ),
             ),
           ),
         ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SectionSeperator(),
-              EmotionsSelector(),
-              const SectionSeperator(),
-              ScenesSelector(movieId: movieId ?? 0),
-              const SectionSeperator(),
-              ThoughtsEditor(),
-            ],
-          ),
-        ),
       ),
     );
   }
