@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/home/widgets/add_movie_button.dart';
 import 'package:movie_journal/features/home/widgets/empty_placeholder.dart';
@@ -17,7 +18,12 @@ class HomeScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Image.asset('assets/images/avatar.png', width: 60, height: 60),
+                // Image.asset('assets/images/avatar.png', width: 60, height: 60),
+                SvgPicture.asset(
+                  'assets/images/avatar.svg',
+                  width: 60,
+                  height: 60,
+                ),
                 SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 
 class MovieSearchBar extends ConsumerStatefulWidget {
@@ -27,7 +28,7 @@ class _MovieSearchBarState extends ConsumerState<MovieSearchBar> {
       hintText: 'Search movie',
       textInputAction: TextInputAction.search,
       hintStyle: WidgetStateProperty.all(
-        TextStyle(
+        GoogleFonts.inter(
           fontWeight: FontWeight.w600,
           color: Color(0xFFA0A0A0),
           fontSize: 16,
@@ -51,13 +52,20 @@ class _MovieSearchBarState extends ConsumerState<MovieSearchBar> {
       constraints: const BoxConstraints(maxHeight: 44, minHeight: 44),
       onSubmitted: _submit,
       trailing: [
-        // TODO: Add clear button when focus and text is not empty
-        IconButton(
-          onPressed: () {
-            _submit(_controller.text);
-          },
-          icon: const Icon(Icons.search, size: 24, color: Colors.white),
-        ),
+        if (_focusNode.hasFocus && _controller.text.isNotEmpty)
+          IconButton(
+            onPressed: () {
+              _controller.clear();
+            },
+            icon: const Icon(Icons.close, size: 24, color: Colors.white),
+          )
+        else
+          IconButton(
+            onPressed: () {
+              _submit(_controller.text);
+            },
+            icon: const Icon(Icons.search, size: 24, color: Colors.white),
+          ),
       ],
     );
   }

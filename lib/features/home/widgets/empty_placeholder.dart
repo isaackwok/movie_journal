@@ -17,7 +17,7 @@ class EmptyPlaceholder extends StatelessWidget {
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   boxShadow: [
-                    BoxShadow(color: Color(0xFFFCBF49), blurRadius: 10),
+                    BoxShadow(color: Color(0xFFFFFFFF), blurRadius: 10),
                   ],
                 ),
                 child: SvgPicture.asset(
@@ -27,7 +27,7 @@ class EmptyPlaceholder extends StatelessWidget {
               ),
               SizedBox(height: 36),
               Text(
-                'Your personal film archive starts here',
+                'Your movie journal starts here',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -39,7 +39,7 @@ class EmptyPlaceholder extends StatelessWidget {
               SizedBox(
                 width: 288,
                 child: Text(
-                  'Add your first movie to keep your memories going.',
+                  'Add your first movie to keep your memories going',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
@@ -51,18 +51,21 @@ class EmptyPlaceholder extends StatelessWidget {
               SizedBox(height: 24),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
-                    vertical: 12,
+                    vertical: 16,
                   ),
                   textStyle: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
-                  overlayColor: Color(0xFFFCA311),
+                  overlayColor: Color(0xFFA8DADD),
                   backgroundColor: Colors.transparent,
-                  side: BorderSide(color: Color(0xFFFCA311), width: 1),
+                  side: BorderSide(color: Color(0xFFA8DADD), width: 1),
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -72,7 +75,13 @@ class EmptyPlaceholder extends StatelessWidget {
                     ),
                   );
                 },
-                child: Text('Add Movie', style: TextStyle(color: Colors.white)),
+                child: Text(
+                  'Add Movie',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'AvenirNext',
+                  ),
+                ),
               ),
             ],
           ),
