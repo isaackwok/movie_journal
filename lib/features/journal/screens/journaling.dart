@@ -72,14 +72,10 @@ class JournalingScreen extends ConsumerWidget {
             //   ],
             // ),
             leading: IconButton(
-              onPressed:
-                  journal.emotion.isEmpty && journal.selectedScenes.isEmpty ||
-                          journal.thoughts.isEmpty
-                      ? null
-                      : () {
-                        Navigator.pop(context);
-                        ref.read(journalControllerProvider.notifier).clear();
-                      },
+              onPressed: () {
+                Navigator.pop(context);
+                ref.read(journalControllerProvider.notifier).clear();
+              },
               icon: Icon(
                 Icons.arrow_back_ios_new,
                 color: Colors.white,
@@ -94,21 +90,26 @@ class JournalingScreen extends ConsumerWidget {
             ),
             actions: [
               ElevatedButton(
-                onPressed: () {
-                  // TODO: Save journal
-                  // TODO: Show success toast message
-                  // TODO: Navigate to journal screen
+                onPressed:
+                    journal.emotion.isEmpty && journal.selectedScenes.isEmpty ||
+                            journal.thoughts.isEmpty
+                        ? null
+                        : () {
+                          ref.read(journalControllerProvider.notifier).save();
+                          // TODO: Save journal
+                          // TODO: Show success toast message
+                          // TODO: Navigate to journal screen
 
-                  // Fluttertoast.showToast(
-                  //   msg: 'Your journal has been saved',
-                  //   toastLength: Toast.LENGTH_SHORT,
-                  //   gravity: ToastGravity.BOTTOM,
-                  //   timeInSecForIosWeb: 1,
-                  //   backgroundColor: Colors.black,
-                  //   textColor: Colors.white,
-                  //   fontSize: 16,
-                  // );
-                },
+                          // Fluttertoast.showToast(
+                          //   msg: 'Your journal has been saved',
+                          //   toastLength: Toast.LENGTH_SHORT,
+                          //   gravity: ToastGravity.BOTTOM,
+                          //   timeInSecForIosWeb: 1,
+                          //   backgroundColor: Colors.black,
+                          //   textColor: Colors.white,
+                          //   fontSize: 16,
+                          // );
+                        },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   foregroundColor: Color(0xFFA8DADD),
