@@ -39,14 +39,6 @@ class JournalState {
 class JournalController extends StateNotifier<JournalState> {
   JournalController() : super(JournalState());
 
-  bool get isReadyToSave => _isReadyToSave();
-
-  bool _isReadyToSave() {
-    return state.emotion.isNotEmpty ||
-        state.selectedScenes.isNotEmpty ||
-        state.thoughts.isNotEmpty;
-  }
-
   void setMovieTitle(String title) {
     state = state.copyWith(movieTitle: title);
   }

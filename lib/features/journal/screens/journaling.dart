@@ -32,6 +32,7 @@ class JournalingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final movieId = ref.watch(movieDetailControllerProvider).movie?.id;
+    final journal = ref.watch(journalControllerProvider);
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: CustomScrollView(
@@ -73,15 +74,20 @@ class JournalingScreen extends ConsumerWidget {
             //   ],
             // ),
             leading: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ref.read(journalControllerProvider.notifier).clear();
-              },
+              onPressed:
+                  journal.emotion.isEmpty && journal.selectedScenes.isEmpty ||
+                          journal.thoughts.isEmpty
+                      ? null
+                      : () {
+                        Navigator.pop(context);
+                        ref.read(journalControllerProvider.notifier).clear();
+                      },
               icon: Icon(
                 Icons.arrow_back_ios_new,
                 color: Colors.white,
                 size: 16,
               ),
+              disabledColor: Colors.white.withAlpha(76),
               style: IconButton.styleFrom(
                 shape: CircleBorder(),
                 side: BorderSide(color: Color(0xFFA8DADD)),

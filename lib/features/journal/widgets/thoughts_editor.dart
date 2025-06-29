@@ -175,6 +175,7 @@ class _ThoughtsEditorState extends ConsumerState<ThoughtsEditor> {
             fillColor: Colors.transparent,
           ),
         ),
+        SizedBox(height: 200),
       ],
     );
   }
