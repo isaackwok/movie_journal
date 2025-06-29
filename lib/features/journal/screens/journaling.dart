@@ -5,6 +5,7 @@ import 'package:movie_journal/features/journal/widgets/emotions_selector.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
 import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
+import 'package:movie_journal/features/quesgen/provider.dart';
 
 class SectionSeperator extends StatelessWidget {
   const SectionSeperator({super.key});
@@ -75,6 +76,7 @@ class JournalingScreen extends ConsumerWidget {
               onPressed: () {
                 Navigator.pop(context);
                 ref.read(journalControllerProvider.notifier).clear();
+                ref.read(quesgenControllerProvider.notifier).clear();
               },
               icon: Icon(
                 Icons.arrow_back_ios_new,
