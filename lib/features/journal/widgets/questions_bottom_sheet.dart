@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_journal/features/movie/movie_providers.dart';
+import 'package:movie_journal/features/quesgen/provider.dart';
 
 class QuestionItem extends StatelessWidget {
   const QuestionItem({
@@ -50,11 +53,15 @@ class QuestionItem extends StatelessWidget {
   }
 }
 
-class QuestionsBottomSheet extends StatelessWidget {
+class QuestionsBottomSheet extends ConsumerWidget {
   const QuestionsBottomSheet({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final quesgenState = ref.watch(quesgenControllerProvider);
+    final questions = quesgenState.questions ?? [];
+    final isLoading = quesgenState.isLoading;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -87,30 +94,53 @@ class QuestionsBottomSheet extends StatelessWidget {
           Column(
             spacing: 12,
             children: [
-              QuestionItem(
-                question:
-                    'What did you think about the relationship between the parents and A-Ho?',
-                isSelected: false,
-                onSelect: () {},
-              ),
-              QuestionItem(
-                question:
-                    'What did you think about the relationship between the parents and A-Ho?',
-                isSelected: false,
-                onSelect: () {},
-              ),
-              QuestionItem(
-                question:
-                    'What did you think about the relationship between the parents and A-Ho?',
-                isSelected: false,
-                onSelect: () {},
-              ),
+              ...isLoading
+                  ? [
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFA8DADD),
+                        ),
+                      ),
+                    ),
+                  ]
+                  : questions.isNotEmpty
+                  ? questions.map(
+                    (question) => QuestionItem(
+                      question: question,
+                      isSelected: false,
+                      onSelect: () {},
+                    ),
+                  )
+                  : [
+                    Text(
+                      'No questions generated',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
             ],
           ),
           SizedBox(height: 16),
           ElevatedButton.icon(
             icon: Icon(Icons.swap_horiz),
-            onPressed: () {},
+            onPressed: () {
+              final movie = ref.read(movieDetailControllerProvider).movie;
+              if (movie != null) {
+                ref
+                    .read(quesgenControllerProvider.notifier)
+                    .generateQuestions(
+                      name: movie.title,
+                      year: movie.year,
+                      overview: movie.overview,
+                      genres: movie.genres.map((e) => e.name).toList(),
+                      runtime: movie.runtime,
+                    );
+              }
+            },
             style: ElevatedButton.styleFrom(
               iconSize: 20,
               shape: RoundedRectangleBorder(

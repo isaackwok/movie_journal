@@ -1,21 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/widgets/questions_bottom_sheet.dart';
+import 'package:movie_journal/features/movie/movie_providers.dart';
+import 'package:movie_journal/features/quesgen/provider.dart';
 
-class ThoughtsEditor extends StatefulWidget {
-  const ThoughtsEditor({super.key});
+class ThoughtsEditor extends ConsumerWidget {
+  ThoughtsEditor({super.key});
+
+  final TextEditingController _controller = TextEditingController();
+
+  void _onButtonPressed(BuildContext context, WidgetRef ref) {
+    final movie = ref.read(movieDetailControllerProvider).movie;
+    if (movie != null) {
+      ref
+          .read(quesgenControllerProvider.notifier)
+          .generateQuestions(
+            name: movie.title,
+            year: movie.year,
+            overview: movie.overview,
+            genres: movie.genres.map((e) => e.name).toList(),
+            runtime: movie.runtime,
+          );
+    }
+    if (context.mounted) {
+      showModalBottomSheet(
+        showDragHandle: true,
+        isScrollControlled: true,
+        context: context,
+        builder: (context) => Wrap(children: [QuestionsBottomSheet()]),
+      );
+    }
+  }
 
   @override
-  State<ThoughtsEditor> createState() => _ThoughtsEditorState();
-}
-
-class _ThoughtsEditorState extends State<ThoughtsEditor> {
-  List<String> generatedQuestions = [];
-  List<String> selectedQuestions = [];
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -50,17 +69,11 @@ class _ThoughtsEditorState extends State<ThoughtsEditor> {
               backgroundColor: Colors.transparent,
               side: BorderSide(color: Color(0xFFA8DADD), width: 1),
             ),
-            onPressed: () {
-              showModalBottomSheet(
-                showDragHandle: true,
-                isScrollControlled: true,
-                context: context,
-                builder: (context) => Wrap(children: [QuestionsBottomSheet()]),
-              );
-            },
+            onPressed: () => _onButtonPressed(context, ref),
           ),
         ),
         TextField(
+          controller: _controller,
           maxLines: 10,
           style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400),
           decoration: InputDecoration(
