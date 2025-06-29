@@ -91,7 +91,8 @@ class JournalingScreen extends ConsumerWidget {
             actions: [
               ElevatedButton(
                 onPressed:
-                    journal.emotion.isEmpty && journal.selectedScenes.isEmpty ||
+                    journal.emotion.isEmpty &&
+                            journal.selectedScenes.isEmpty &&
                             journal.thoughts.isEmpty
                         ? null
                         : () {
