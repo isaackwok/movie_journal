@@ -59,7 +59,7 @@ class QuestionsBottomSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final quesgenState = ref.watch(quesgenControllerProvider);
-    final questions = quesgenState.questions ?? [];
+    final questions = quesgenState.questions;
     final isLoading = quesgenState.isLoading;
 
     return Container(
@@ -127,21 +127,26 @@ class QuestionsBottomSheet extends ConsumerWidget {
           SizedBox(height: 16),
           ElevatedButton.icon(
             icon: Icon(Icons.swap_horiz),
-            onPressed: () {
-              final movie = ref.read(movieDetailControllerProvider).movie;
-              if (movie != null) {
-                ref
-                    .read(quesgenControllerProvider.notifier)
-                    .generateQuestions(
-                      name: movie.title,
-                      year: movie.year,
-                      overview: movie.overview,
-                      genres: movie.genres.map((e) => e.name).toList(),
-                      runtime: movie.runtime,
-                    );
-              }
-            },
+            onPressed:
+                isLoading
+                    ? null
+                    : () {
+                      final movie =
+                          ref.read(movieDetailControllerProvider).movie;
+                      if (movie != null) {
+                        ref
+                            .read(quesgenControllerProvider.notifier)
+                            .generateQuestions(
+                              name: movie.title,
+                              year: movie.year,
+                              overview: movie.overview,
+                              genres: movie.genres.map((e) => e.name).toList(),
+                              runtime: movie.runtime,
+                            );
+                      }
+                    },
             style: ElevatedButton.styleFrom(
+              disabledBackgroundColor: Colors.transparent,
               iconSize: 20,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
