@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
+import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 
 class SectionSeperator extends StatelessWidget {
@@ -79,6 +80,8 @@ class JournalingScreen extends ConsumerWidget {
               EmotionsSelector(),
               const SectionSeperator(),
               ScenesSelector(movieId: movieId ?? 0),
+              const SectionSeperator(),
+              ThoughtsEditor(),
             ],
           ),
         ),

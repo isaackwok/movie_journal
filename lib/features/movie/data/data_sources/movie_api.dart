@@ -44,7 +44,7 @@ class MovieAPI {
     String language = 'en-US',
     String? region,
   }) async {
-    final response = await TmdbDioClient.get(
+    final response = await tmdbDioClient.get(
       '/movie/popular',
       queryParameters: {'page': page, 'language': language, 'region': region},
     );
@@ -60,7 +60,7 @@ class MovieAPI {
     int? primaryReleaseYear,
     int? year,
   }) async {
-    final response = await TmdbDioClient.get(
+    final response = await tmdbDioClient.get(
       '/search/movie',
       queryParameters: {
         'query': query,
@@ -79,7 +79,7 @@ class MovieAPI {
     required int id,
     String language = 'en-US',
   }) async {
-    final response = await TmdbDioClient.get(
+    final response = await tmdbDioClient.get(
       '/movie/$id',
       queryParameters: {'language': language, 'append_to_response': 'credits'},
     );
@@ -95,7 +95,7 @@ class MovieAPI {
     })
   >
   getMovieImages({required int id, String? language}) async {
-    final response = await TmdbDioClient.get(
+    final response = await tmdbDioClient.get(
       '/movie/$id/images',
       queryParameters: language != null ? {'language': language} : null,
     );

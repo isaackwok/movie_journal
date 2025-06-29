@@ -94,15 +94,15 @@ class _EmotionButtonState extends State<EmotionButton>
 class EmotionsSelector extends StatefulWidget {
   const EmotionsSelector({super.key});
   static const List<String> emotions = [
-    'joyful',
-    'exciting',
-    'funny',
-    'sad',
-    'boring',
-    'furious',
-    'terrified',
-    'confused',
-    'shocked',
+    'Joyful',
+    'Exciting',
+    'Funny',
+    'Sad',
+    'Boring',
+    'Furious',
+    'Terrified',
+    'Confused',
+    'Shocked',
   ];
 
   @override

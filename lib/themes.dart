@@ -55,6 +55,12 @@ class Themes {
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
     ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: _darkSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+    ),
   );
 
   static ThemeData light = ThemeData(
