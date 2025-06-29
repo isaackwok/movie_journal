@@ -94,38 +94,40 @@ class ScenesSelectSheet extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 16 / 9,
-          crossAxisSpacing: 4,
-          mainAxisSpacing: 4,
-          mainAxisExtent: 123,
-        ),
-        itemCount: backdrops.length,
-        itemBuilder: (context, index) {
-          final backdrop = backdrops[index];
+      body: SingleChildScrollView(
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 16 / 9,
+            crossAxisSpacing: 4,
+            mainAxisSpacing: 4,
+            mainAxisExtent: 123,
+          ),
+          itemCount: backdrops.length,
+          itemBuilder: (context, index) {
+            final backdrop = backdrops[index];
 
-          return SceneButton(
-            index: selectedScenes.indexOf(backdrop.filePath),
-            imageUrl:
-                'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
-            isSelected: selectedScenes.contains(backdrop.filePath),
-            onTap: () {
-              if (selectedScenes.contains(backdrop.filePath)) {
-                ref
-                    .read(journalControllerProvider.notifier)
-                    .removeScene(backdrop.filePath);
-              } else {
-                ref
-                    .read(journalControllerProvider.notifier)
-                    .addScene(backdrop.filePath);
-              }
-            },
-          );
-        },
+            return SceneButton(
+              index: selectedScenes.indexOf(backdrop.filePath),
+              imageUrl:
+                  'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
+              isSelected: selectedScenes.contains(backdrop.filePath),
+              onTap: () {
+                if (selectedScenes.contains(backdrop.filePath)) {
+                  ref
+                      .read(journalControllerProvider.notifier)
+                      .removeScene(backdrop.filePath);
+                } else {
+                  ref
+                      .read(journalControllerProvider.notifier)
+                      .addScene(backdrop.filePath);
+                }
+              },
+            );
+          },
+        ),
       ),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
