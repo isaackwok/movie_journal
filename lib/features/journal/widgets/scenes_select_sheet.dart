@@ -104,7 +104,7 @@ class ScenesSelectSheet extends ConsumerWidget {
           mainAxisSpacing: 4,
           mainAxisExtent: 123,
         ),
-        itemCount: 6,
+        itemCount: backdrops.length,
         itemBuilder: (context, index) {
           final backdrop = backdrops[index];
 
