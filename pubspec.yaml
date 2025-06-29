@@ -41,6 +41,7 @@ dependencies:
   flutter_riverpod: ^2.6.1
   skeletonizer: ^2.0.1
   jiffy: ^6.4.3
+  fluttertoast: ^8.2.12
 
 dev_dependencies:
   flutter_test:

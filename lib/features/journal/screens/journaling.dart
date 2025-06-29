@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
@@ -96,7 +94,21 @@ class JournalingScreen extends ConsumerWidget {
             ),
             actions: [
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // TODO: Save journal
+                  // TODO: Show success toast message
+                  // TODO: Navigate to journal screen
+
+                  // Fluttertoast.showToast(
+                  //   msg: 'Your journal has been saved',
+                  //   toastLength: Toast.LENGTH_SHORT,
+                  //   gravity: ToastGravity.BOTTOM,
+                  //   timeInSecForIosWeb: 1,
+                  //   backgroundColor: Colors.black,
+                  //   textColor: Colors.white,
+                  //   fontSize: 16,
+                  // );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   foregroundColor: Color(0xFFA8DADD),

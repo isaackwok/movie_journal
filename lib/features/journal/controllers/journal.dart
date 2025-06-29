@@ -93,6 +93,10 @@ class JournalController extends StateNotifier<JournalState> {
   void clear() {
     state = JournalState();
   }
+
+  void save() {
+    // TODO: Save to locao storage
+  }
 }
 
 final journalControllerProvider =
