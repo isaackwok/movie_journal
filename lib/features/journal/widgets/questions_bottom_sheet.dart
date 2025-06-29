@@ -41,10 +41,17 @@ class QuestionItem extends StatelessWidget {
           ),
           InkWell(
             onTap: onSelect,
-            child: Icon(
-              size: 16,
-              isSelected ? Icons.check_circle : Icons.add,
-              color: Colors.white,
+            child: Container(
+              padding: EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: isSelected ? Color(0xFFA8DADD) : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                size: 16,
+                isSelected ? Icons.check : Icons.add,
+                color: isSelected ? Colors.black : Colors.white,
+              ),
             ),
           ),
         ],
@@ -54,7 +61,13 @@ class QuestionItem extends StatelessWidget {
 }
 
 class QuestionsBottomSheet extends ConsumerWidget {
-  const QuestionsBottomSheet({super.key});
+  final List<String> selectedQuestions;
+  final Function(String) onSelectQuestion;
+  const QuestionsBottomSheet({
+    super.key,
+    required this.selectedQuestions,
+    required this.onSelectQuestion,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -109,8 +122,8 @@ class QuestionsBottomSheet extends ConsumerWidget {
                   ? questions.map(
                     (question) => QuestionItem(
                       question: question,
-                      isSelected: false,
-                      onSelect: () {},
+                      isSelected: selectedQuestions.contains(question),
+                      onSelect: () => onSelectQuestion(question),
                     ),
                   )
                   : [

@@ -5,12 +5,60 @@ import 'package:movie_journal/features/journal/widgets/questions_bottom_sheet.da
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
 
-class ThoughtsEditor extends ConsumerWidget {
-  ThoughtsEditor({super.key});
+class SelectedQuestionItem extends StatelessWidget {
+  const SelectedQuestionItem({
+    super.key,
+    required this.question,
+    required this.onRemove,
+  });
 
-  final TextEditingController _controller = TextEditingController();
+  final String question;
+  final VoidCallback onRemove;
 
-  void _onButtonPressed(BuildContext context, WidgetRef ref) {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(left: 16, right: 8, top: 12, bottom: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white.withAlpha(24),
+      ),
+      child: Row(
+        spacing: 8,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Flexible(
+            child: Text(
+              question,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: onRemove,
+            icon: Icon(size: 24, Icons.close, color: Color(0xFFA8DADD)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ThoughtsEditor extends ConsumerStatefulWidget {
+  const ThoughtsEditor({super.key});
+
+  @override
+  ConsumerState<ThoughtsEditor> createState() => _ThoughtsEditorState();
+}
+
+class _ThoughtsEditorState extends ConsumerState<ThoughtsEditor> {
+  final List<String> selectedQuestions = [];
+
+  void _onButtonPressed(BuildContext context) {
     final movie = ref.read(movieDetailControllerProvider).movie;
     if (movie != null) {
       ref
@@ -28,13 +76,34 @@ class ThoughtsEditor extends ConsumerWidget {
         showDragHandle: true,
         isScrollControlled: true,
         context: context,
-        builder: (context) => Wrap(children: [QuestionsBottomSheet()]),
+        builder:
+            (context) => StatefulBuilder(
+              builder:
+                  (context, setModalState) => Wrap(
+                    children: [
+                      QuestionsBottomSheet(
+                        selectedQuestions: selectedQuestions,
+                        onSelectQuestion: (question) {
+                          setState(() {
+                            if (selectedQuestions.contains(question)) {
+                              selectedQuestions.remove(question);
+                            } else {
+                              selectedQuestions.add(question);
+                            }
+                          });
+                          // Force the modal to rebuild
+                          setModalState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+            ),
       );
     }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Column(
       spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -69,11 +138,23 @@ class ThoughtsEditor extends ConsumerWidget {
               backgroundColor: Colors.transparent,
               side: BorderSide(color: Color(0xFFA8DADD), width: 1),
             ),
-            onPressed: () => _onButtonPressed(context, ref),
+            onPressed: () => _onButtonPressed(context),
           ),
         ),
+
+        if (selectedQuestions.isNotEmpty) ...[
+          ...selectedQuestions.map(
+            (question) => SelectedQuestionItem(
+              question: question,
+              onRemove: () {
+                setState(() {
+                  selectedQuestions.remove(question);
+                });
+              },
+            ),
+          ),
+        ],
         TextField(
-          controller: _controller,
           maxLines: 10,
           style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400),
           decoration: InputDecoration(
@@ -81,6 +162,7 @@ class ThoughtsEditor extends ConsumerWidget {
             hintStyle: GoogleFonts.nothingYouCouldDo(
               fontSize: 16,
               fontWeight: FontWeight.w700,
+              color: Colors.white.withAlpha(128),
             ),
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
