@@ -129,38 +129,93 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
             ? const Center(child: Text('Error loading images'))
             : Skeletonizer(
               enabled: movieImages.isLoading,
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 16 / 9,
-                  crossAxisSpacing: 4,
-                  mainAxisSpacing: 4,
-                  mainAxisExtent: 123,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: 215,
+                  maxHeight: 215,
                 ),
-                itemCount: 6,
-                itemBuilder: (context, index) {
-                  if (index == 5) {
-                    return SceneButton(
-                      imageUrl:
-                          'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
-                      isSelected: selectedScenes.contains(index),
-                      onTap: () {
-                        // TODO: Add a modal to select the scenes
-                      },
-                      overlay: '+${backdrops.length - 6}',
-                    );
-                  }
-
-                  return SceneButton(
-                    imageUrl:
-                        'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
-                    isSelected: selectedScenes.contains(index),
-                    onTap: () => _toggleScene(index),
-                  );
-                },
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.network(
+                        'https://image.tmdb.org/t/p/w500${backdrops[0].filePath}',
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Text('Error loading image'),
+                          );
+                        },
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withAlpha(102),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                // TODO: Add a modal to select the scenes
+                              },
+                              // borderRadius: BorderRadius.circular(8),
+                              child: Center(
+                                child: Text(
+                                  "+  Add Scenes",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'AvenirNext',
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              // child: GridView.builder(
+              //   shrinkWrap: true,
+              //   physics: const NeverScrollableScrollPhysics(),
+              //   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              //     crossAxisCount: 2,
+              //     childAspectRatio: 16 / 9,
+              //     crossAxisSpacing: 4,
+              //     mainAxisSpacing: 4,
+              //     mainAxisExtent: 123,
+              //   ),
+              //   itemCount: 6,
+              //   itemBuilder: (context, index) {
+              //     if (index == 5) {
+              //       return SceneButton(
+              //         imageUrl:
+              //             'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
+              //         isSelected: selectedScenes.contains(index),
+              //         onTap: () {
+              //           // TODO: Add a modal to select the scenes
+              //         },
+              //         overlay: '+${backdrops.length - 6}',
+              //       );
+              //     }
+
+              //     return SceneButton(
+              //       imageUrl:
+              //           'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
+              //       isSelected: selectedScenes.contains(index),
+              //       onTap: () => _toggleScene(index),
+              //     );
+              //   },
+              // ),
             ),
       ],
     );
