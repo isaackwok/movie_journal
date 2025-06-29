@@ -59,21 +59,52 @@ class MoviePreviewScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Skeleton.replace(
-                            height: 492,
-                            child:
-                                movie.posterPath != null
-                                    ? Image.network(
-                                      'https://image.tmdb.org/t/p/w500${movie.posterPath}',
-                                      fit: BoxFit.cover,
-                                    )
-                                    : Image.asset(
-                                      'assets/images/avatar.png',
-                                      fit: BoxFit.cover,
-                                    ),
-                          ),
+                        Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Skeleton.replace(
+                                height: 492,
+                                width: double.infinity,
+                                child:
+                                    movie.posterPath != null
+                                        ? Image.network(
+                                          'https://image.tmdb.org/t/p/w500${movie.posterPath}',
+                                          fit: BoxFit.cover,
+                                        )
+                                        : Image.asset(
+                                          'assets/images/avatar.png',
+                                          fit: BoxFit.cover,
+                                        ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withAlpha(128),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  style: IconButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
+                                  padding: const EdgeInsets.all(8),
+                                  // constraints: const BoxConstraints(
+                                  //   minWidth: 36,
+                                  //   minHeight: 36,
+                                  // ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 24),
                         Padding(

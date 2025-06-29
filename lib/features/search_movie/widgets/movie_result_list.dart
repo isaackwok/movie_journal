@@ -67,6 +67,7 @@ class MovieResultItem extends ConsumerWidget {
       Navigator.push(
         context,
         MaterialPageRoute(
+          fullscreenDialog: true,
           builder: (context) => MoviePreviewScreen(movieId: movie.id),
         ),
       );
