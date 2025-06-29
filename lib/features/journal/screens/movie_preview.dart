@@ -173,10 +173,10 @@ class MoviePreviewScreen extends ConsumerWidget {
           shadowColor: Colors.black26,
           child: TextButton(
             style: TextButton.styleFrom(
-              backgroundColor: Color(0xFFFFD60A),
+              backgroundColor: Color(0xFFA8DADD),
               foregroundColor: Colors.black,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.all(Radius.circular(16)),
               ),
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
