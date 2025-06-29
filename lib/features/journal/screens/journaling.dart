@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
 import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
@@ -40,7 +41,6 @@ class JournalingScreen extends ConsumerWidget {
             pinned: true,
             floating: true,
             snap: true,
-            expandedHeight: 150,
             automaticallyImplyLeading: false,
             centerTitle: true,
             title: Text(
@@ -75,6 +75,7 @@ class JournalingScreen extends ConsumerWidget {
             leading: IconButton(
               onPressed: () {
                 Navigator.pop(context);
+                ref.read(journalControllerProvider.notifier).clear();
               },
               icon: Icon(
                 Icons.arrow_back_ios_new,
@@ -102,17 +103,6 @@ class JournalingScreen extends ConsumerWidget {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                 ),
               ),
-              // IconButton(
-              //   onPressed: () {
-              //     Navigator.pop(context);
-              //   },
-              //   icon: const Icon(Icons.close),
-              //   color: Colors.white,
-              //   style: IconButton.styleFrom(
-              //     shape: CircleBorder(),
-              //     side: BorderSide(color: Colors.white.withAlpha(76)),
-              //   ),
-              // ),
             ],
           ),
           SliverToBoxAdapter(

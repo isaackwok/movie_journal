@@ -80,6 +80,27 @@ class JournalController extends StateNotifier<JournalState> {
       selectedQuestions: [...state.selectedQuestions, question],
     );
   }
+
+  void removeSelectedQuestion(String question) {
+    state = state.copyWith(
+      selectedQuestions:
+          state.selectedQuestions.where((e) => e != question).toList(),
+    );
+  }
+
+  void addScene(String scene) {
+    state = state.copyWith(selectedScenes: [...state.selectedScenes, scene]);
+  }
+
+  void removeScene(String scene) {
+    state = state.copyWith(
+      selectedScenes: state.selectedScenes.where((e) => e != scene).toList(),
+    );
+  }
+
+  void clear() {
+    state = JournalState();
+  }
 }
 
 final journalControllerProvider =

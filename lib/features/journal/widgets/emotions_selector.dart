@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:movie_journal/features/journal/controllers/journal.dart';
 
 class EmotionButton extends StatefulWidget {
   final String svgPath;
@@ -91,7 +93,7 @@ class _EmotionButtonState extends State<EmotionButton>
   }
 }
 
-class EmotionsSelector extends StatefulWidget {
+class EmotionsSelector extends ConsumerStatefulWidget {
   const EmotionsSelector({super.key});
   static const List<String> emotions = [
     'Joyful',
@@ -106,14 +108,16 @@ class EmotionsSelector extends StatefulWidget {
   ];
 
   @override
-  State<EmotionsSelector> createState() => _EmotionsSelectorState();
+  ConsumerState<EmotionsSelector> createState() => _EmotionsSelectorState();
 }
 
-class _EmotionsSelectorState extends State<EmotionsSelector> {
+class _EmotionsSelectorState extends ConsumerState<EmotionsSelector> {
   String? selectedEmotion;
 
   @override
   Widget build(BuildContext context) {
+    final journal = ref.watch(journalControllerProvider);
+    final selectedEmotion = journal.emotion;
     return Column(
       spacing: 8,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -143,9 +147,9 @@ class _EmotionsSelectorState extends State<EmotionsSelector> {
                       text: e,
                       isSelected: selectedEmotion == e,
                       onTap: (e) {
-                        setState(() {
-                          selectedEmotion = e;
-                        });
+                        ref
+                            .read(journalControllerProvider.notifier)
+                            .setEmotion(e);
                       },
                     ),
                   )

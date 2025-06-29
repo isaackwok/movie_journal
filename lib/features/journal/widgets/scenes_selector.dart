@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/features/journal/controllers/journal.dart';
+import 'package:movie_journal/features/journal/widgets/scenes_select_sheet.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 
@@ -111,8 +113,9 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
   @override
   Widget build(BuildContext context) {
     final movieImages = ref.watch(movieImagesControllerProvider);
+    final journal = ref.watch(journalControllerProvider);
     final backdrops = movieImages.backdrops;
-
+    final selectedScenes = journal.selectedScenes;
     return Column(
       spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -162,7 +165,12 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
                             color: Colors.transparent,
                             child: InkWell(
                               onTap: () {
-                                // TODO: Add a modal to select the scenes
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ScenesSelectSheet(),
+                                  ),
+                                );
                               },
                               // borderRadius: BorderRadius.circular(8),
                               child: Center(

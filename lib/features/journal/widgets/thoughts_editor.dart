@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/widgets/questions_bottom_sheet.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
@@ -56,11 +57,30 @@ class ThoughtsEditor extends ConsumerStatefulWidget {
 }
 
 class _ThoughtsEditorState extends ConsumerState<ThoughtsEditor> {
-  final List<String> selectedQuestions = [];
+  final TextEditingController thoughtsController = TextEditingController(
+    text: '',
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    thoughtsController.addListener(() {
+      ref
+          .read(journalControllerProvider.notifier)
+          .setThoughts(thoughtsController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    thoughtsController.dispose();
+    super.dispose();
+  }
 
   void _onButtonPressed(BuildContext context) {
     final movie = ref.read(movieDetailControllerProvider).movie;
-    if (movie != null) {
+    final quesgenState = ref.read(quesgenControllerProvider);
+    if (movie != null && quesgenState.questions.isEmpty) {
       ref
           .read(quesgenControllerProvider.notifier)
           .generateQuestions(
@@ -76,34 +96,15 @@ class _ThoughtsEditorState extends ConsumerState<ThoughtsEditor> {
         showDragHandle: true,
         isScrollControlled: true,
         context: context,
-        builder:
-            (context) => StatefulBuilder(
-              builder:
-                  (context, setModalState) => Wrap(
-                    children: [
-                      QuestionsBottomSheet(
-                        selectedQuestions: selectedQuestions,
-                        onSelectQuestion: (question) {
-                          setState(() {
-                            if (selectedQuestions.contains(question)) {
-                              selectedQuestions.remove(question);
-                            } else {
-                              selectedQuestions.add(question);
-                            }
-                          });
-                          // Force the modal to rebuild
-                          setModalState(() {});
-                        },
-                      ),
-                    ],
-                  ),
-            ),
+        builder: (context) => Wrap(children: [QuestionsBottomSheet()]),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final journal = ref.watch(journalControllerProvider);
+    final selectedQuestions = journal.selectedQuestions;
     return Column(
       spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -147,15 +148,16 @@ class _ThoughtsEditorState extends ConsumerState<ThoughtsEditor> {
             (question) => SelectedQuestionItem(
               question: question,
               onRemove: () {
-                setState(() {
-                  selectedQuestions.remove(question);
-                });
+                ref
+                    .read(journalControllerProvider.notifier)
+                    .removeSelectedQuestion(question);
               },
             ),
           ),
         ],
         TextField(
-          maxLines: 10,
+          controller: thoughtsController,
+          maxLines: null,
           style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400),
           decoration: InputDecoration(
             hintText: 'Enter your text here...',

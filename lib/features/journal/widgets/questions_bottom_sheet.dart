@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
 
@@ -61,20 +62,15 @@ class QuestionItem extends StatelessWidget {
 }
 
 class QuestionsBottomSheet extends ConsumerWidget {
-  final List<String> selectedQuestions;
-  final Function(String) onSelectQuestion;
-  const QuestionsBottomSheet({
-    super.key,
-    required this.selectedQuestions,
-    required this.onSelectQuestion,
-  });
+  const QuestionsBottomSheet({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final quesgenState = ref.watch(quesgenControllerProvider);
     final questions = quesgenState.questions;
     final isLoading = quesgenState.isLoading;
-
+    final journal = ref.watch(journalControllerProvider);
+    final selectedQuestions = journal.selectedQuestions;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -123,7 +119,17 @@ class QuestionsBottomSheet extends ConsumerWidget {
                     (question) => QuestionItem(
                       question: question,
                       isSelected: selectedQuestions.contains(question),
-                      onSelect: () => onSelectQuestion(question),
+                      onSelect: () {
+                        if (selectedQuestions.contains(question)) {
+                          ref
+                              .read(journalControllerProvider.notifier)
+                              .removeSelectedQuestion(question);
+                        } else {
+                          ref
+                              .read(journalControllerProvider.notifier)
+                              .addSelectedQuestion(question);
+                        }
+                      },
                     ),
                   )
                   : [
