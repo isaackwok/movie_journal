@@ -137,7 +137,6 @@ class ScenesSelectSheet extends ConsumerWidget {
         actions: [
           ElevatedButton(
             onPressed: () {
-              // TODO: Add scenes to journal
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(

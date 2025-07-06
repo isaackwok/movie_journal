@@ -27,6 +27,9 @@ class JournalsList extends ConsumerWidget {
       child: Column(
         children:
             grouppedJournals.entries.map((entry) {
+              entry.value.sort(
+                (a, b) => b.updatedAt.dateTime.compareTo(a.updatedAt.dateTime),
+              );
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
