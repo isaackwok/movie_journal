@@ -5,53 +5,81 @@ import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class JournalsState {
-  List<JournalState> journals = [];
+  final List<JournalState> journals;
 
-  JournalsState({List<JournalState>? journals}) {
-    SharedPreferences.getInstance().then((prefs) {
-      if (journals != null) {
-        this.journals = journals;
-      } else {
-        final journals = prefs.getString('journals') ?? '[]';
-        final journalsList = jsonDecode(journals) as List<dynamic>;
-        this.journals =
-            journalsList.map((j) => JournalState.fromJson(j)).toList();
-      }
-    });
-  }
+  JournalsState({this.journals = const []});
 
   JournalsState copyWith({List<JournalState>? journals}) {
-    return JournalsState(journals: journals);
+    return JournalsState(journals: journals ?? this.journals);
   }
 }
 
 class JournalsController extends StateNotifier<JournalsState> {
-  JournalsController() : super(JournalsState(journals: []));
-
-  JournalsController addJournal(JournalState journal) {
-    state = state.copyWith(journals: [...state.journals, journal]);
-    saveJournals();
-    return this;
+  JournalsController() : super(JournalsState()) {
+    _loadJournals();
   }
 
-  JournalsController removeJournal(String id) {
-    state = state.copyWith(
-      journals: state.journals.where((j) => j.id != id).toList(),
+  Future<void> _loadJournals() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final journalsJson = prefs.getString('journals') ?? '[]';
+      print('Loading journals from SharedPreferences: $journalsJson');
+
+      final journalsList = jsonDecode(journalsJson) as List<dynamic>;
+      print('Decoded journals list length: ${journalsList.length}');
+
+      final journals =
+          journalsList
+              .map(
+                (journalJson) => JournalState.fromJson(journalJson.toString()),
+              )
+              .toList();
+
+      print('Loaded ${journals.length} journals');
+      state = state.copyWith(journals: journals);
+    } catch (e) {
+      print('Error loading journals: $e');
+      state = state.copyWith(journals: []);
+    }
+  }
+
+  Future<void> addJournal(JournalState journal) async {
+    print('Adding journal: ${journal.movieTitle} (ID: ${journal.id})');
+    final updatedJournals = [...state.journals, journal];
+    state = state.copyWith(journals: updatedJournals);
+    await _saveJournals(updatedJournals);
+    print(
+      'Journal added successfully. Total journals: ${state.journals.length}',
     );
-    saveJournals();
-    return this;
   }
 
-  JournalsController setJournals(List<JournalState> journals) {
+  Future<void> removeJournal(String id) async {
+    final updatedJournals = state.journals.where((j) => j.id != id).toList();
+    state = state.copyWith(journals: updatedJournals);
+    await _saveJournals(updatedJournals);
+  }
+
+  Future<void> setJournals(List<JournalState> journals) async {
     state = state.copyWith(journals: journals);
-    saveJournals();
-    return this;
+    await _saveJournals(journals);
   }
 
-  Future<JournalsController> saveJournals() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString('journals', jsonEncode(state.journals));
-    return this;
+  Future<void> _saveJournals(List<JournalState> journals) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final journalsJsonList =
+          journals.map((journal) => journal.toJson()).toList();
+      final jsonString = jsonEncode(journalsJsonList);
+      print('Saving journals to SharedPreferences: $jsonString');
+      await prefs.setString('journals', jsonString);
+      print('Successfully saved ${journals.length} journals');
+    } catch (e) {
+      print('Error saving journals: $e');
+    }
+  }
+
+  Future<void> refreshJournals() async {
+    await _loadJournals();
   }
 }
 

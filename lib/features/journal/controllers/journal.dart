@@ -36,6 +36,7 @@ class JournalState {
   }
 
   JournalState copyWith({
+    String? id,
     int? tmdbId,
     String? movieTitle,
     String? moviePoster,
@@ -47,6 +48,7 @@ class JournalState {
     Jiffy? updatedAt,
   }) {
     return JournalState(
+      id: id ?? this.id,
       tmdbId: tmdbId ?? this.tmdbId,
       movieTitle: movieTitle ?? this.movieTitle,
       moviePoster: moviePoster ?? this.moviePoster,
@@ -90,9 +92,13 @@ class JournalState {
       selectedQuestions: List<String>.from(map['selectedQuestions'] ?? []),
       thoughts: map['thoughts'] ?? '',
       createdAt:
-          map['createdAt'] != null ? Jiffy.parse(map['createdAt']) : null,
+          map['createdAt'] != null
+              ? Jiffy.parse(map['createdAt'])
+              : Jiffy.now(),
       updatedAt:
-          map['updatedAt'] != null ? Jiffy.parse(map['updatedAt']) : null,
+          map['updatedAt'] != null
+              ? Jiffy.parse(map['updatedAt'])
+              : Jiffy.now(),
     );
   }
 }
@@ -182,10 +188,12 @@ class JournalController extends StateNotifier<JournalState> {
   }
 
   Future<JournalController> save(WidgetRef ref) async {
-    final json = state.toJson();
-    final journal = JournalState.fromJson(json);
+    // Set creation and update times
+    final now = Jiffy.now();
+    state = state.copyWith(createdAt: state.createdAt, updatedAt: now);
+
     final journalsController = ref.read(journalsControllerProvider.notifier);
-    journalsController.addJournal(journal);
+    await journalsController.addJournal(state);
     return this;
   }
 }
