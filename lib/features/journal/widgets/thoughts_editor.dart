@@ -157,6 +157,8 @@ class _ThoughtsEditorState extends ConsumerState<ThoughtsEditor> {
         ],
         TextField(
           controller: thoughtsController,
+          onTapOutside:
+              (event) => FocusManager.instance.primaryFocus?.unfocus(),
           maxLines: null,
           style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400),
           decoration: InputDecoration(
