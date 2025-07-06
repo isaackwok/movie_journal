@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
+import 'package:movie_journal/features/journal/screens/journal_content.dart';
 
 class JournalCard extends StatelessWidget {
   final JournalState journal;
@@ -11,10 +12,12 @@ class JournalCard extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => JournalScreen(journal: journal)),
-        // );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => JournalContent(journalId: journal.id),
+          ),
+        );
       },
       child: Container(
         padding: EdgeInsets.all(12),

@@ -56,7 +56,7 @@ class HomeScreen extends ConsumerWidget {
         centerTitle: false,
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20),
+        padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 40),
         child:
             journals.isEmpty ? const EmptyPlaceholder() : const JournalsList(),
       ),

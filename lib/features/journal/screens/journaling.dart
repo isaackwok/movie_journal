@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
+import 'package:movie_journal/features/journal/screens/journal_content.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
 import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
@@ -98,15 +100,29 @@ class JournalingScreen extends ConsumerWidget {
                             journal.thoughts.isEmpty
                         ? null
                         : () {
+                          // TODO: Show success toast message
                           ref
                               .read(journalControllerProvider.notifier)
                               .save(ref)
                               .then((value) {
                                 if (context.mounted) {
-                                  Navigator.pop(context);
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => JournalContent(
+                                            journalId: journal.id,
+                                          ),
+                                    ),
+                                    (route) => route.isFirst,
+                                  );
                                 }
-                                // TODO: Show success toast message
-                                // TODO: Navigate to journal screen
+                                ref
+                                    .read(journalControllerProvider.notifier)
+                                    .clear();
+                                ref
+                                    .read(quesgenControllerProvider.notifier)
+                                    .clear();
                               });
 
                           // Fluttertoast.showToast(

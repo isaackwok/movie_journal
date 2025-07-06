@@ -5,13 +5,13 @@ import 'package:movie_journal/features/journal/controllers/journal.dart';
 
 class EmotionButton extends StatefulWidget {
   final String svgPath;
-  final String text;
+  final String? text;
   final bool isSelected;
   final Function(String) onTap;
   const EmotionButton({
     super.key,
     required this.svgPath,
-    required this.text,
+    this.text,
     required this.isSelected,
     required this.onTap,
   });
@@ -47,7 +47,7 @@ class _EmotionButtonState extends State<EmotionButton>
     _animationController.forward().then((_) {
       _animationController.reverse();
     });
-    widget.onTap(widget.text);
+    widget.onTap(widget.text ?? '');
   }
 
   @override
@@ -76,14 +76,15 @@ class _EmotionButtonState extends State<EmotionButton>
                   ),
                   child: SvgPicture.asset(widget.svgPath),
                 ),
-                Text(
-                  widget.text,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'AvenirNext',
+                if (widget.text != null)
+                  Text(
+                    widget.text!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'AvenirNext',
+                    ),
                   ),
-                ),
               ],
             ),
           );
