@@ -46,6 +46,8 @@ class JournalCard extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.start,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   journal.updatedAt.format(pattern: 'yyyy MMM. dd'),
