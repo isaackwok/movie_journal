@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journaling.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -185,6 +186,10 @@ class MoviePreviewScreen extends ConsumerWidget {
                 ref
                     .read(movieImagesControllerProvider.notifier)
                     .getMovieImages(id: movieId);
+                ref
+                    .read(journalControllerProvider.notifier)
+                    .setMovie(movieId, movie.title, movie.posterPath!);
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(

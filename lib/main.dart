@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/themes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: '.env');
@@ -12,6 +13,15 @@ Future<void> main() async {
     webAppWidth: 400,
     app: const ProviderScope(child: MyApp()),
   );
+
+  // Initialize shared preferences with default journals if not exists
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  final journals = prefs.getString('journals');
+  // prefs.setString('journals', '[]');
+  if (journals == null) {
+    prefs.setString('journals', '[]');
+  }
+
   runApp(runnableApp);
 }
 

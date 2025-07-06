@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/home/widgets/add_movie_button.dart';
 import 'package:movie_journal/features/home/widgets/empty_placeholder.dart';
+import 'package:movie_journal/features/home/widgets/journals_list.dart';
+import 'package:movie_journal/features/journal/controllers/journals.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final journals = ref.watch(journalsControllerProvider).journals;
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -36,7 +40,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '0 movie journals',
+                      '${journals.length} movie journals',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -53,7 +57,8 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20),
-        child: const EmptyPlaceholder(),
+        child:
+            journals.isEmpty ? const EmptyPlaceholder() : const JournalsList(),
       ),
     );
   }

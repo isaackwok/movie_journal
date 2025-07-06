@@ -98,10 +98,16 @@ class JournalingScreen extends ConsumerWidget {
                             journal.thoughts.isEmpty
                         ? null
                         : () {
-                          ref.read(journalControllerProvider.notifier).save();
-                          // TODO: Save journal
-                          // TODO: Show success toast message
-                          // TODO: Navigate to journal screen
+                          ref
+                              .read(journalControllerProvider.notifier)
+                              .save(ref)
+                              .then((value) {
+                                if (context.mounted) {
+                                  Navigator.pop(context);
+                                }
+                                // TODO: Show success toast message
+                                // TODO: Navigate to journal screen
+                              });
 
                           // Fluttertoast.showToast(
                           //   msg: 'Your journal has been saved',
