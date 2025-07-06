@@ -142,9 +142,11 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
                         ),
                       )
                       : Column(
+                        spacing: 16,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           GridView.builder(
+                            padding: EdgeInsets.zero,
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             gridDelegate:
