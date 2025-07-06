@@ -141,6 +141,9 @@ class ScenesSelectSheet extends ConsumerWidget {
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
+              shadowColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              overlayColor: Colors.transparent,
               backgroundColor: Colors.transparent,
               foregroundColor: Color(0xFFA8DADD),
               shape: RoundedRectangleBorder(
