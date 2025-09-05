@@ -54,8 +54,8 @@ class QuesgenController extends StateNotifier<QuesgenState> {
         runtime: runtime,
         voteAverage: voteAverage,
         productionCompanies: productionCompanies,
-        numOfQuestions: numOfQuestions ?? 3,
-        language: language ?? 'Traditional Chinese(Taiwan)',
+        numOfQuestions: numOfQuestions ?? 6,
+        language: language,
         searchPrompt: searchPrompt,
         questionPrompt: questionPrompt,
       );
