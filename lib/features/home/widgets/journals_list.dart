@@ -23,10 +23,15 @@ class JournalsList extends ConsumerWidget {
       grouppedJournals[month]!.add(journal);
     }
 
+    // Sort month groups by date (newest first)
+    final sortedEntries =
+        grouppedJournals.entries.toList()
+          ..sort((a, b) => b.key.compareTo(a.key));
+
     return SingleChildScrollView(
       child: Column(
         children:
-            grouppedJournals.entries.map((entry) {
+            sortedEntries.map((entry) {
               entry.value.sort(
                 (a, b) => b.updatedAt.dateTime.compareTo(a.updatedAt.dateTime),
               );
