@@ -13,7 +13,6 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final journals = ref.watch(journalsControllerProvider).journals;
-    print('HomeScreen build - Journals count: ${journals.length}');
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
