@@ -145,30 +145,34 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
                         spacing: 16,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          GridView.builder(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 8,
-                                  mainAxisSpacing: 8,
-                                  mainAxisExtent: 120,
-                                ),
-                            itemCount: selectedScenes.length,
-                            itemBuilder: (context, index) {
-                              return SceneButton(
-                                imageUrl:
-                                    'https://image.tmdb.org/t/p/w500${selectedScenes[index]}',
-                                onRemove: () {
-                                  ref
-                                      .read(journalControllerProvider.notifier)
-                                      .removeScene(selectedScenes[index]);
+                          selectedScenes.isEmpty
+                              ? const SizedBox.shrink()
+                              : GridView.builder(
+                                padding: EdgeInsets.zero,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 8,
+                                      mainAxisSpacing: 8,
+                                      mainAxisExtent: 120,
+                                    ),
+                                itemCount: selectedScenes.length,
+                                itemBuilder: (context, index) {
+                                  return SceneButton(
+                                    imageUrl:
+                                        'https://image.tmdb.org/t/p/w500${selectedScenes[index]}',
+                                    onRemove: () {
+                                      ref
+                                          .read(
+                                            journalControllerProvider.notifier,
+                                          )
+                                          .removeScene(selectedScenes[index]);
+                                    },
+                                  );
                                 },
-                              );
-                            },
-                          ),
+                              ),
                           ElevatedButton.icon(
                             icon: Icon(Icons.add, color: Colors.white),
                             label: Text(
