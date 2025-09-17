@@ -32,32 +32,34 @@ class QuesgenController extends StateNotifier<QuesgenState> {
     : super(QuesgenState(questions: [], isLoading: false, isError: false));
 
   Future<void> generateQuestions({
-    required String name,
-    required String year,
-    String? overview,
-    List<String>? genres,
-    int? runtime,
-    double? voteAverage,
-    List<String>? productionCompanies,
-    int? numOfQuestions,
-    String? language,
-    String? searchPrompt,
-    String? questionPrompt,
+    required int movieId,
+    // String? name,
+    // String? year,
+    // String? overview,
+    // List<String>? genres,
+    // int? runtime,
+    // double? voteAverage,
+    // List<String>? productionCompanies,
+    // int? numOfQuestions,
+    // String? language,
+    // String? searchPrompt,
+    // String? questionPrompt,
   }) async {
     state = state.copyWith(isLoading: true);
     try {
       final newQuestions = await api.generateQuestions(
-        name: name,
-        year: year,
-        overview: overview,
-        genres: genres,
-        runtime: runtime,
-        voteAverage: voteAverage,
-        productionCompanies: productionCompanies,
-        numOfQuestions: numOfQuestions ?? 6,
-        language: language,
-        searchPrompt: searchPrompt,
-        questionPrompt: questionPrompt,
+        movieId: movieId,
+        // name: name,
+        // year: year,
+        // overview: overview,
+        // genres: genres,
+        // runtime: runtime,
+        // voteAverage: voteAverage,
+        // productionCompanies: productionCompanies,
+        // numOfQuestions: numOfQuestions ?? 6,
+        // language: language,
+        // searchPrompt: searchPrompt,
+        // questionPrompt: questionPrompt,
       );
       state = state.copyWith(questions: newQuestions, isLoading: false);
     } catch (e) {

@@ -157,11 +157,7 @@ class QuestionsBottomSheet extends ConsumerWidget {
                         ref
                             .read(quesgenControllerProvider.notifier)
                             .generateQuestions(
-                              name: movie.title,
-                              year: movie.year,
-                              overview: movie.overview,
-                              genres: movie.genres.map((e) => e.name).toList(),
-                              runtime: movie.runtime,
+                              movieId: movie.id,
                             );
                       }
                     },

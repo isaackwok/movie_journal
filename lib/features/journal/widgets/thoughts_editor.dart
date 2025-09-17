@@ -84,11 +84,7 @@ class _ThoughtsEditorState extends ConsumerState<ThoughtsEditor> {
       ref
           .read(quesgenControllerProvider.notifier)
           .generateQuestions(
-            name: movie.title,
-            year: movie.year,
-            overview: movie.overview,
-            genres: movie.genres.map((e) => e.name).toList(),
-            runtime: movie.runtime,
+            movieId: movie.id,
           );
     }
     if (context.mounted) {
