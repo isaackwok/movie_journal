@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:movie_journal/main.dart';
 
 class CustomToast extends StatefulWidget {
   const CustomToast({super.key});

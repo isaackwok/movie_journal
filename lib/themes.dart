@@ -33,7 +33,7 @@ class Themes {
       ),
     ),
 
-    bottomAppBarTheme: BottomAppBarTheme(
+    bottomAppBarTheme: const BottomAppBarThemeData(
       color: _darkSurface,
       surfaceTintColor: Colors.transparent,
     ),
