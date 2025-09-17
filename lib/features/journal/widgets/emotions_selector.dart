@@ -144,7 +144,7 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector> {
               EmotionsSelector.emotions
                   .map(
                     (e) => EmotionButton(
-                      svgPath: 'assets/images/emotions/$e.svg',
+                      svgPath: 'assets/images/emotions/${e.toLowerCase()}.svg',
                       text: e,
                       isSelected: selectedEmotion == e,
                       onTap: (e) {
