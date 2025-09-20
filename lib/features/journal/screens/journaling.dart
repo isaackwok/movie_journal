@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_content.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector.dart';
@@ -15,7 +17,7 @@ class SectionSeperator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 36),
-      child: Container(height: 0.5, color: Colors.white.withAlpha(76)),
+      child: Container(height: 0.1, color: Colors.white.withAlpha(76)),
     );
   }
 }
@@ -44,23 +46,22 @@ class JournalingScreen extends ConsumerWidget {
             snap: true,
             automaticallyImplyLeading: false,
             centerTitle: true,
-            title: Text(
-              movieTitle,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w500,
-                fontFamily: 'AvenirNext',
-              ),
-            ),
+            // title: Text(
+            //   movieTitle,
+            //   style: GoogleFonts.inter(
+            //     fontSize: 28,
+            //     fontWeight: FontWeight.w500,
+            //   ),
+            // ),
             // title: Column(
             //   crossAxisAlignment: CrossAxisAlignment.start,
             //   spacing: 12,
             //   children: [
             //     Text(
             //       movieTitle,
-            //       style: GoogleFonts.nothingYouCouldDo(
+            //       style: GoogleFonts.inter(
             //         fontSize: 28,
-            //         fontWeight: FontWeight.bold,
+            //         fontWeight: FontWeight.w500,
             //       ),
             //     ),
             //     Text(
@@ -156,6 +157,31 @@ class JournalingScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 12,
+                      children: [
+                        Text(
+                          movieTitle,
+                          style: GoogleFonts.inter(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          Jiffy.now().format(pattern: 'MMM do yyyy'),
+                          style: GoogleFonts.nothingYouCouldDo(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white.withAlpha(179),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SectionSeperator(),
                   EmotionsSelector(),
                   const SectionSeperator(),
