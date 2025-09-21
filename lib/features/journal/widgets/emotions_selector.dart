@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 
 class EmotionButton extends StatefulWidget {
-  final String svgPath;
   final String? text;
+  final Emotion emotion;
   final bool isSelected;
+  final double? size;
   final Function(String) onTap;
   const EmotionButton({
     super.key,
-    required this.svgPath,
     this.text,
     required this.isSelected,
     required this.onTap,
+    required this.emotion,
+    this.size,
   });
 
   @override
@@ -64,17 +67,40 @@ class _EmotionButtonState extends State<EmotionButton>
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 8,
               children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color:
-                        widget.isSelected
-                            ? Theme.of(context).primaryColor
-                            : Color(0xFFD9D9D9),
-                    shape: BoxShape.circle,
-                  ),
-                  child: SvgPicture.asset(widget.svgPath),
+                Stack(
+                  children: [
+                    Container(
+                      width: widget.size ?? 48,
+                      height: widget.size ?? 48,
+                      decoration: BoxDecoration(
+                        // color:
+                        //     widget.isSelected
+                        //         ? Theme.of(context).primaryColor
+                        //         : Color(0xFFD9D9D9),
+                        gradient: LinearGradient(
+                          begin: Alignment.topRight,
+                          end: Alignment.bottomLeft,
+                          colors: widget.emotion.colors,
+                        ),
+                        shape: BoxShape.circle,
+                        border:
+                            widget.isSelected
+                                ? Border.all(color: Colors.white, width: 4)
+                                : Border.all(
+                                  color: Colors.transparent,
+                                  width: 4,
+                                ),
+                      ),
+                    ),
+                    if (widget.isSelected)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Icon(Icons.check, size: 24, color: Colors.white),
+                      ),
+                  ],
                 ),
                 if (widget.text != null)
                   Text(
@@ -96,31 +122,33 @@ class _EmotionButtonState extends State<EmotionButton>
 
 class EmotionsSelector extends ConsumerStatefulWidget {
   const EmotionsSelector({super.key});
-  static const List<String> emotions = [
-    'Joyful',
-    'Exciting',
-    'Funny',
-    'Sad',
-    'Boring',
-    'Furious',
-    'Terrified',
-    'Confused',
-    'Shocked',
-  ];
 
   @override
   ConsumerState<EmotionsSelector> createState() => _EmotionsSelectorState();
 }
 
-class _EmotionsSelectorState extends ConsumerState<EmotionsSelector> {
+class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
+    with SingleTickerProviderStateMixin {
   String? selectedEmotion;
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: Emotions.groups.length, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final journal = ref.watch(journalControllerProvider);
-    final selectedEmotion = journal.emotion;
+    final selectedEmotions = journal.emotions;
     return Column(
-      spacing: 8,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
@@ -131,30 +159,193 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector> {
             fontFamily: 'AvenirNext',
           ),
         ),
-        SizedBox(height: 16),
-        GridView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            childAspectRatio: 1.0,
+        SizedBox(height: 8),
+        Text(
+          '${selectedEmotions.length} selected',
+          style: TextStyle(
+            fontSize: 14,
+            fontFamily: 'AvenirNext',
+            fontWeight: FontWeight.w500,
+            color: Color(0xFFC5C5C5),
           ),
-          children:
-              EmotionsSelector.emotions
-                  .map(
-                    (e) => EmotionButton(
-                      svgPath: 'assets/images/emotions/${e.toLowerCase()}.svg',
-                      text: e,
-                      isSelected: selectedEmotion == e,
-                      onTap: (e) {
-                        ref
-                            .read(journalControllerProvider.notifier)
-                            .setEmotion(e);
-                      },
+        ),
+        SizedBox(height: 16),
+        TabBar(
+          indicatorPadding: EdgeInsets.zero,
+          labelPadding: EdgeInsets.only(right: 8),
+          isScrollable: true,
+          overlayColor: WidgetStateProperty.all(Colors.transparent),
+          dividerColor: Colors.transparent,
+          labelColor: Colors.white,
+          indicatorSize: TabBarIndicatorSize.label,
+          unselectedLabelColor: Colors.white,
+          tabAlignment: TabAlignment.start,
+          labelStyle: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            fontFamily: 'AvenirNext',
+          ),
+          unselectedLabelStyle: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            fontFamily: 'AvenirNext',
+          ),
+          indicator: BoxDecoration(
+            borderRadius: BorderRadius.circular(32),
+            color: Color(0xFF434343),
+            border: Border.all(color: Colors.white, width: 1),
+          ),
+          controller: _tabController,
+          tabs: [
+            Tab(
+              height: 30,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32),
+                  color: Color(0xFF434343).withAlpha(100),
+                ),
+                child: SizedBox(
+                  height: 30,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'Pleasant',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'AvenirNext',
+                        ),
+                      ),
                     ),
-                  )
-                  .toList(),
+                  ),
+                ),
+              ),
+            ),
+            Tab(
+              height: 30,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32),
+                  color: Color(0xFF434343).withAlpha(100),
+                ),
+                child: SizedBox(
+                  height: 30,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'Unpleasant',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'AvenirNext',
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            Tab(
+              height: 30,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32),
+                  color: Color(0xFF434343).withAlpha(100),
+                ),
+                child: SizedBox(
+                  height: 30,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'Others',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'AvenirNext',
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+          // onTap: (index) {
+          //   _tabController.animateTo(index);
+          // },
+        ),
+        SizedBox(
+          height: 230,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 24),
+            child: TabBarView(
+              controller: _tabController,
+              children:
+                  <Widget>[
+                    ...Emotions.groups.entries.map(
+                      (group) => GridView.builder(
+                        padding: EdgeInsets.all(0),
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: group.value.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 4,
+                          childAspectRatio: 1.0,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemBuilder:
+                            (context, index) => Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              spacing: 8,
+                              children: [
+                                EmotionButton(
+                                  emotion: group.value.elementAt(index),
+                                  isSelected: selectedEmotions.contains(
+                                    group.value.elementAt(index),
+                                  ),
+                                  onTap: (e) {
+                                    if (selectedEmotions.contains(
+                                      group.value.elementAt(index),
+                                    )) {
+                                      ref
+                                          .read(
+                                            journalControllerProvider.notifier,
+                                          )
+                                          .setEmotions([
+                                            ...selectedEmotions.where(
+                                              (e) =>
+                                                  e !=
+                                                  group.value.elementAt(index),
+                                            ),
+                                          ]);
+                                    } else {
+                                      ref
+                                          .read(
+                                            journalControllerProvider.notifier,
+                                          )
+                                          .setEmotions([
+                                            ...selectedEmotions,
+                                            group.value.elementAt(index),
+                                          ]);
+                                    }
+                                  },
+                                ),
+                                Text(
+                                  group.value.elementAt(index).name,
+                                  style: GoogleFonts.nothingYouCouldDo(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                      ),
+                    ),
+                  ].toList(),
+            ),
+          ),
         ),
       ],
     );

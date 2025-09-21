@@ -5,12 +5,14 @@ import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../emotion/emotion.dart';
+
 class JournalState {
   String id = '';
   int tmdbId = 0;
   String movieTitle = '';
   String moviePoster = '';
-  String emotion = '';
+  List<Emotion> emotions = [];
   List<String> selectedScenes = [];
   List<String> selectedQuestions = [];
   String thoughts = '';
@@ -22,7 +24,7 @@ class JournalState {
     this.tmdbId = 0,
     this.movieTitle = '',
     this.moviePoster = '',
-    this.emotion = '',
+    this.emotions = const [],
     this.selectedScenes = const [],
     this.selectedQuestions = const [],
     this.thoughts = '',
@@ -39,7 +41,7 @@ class JournalState {
     int? tmdbId,
     String? movieTitle,
     String? moviePoster,
-    String? emotion,
+    List<Emotion>? emotions,
     List<String>? selectedScenes,
     List<String>? selectedQuestions,
     String? thoughts,
@@ -51,7 +53,7 @@ class JournalState {
       tmdbId: tmdbId ?? this.tmdbId,
       movieTitle: movieTitle ?? this.movieTitle,
       moviePoster: moviePoster ?? this.moviePoster,
-      emotion: emotion ?? this.emotion,
+      emotions: emotions ?? this.emotions,
       selectedScenes: selectedScenes ?? this.selectedScenes,
       selectedQuestions: selectedQuestions ?? this.selectedQuestions,
       thoughts: thoughts ?? this.thoughts,
@@ -66,7 +68,7 @@ class JournalState {
       'tmdbId': tmdbId,
       'movieTitle': movieTitle,
       'moviePoster': moviePoster,
-      'emotion': emotion,
+      'emotions': emotions,
       'selectedScenes': selectedScenes,
       'selectedQuestions': selectedQuestions,
       'thoughts': thoughts,
@@ -86,7 +88,7 @@ class JournalState {
               : int.parse(map['tmdbId'].toString()),
       movieTitle: map['movieTitle'] ?? '',
       moviePoster: map['moviePoster'] ?? '',
-      emotion: map['emotion'] ?? '',
+      emotions: List<Emotion>.from(map['emotions'] ?? []),
       selectedScenes: List<String>.from(map['selectedScenes'] ?? []),
       selectedQuestions: List<String>.from(map['selectedQuestions'] ?? []),
       thoughts: map['thoughts'] ?? '',
@@ -129,8 +131,8 @@ class JournalController extends StateNotifier<JournalState> {
     return this;
   }
 
-  JournalController setEmotion(String emotion) {
-    state = state.copyWith(emotion: emotion);
+  JournalController setEmotions(List<Emotion> emotions) {
+    state = state.copyWith(emotions: emotions);
     return this;
   }
 

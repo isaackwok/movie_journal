@@ -59,24 +59,64 @@ class JournalContent extends ConsumerWidget {
                 children: [
                   Text(
                     journal.movieTitle,
-                    style: GoogleFonts.nothingYouCouldDo(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: GoogleFonts.inter(fontSize: 32),
                   ),
-                  SizedBox(height: 12),
+                  SizedBox(height: 8),
                   Text(
                     journal.updatedAt.format(pattern: 'MMM do yyyy'),
                     style: GoogleFonts.nothingYouCouldDo(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white.withAlpha(178),
                     ),
                   ),
-                  SizedBox(height: 36),
-                  EmotionButton(
-                    svgPath: 'assets/images/emotions/${journal.emotion}.svg',
-                    isSelected: true,
-                    onTap: (e) {},
+                  SizedBox(height: 24),
+                  Row(
+                    spacing: 8,
+                    children:
+                        journal.emotions
+                            .map(
+                              (emotion) => Padding(
+                                padding: const EdgeInsets.all(6),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  spacing: 8,
+                                  children: [
+                                    EmotionButton(
+                                      size: 40,
+                                      emotion: emotion,
+                                      isSelected: false,
+                                      onTap: (e) {},
+                                    ),
+                                    Text(
+                                      emotion.name,
+                                      style: GoogleFonts.nothingYouCouldDo(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                            .toList(),
+                  ),
+                  SizedBox(height: 24),
+                  Column(
+                    spacing: 12,
+                    children: [
+                      ...journal.selectedScenes
+                          .sublist(0, 1)
+                          .map(
+                            (scene) => ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                'https://image.tmdb.org/t/p/w500$scene',
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                    ],
                   ),
                   SizedBox(height: 24),
                   Text(
@@ -90,15 +130,17 @@ class JournalContent extends ConsumerWidget {
                   Column(
                     spacing: 12,
                     children: [
-                      ...journal.selectedScenes.map(
-                        (scene) => ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            'https://image.tmdb.org/t/p/w500$scene',
-                            fit: BoxFit.cover,
+                      ...journal.selectedScenes
+                          .sublist(1)
+                          .map(
+                            (scene) => ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                'https://image.tmdb.org/t/p/w500$scene',
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
                     ],
                   ),
                 ],

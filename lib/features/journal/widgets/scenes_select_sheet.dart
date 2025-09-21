@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
+import 'package:movie_journal/features/toast/custom_toast.dart';
 
 class SceneButton extends StatelessWidget {
   const SceneButton({
@@ -115,6 +117,7 @@ class ScenesSelectSheet extends ConsumerWidget {
                   'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
               isSelected: selectedScenes.contains(backdrop.filePath),
               onTap: () {
+                // TODO: if selected scenes is greater than 10, show toast and do nothing
                 if (selectedScenes.contains(backdrop.filePath)) {
                   ref
                       .read(journalControllerProvider.notifier)
@@ -131,8 +134,9 @@ class ScenesSelectSheet extends ConsumerWidget {
       ),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        title: Text('Add Scenes'),
+        title: Text('Scenes'),
         centerTitle: false,
+        titleTextStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
         automaticallyImplyLeading: false,
         actions: [
           ElevatedButton(
