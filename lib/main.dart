@@ -17,9 +17,11 @@ Future<void> main() async {
   // Initialize shared preferences with default journals if not exists
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final journals = prefs.getString('journals');
+  final storageVersion = prefs.getString('storageVersion');
   // prefs.setString('journals', '[]');
-  if (journals == null) {
+  if (journals == null || storageVersion == null) {
     prefs.setString('journals', '[]');
+    prefs.setString('storageVersion', '1');
   }
 
   runApp(runnableApp);
