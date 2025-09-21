@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/home/widgets/add_movie_button.dart';
 import 'package:movie_journal/features/home/widgets/empty_placeholder.dart';
