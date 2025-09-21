@@ -23,10 +23,10 @@ class JournalsController extends StateNotifier<JournalsState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final journalsJson = prefs.getString('journals') ?? '[]';
-      print('Loading journals from SharedPreferences: $journalsJson');
+      // print('Loading journals from SharedPreferences: $journalsJson');
 
       final journalsList = jsonDecode(journalsJson) as List<dynamic>;
-      print('Decoded journals list length: ${journalsList.length}');
+      // print('Decoded journals list length: ${journalsList.length}');
 
       final journals =
           journalsList
@@ -38,7 +38,7 @@ class JournalsController extends StateNotifier<JournalsState> {
       print('Loaded ${journals.length} journals');
       state = state.copyWith(journals: journals);
     } catch (e) {
-      print('Error loading journals: $e');
+      // print('Error loading journals: $e');
       state = state.copyWith(journals: []);
     }
   }
