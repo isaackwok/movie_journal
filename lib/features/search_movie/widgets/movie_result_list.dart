@@ -82,7 +82,7 @@ class MovieResultItem extends ConsumerWidget {
       },
       borderRadius: BorderRadius.circular(4),
       child: SizedBox(
-        height: 95,
+        height: 128,
         child: Row(
           spacing: 16,
           children: [
@@ -92,14 +92,14 @@ class MovieResultItem extends ConsumerWidget {
                   movie.posterPath != null
                       ? Image.network(
                         'https://image.tmdb.org/t/p/w500/${movie.posterPath}',
-                        width: 72,
-                        height: 95,
+                        width: 96,
+                        height: 128,
                         fit: BoxFit.cover,
                       )
                       : Image.asset(
                         'assets/images/avatar.png',
-                        width: 72,
-                        height: 95,
+                        width: 96,
+                        height: 128,
                         fit: BoxFit.contain,
                       ),
             ),
@@ -109,7 +109,7 @@ class MovieResultItem extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 4,
+                  spacing: 8,
                   children: [
                     Text(
                       '${movie.title}${movie.originalTitle.isNotEmpty && movie.originalTitle != movie.title ? ' (${movie.originalTitle})' : ''}',
@@ -122,7 +122,7 @@ class MovieResultItem extends ConsumerWidget {
                     Text(
                       movie.year,
                       style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         color: Color(0xFFA7A7A7),
                         fontWeight: FontWeight.w600,
                       ),
@@ -132,7 +132,7 @@ class MovieResultItem extends ConsumerWidget {
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: 14,
                         color: Color(0xFFE9E9E9),
                         fontWeight: FontWeight.w500,
                       ),

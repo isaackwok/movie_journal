@@ -93,61 +93,71 @@ class JournalingScreen extends ConsumerWidget {
               ),
             ),
             actions: [
-              ElevatedButton(
-                onPressed:
-                    journal.emotions.isEmpty &&
-                            journal.selectedScenes.isEmpty &&
-                            journal.thoughts.isEmpty
-                        ? null
-                        : () {
-                          // TODO: Show success toast message
-                          ref
-                              .read(journalControllerProvider.notifier)
-                              .save(ref)
-                              .then((value) {
-                                if (context.mounted) {
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => JournalContent(
-                                            journalId: journal.id,
-                                          ),
-                                    ),
-                                    (route) => route.isFirst,
-                                  );
-                                }
-                                ref
-                                    .read(journalControllerProvider.notifier)
-                                    .clear();
-                                ref
-                                    .read(quesgenControllerProvider.notifier)
-                                    .clear();
-                              });
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: ElevatedButton(
+                  onPressed:
+                      journal.emotions.isEmpty &&
+                              journal.selectedScenes.isEmpty &&
+                              journal.thoughts.isEmpty
+                          ? null
+                          : () {
+                            // TODO: Show success toast message
+                            ref
+                                .read(journalControllerProvider.notifier)
+                                .save(ref)
+                                .then((value) {
+                                  if (context.mounted) {
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => JournalContent(
+                                              journalId: journal.id,
+                                            ),
+                                      ),
+                                      (route) => route.isFirst,
+                                    );
+                                  }
+                                  ref
+                                      .read(journalControllerProvider.notifier)
+                                      .clear();
+                                  ref
+                                      .read(quesgenControllerProvider.notifier)
+                                      .clear();
+                                });
 
-                          // Fluttertoast.showToast(
-                          //   msg: 'Your journal has been saved',
-                          //   toastLength: Toast.LENGTH_SHORT,
-                          //   gravity: ToastGravity.BOTTOM,
-                          //   timeInSecForIosWeb: 1,
-                          //   backgroundColor: Colors.black,
-                          //   textColor: Colors.white,
-                          //   fontSize: 16,
-                          // );
-                        },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Color(0xFFA8DADD),
-                  surfaceTintColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  disabledBackgroundColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                            // Fluttertoast.showToast(
+                            //   msg: 'Your journal has been saved',
+                            //   toastLength: Toast.LENGTH_SHORT,
+                            //   gravity: ToastGravity.BOTTOM,
+                            //   timeInSecForIosWeb: 1,
+                            //   backgroundColor: Colors.black,
+                            //   textColor: Colors.white,
+                            //   fontSize: 16,
+                            // );
+                          },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                    overlayColor: Color(0xFFA8DADD),
+                    backgroundColor: Colors.transparent,
+                    side: BorderSide(color: Color(0xFFA8DADD), width: 1),
+                    disabledBackgroundColor: Colors.transparent,
+                    disabledForegroundColor: Colors.white.withAlpha(76),
+                    foregroundColor: Colors.white,
                   ),
-                ),
-                child: Text(
-                  'Save',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  child: Text('Save'),
                 ),
               ),
             ],

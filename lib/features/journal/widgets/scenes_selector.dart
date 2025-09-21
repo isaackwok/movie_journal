@@ -88,17 +88,24 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(16),
-                              child: Image.network(
-                                'https://image.tmdb.org/t/p/w500${backdrops[0].filePath}',
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Center(
-                                    child: Text('Error loading image'),
-                                  );
-                                },
-                              ),
+                              child:
+                                  backdrops.isNotEmpty
+                                      ? Image.network(
+                                        'https://image.tmdb.org/t/p/w500${backdrops[0].filePath}',
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        errorBuilder: (
+                                          context,
+                                          error,
+                                          stackTrace,
+                                        ) {
+                                          return const Center(
+                                            child: Text('Error loading image'),
+                                          );
+                                        },
+                                      )
+                                      : const SizedBox.shrink(),
                             ),
                             Positioned.fill(
                               child: ClipRRect(

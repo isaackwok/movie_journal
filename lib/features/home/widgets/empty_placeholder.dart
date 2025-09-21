@@ -76,7 +76,7 @@ class EmptyPlaceholder extends StatelessWidget {
                   );
                 },
                 child: Text(
-                  'Add Movie',
+                  'Add Journal',
                   style: TextStyle(
                     color: Colors.white,
                     fontFamily: 'AvenirNext',

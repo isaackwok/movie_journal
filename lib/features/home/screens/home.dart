@@ -23,12 +23,12 @@ class HomeScreen extends ConsumerWidget {
             Row(
               children: [
                 // Image.asset('assets/images/avatar.png', width: 60, height: 60),
-                SvgPicture.asset(
-                  'assets/images/avatar.svg',
-                  width: 60,
-                  height: 60,
-                ),
-                SizedBox(width: 16),
+                // SvgPicture.asset(
+                //   'assets/images/avatar.svg',
+                //   width: 60,
+                //   height: 60,
+                // ),
+                // SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

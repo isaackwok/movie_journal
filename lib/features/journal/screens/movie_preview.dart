@@ -117,14 +117,14 @@ class MoviePreviewScreen extends ConsumerWidget {
                               Text(
                                 '${movie.title}${movie.originalTitle.isNotEmpty && movie.originalTitle != movie.title ? ' (${movie.originalTitle})' : ''}',
                                 style: const TextStyle(
-                                  fontSize: 24,
+                                  fontSize: 28,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               Text(
-                                '${movie.credits.crew.where((e) => e.job == 'Director').firstOrNull?.name ?? 'Unknown'} / ${movie.year} ${movie.originCountry.isNotEmpty ? movie.originCountry.first : ''}',
+                                '${movie.credits.crew.where((e) => e.job == 'Director').firstOrNull?.name ?? 'Unknown'} | ${movie.year} |  ${movie.originCountry.isNotEmpty ? movie.originCountry.first : ''}',
                                 style: const TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                   color: Color(0xFFC5C5C5),
                                 ),
@@ -149,7 +149,7 @@ class MoviePreviewScreen extends ConsumerWidget {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                height: 30,
+                height: 60,
                 child: IgnorePointer(
                   child: Container(
                     decoration: BoxDecoration(
@@ -174,6 +174,11 @@ class MoviePreviewScreen extends ConsumerWidget {
           shadowColor: Colors.black26,
           child: TextButton(
             style: TextButton.styleFrom(
+              textStyle: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'AvenirNext',
+              ),
               backgroundColor: Color(0xFFA8DADD),
               foregroundColor: Colors.black,
               shape: RoundedRectangleBorder(

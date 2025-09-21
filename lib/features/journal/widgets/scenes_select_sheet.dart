@@ -96,45 +96,62 @@ class ScenesSelectSheet extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SingleChildScrollView(
-        child: GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 16 / 9,
-            crossAxisSpacing: 4,
-            mainAxisSpacing: 4,
-            mainAxisExtent: 123,
-          ),
-          itemCount: backdrops.length,
-          itemBuilder: (context, index) {
-            final backdrop = backdrops[index];
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: SingleChildScrollView(
+          child: Column(
+            spacing: 8,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${selectedScenes.length} selected',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'AvenirNext',
+                  color: Color(0xFFA0A0A0),
+                ),
+              ),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  mainAxisExtent: 123,
+                ),
+                itemCount: backdrops.length,
+                itemBuilder: (context, index) {
+                  final backdrop = backdrops[index];
 
-            return SceneButton(
-              index: selectedScenes.indexOf(backdrop.filePath),
-              imageUrl:
-                  'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
-              isSelected: selectedScenes.contains(backdrop.filePath),
-              onTap: () {
-                // TODO: if selected scenes is greater than 10, show toast and do nothing
-                if (selectedScenes.contains(backdrop.filePath)) {
-                  ref
-                      .read(journalControllerProvider.notifier)
-                      .removeScene(backdrop.filePath);
-                } else {
-                  ref
-                      .read(journalControllerProvider.notifier)
-                      .addScene(backdrop.filePath);
-                }
-              },
-            );
-          },
+                  return SceneButton(
+                    index: selectedScenes.indexOf(backdrop.filePath),
+                    imageUrl:
+                        'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
+                    isSelected: selectedScenes.contains(backdrop.filePath),
+                    onTap: () {
+                      // TODO: if selected scenes is greater than 10, show toast and do nothing
+                      if (selectedScenes.contains(backdrop.filePath)) {
+                        ref
+                            .read(journalControllerProvider.notifier)
+                            .removeScene(backdrop.filePath);
+                      } else {
+                        ref
+                            .read(journalControllerProvider.notifier)
+                            .addScene(backdrop.filePath);
+                      }
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        title: Text('Scenes'),
+        title: Column(children: [Text('Scenes')]),
         centerTitle: false,
         titleTextStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
         automaticallyImplyLeading: false,

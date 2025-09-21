@@ -22,8 +22,9 @@ class JournalCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white.withAlpha(75)),
+          // border: Border.all(color: Colors.white.withAlpha(75)),
           borderRadius: BorderRadius.circular(12),
+          color: Color(0xFF002325),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -46,17 +47,17 @@ class JournalCard extends StatelessWidget {
                   journal.movieTitle,
                   style: GoogleFonts.inter(
                     fontSize: 18,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w700,
                   ),
                   textAlign: TextAlign.start,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  journal.updatedAt.format(pattern: 'yyyy MMM. dd'),
-                  style: GoogleFonts.inter(
+                  journal.updatedAt.format(pattern: 'MMM. do yyyy'),
+                  style: GoogleFonts.nothingYouCouldDo(
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w700,
                   ),
                   textAlign: TextAlign.start,
                 ),
