@@ -286,7 +286,7 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
           // },
         ),
         SizedBox(
-          height: 230,
+          height: 200,
           child: Padding(
             padding: const EdgeInsets.only(top: 24),
             child: TabBarView(
@@ -305,7 +305,6 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 4,
                           childAspectRatio: 1.0,
-                          mainAxisSpacing: 16,
                         ),
                         itemBuilder:
                             (context, index) => Column(
