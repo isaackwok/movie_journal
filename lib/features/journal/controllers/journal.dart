@@ -2,10 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:uuid/uuid.dart';
-
-import '../../emotion/emotion.dart';
 
 class JournalState {
   String id = '';
@@ -68,7 +67,7 @@ class JournalState {
       'tmdbId': tmdbId,
       'movieTitle': movieTitle,
       'moviePoster': moviePoster,
-      'emotions': emotions,
+      'emotions': emotions.map((e) => e.id).toList(),
       'selectedScenes': selectedScenes,
       'selectedQuestions': selectedQuestions,
       'thoughts': thoughts,
@@ -88,7 +87,14 @@ class JournalState {
               : int.parse(map['tmdbId'].toString()),
       movieTitle: map['movieTitle'] ?? '',
       moviePoster: map['moviePoster'] ?? '',
-      emotions: List<Emotion>.from(map['emotions'] ?? []),
+      emotions:
+          (map['emotions'] as List<dynamic>? ?? []).map((emotionId) {
+            final emotionEntry = emotionList.entries.firstWhere(
+              (entry) => entry.value.id == emotionId,
+              orElse: () => emotionList.entries.first,
+            );
+            return emotionEntry.value;
+          }).toList(),
       selectedScenes: List<String>.from(map['selectedScenes'] ?? []),
       selectedQuestions: List<String>.from(map['selectedQuestions'] ?? []),
       thoughts: map['thoughts'] ?? '',

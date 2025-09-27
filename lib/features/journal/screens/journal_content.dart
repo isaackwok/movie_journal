@@ -102,22 +102,15 @@ class JournalContent extends ConsumerWidget {
                             .toList(),
                   ),
                   SizedBox(height: 24),
-                  Column(
-                    spacing: 12,
-                    children: [
-                      ...journal.selectedScenes
-                          .sublist(0, 1)
-                          .map(
-                            (scene) => ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                'https://image.tmdb.org/t/p/w500$scene',
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                    ],
-                  ),
+                  journal.selectedScenes.isEmpty
+                      ? const SizedBox.shrink()
+                      : ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          'https://image.tmdb.org/t/p/w500${journal.selectedScenes[0]}',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                   SizedBox(height: 24),
                   Text(
                     journal.thoughts,
@@ -127,22 +120,24 @@ class JournalContent extends ConsumerWidget {
                     ),
                   ),
                   SizedBox(height: 24),
-                  Column(
-                    spacing: 12,
-                    children: [
-                      ...journal.selectedScenes
-                          .sublist(1)
-                          .map(
-                            (scene) => ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                'https://image.tmdb.org/t/p/w500$scene',
-                                fit: BoxFit.cover,
+                  journal.selectedScenes.isEmpty
+                      ? const SizedBox.shrink()
+                      : Column(
+                        spacing: 12,
+                        children: [
+                          ...journal.selectedScenes
+                              .sublist(1)
+                              .map(
+                                (scene) => ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    'https://image.tmdb.org/t/p/w500$scene',
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                    ],
-                  ),
+                        ],
+                      ),
                 ],
               ),
             ),

@@ -83,15 +83,14 @@ class _ThoughtsEditorState extends ConsumerState<ThoughtsEditor> {
     if (movie != null && quesgenState.questions.isEmpty) {
       ref
           .read(quesgenControllerProvider.notifier)
-          .generateQuestions(
-            movieId: movie.id,
-          );
+          .generateQuestions(movieId: movie.id);
     }
     if (context.mounted) {
       showModalBottomSheet(
         showDragHandle: true,
         isScrollControlled: true,
         context: context,
+        backgroundColor: Color(0xFF171717),
         builder: (context) => Wrap(children: [QuestionsBottomSheet()]),
       );
     }

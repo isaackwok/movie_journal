@@ -20,8 +20,8 @@ Future<void> main() async {
   final storageVersion = prefs.getString('storageVersion');
   // prefs.setString('journals', '[]');
   if (journals == null || storageVersion == null) {
-    prefs.setString('journals', '[]');
-    prefs.setString('storageVersion', '1');
+    await prefs.setString('journals', '[]');
+    await prefs.setString('storageVersion', '1');
   }
 
   runApp(runnableApp);

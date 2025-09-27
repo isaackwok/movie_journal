@@ -74,7 +74,7 @@ class QuestionsBottomSheet extends ConsumerWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Color(0XFF171717),
+        color: Color(0xFF171717),
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       padding: EdgeInsets.only(left: 16, right: 16, bottom: 16),
@@ -156,9 +156,7 @@ class QuestionsBottomSheet extends ConsumerWidget {
                       if (movie != null) {
                         ref
                             .read(quesgenControllerProvider.notifier)
-                            .generateQuestions(
-                              movieId: movie.id,
-                            );
+                            .generateQuestions(movieId: movie.id);
                       }
                     },
             style: ElevatedButton.styleFrom(

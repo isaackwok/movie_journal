@@ -131,11 +131,21 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
     with SingleTickerProviderStateMixin {
   String? selectedEmotion;
   late final TabController _tabController;
+  final emotionGroups = {
+    "Pleasant":
+        emotionList.entries.where((e) => e.value.group == "Pleasant").toList(),
+    "Unpleasant":
+        emotionList.entries
+            .where((e) => e.value.group == "Unpleasant")
+            .toList(),
+    "Others":
+        emotionList.entries.where((e) => e.value.group == "Others").toList(),
+  };
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: Emotions.groups.length, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -283,12 +293,15 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
               controller: _tabController,
               children:
                   <Widget>[
-                    ...Emotions.groups.entries.map(
+                    ...emotionGroups.entries.map(
                       (group) => GridView.builder(
                         padding: EdgeInsets.all(0),
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: group.value.length,
+                        itemCount:
+                            emotionList.entries
+                                .where((e) => e.value.group == group.key)
+                                .length,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 4,
                           childAspectRatio: 1.0,
@@ -300,13 +313,14 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
                               spacing: 8,
                               children: [
                                 EmotionButton(
-                                  emotion: group.value.elementAt(index),
+                                  emotion:
+                                      emotionGroups[group.key]![index].value,
                                   isSelected: selectedEmotions.contains(
-                                    group.value.elementAt(index),
+                                    emotionGroups[group.key]![index].value,
                                   ),
                                   onTap: (e) {
                                     if (selectedEmotions.contains(
-                                      group.value.elementAt(index),
+                                      emotionGroups[group.key]![index].value,
                                     )) {
                                       ref
                                           .read(
@@ -316,7 +330,9 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
                                             ...selectedEmotions.where(
                                               (e) =>
                                                   e !=
-                                                  group.value.elementAt(index),
+                                                  emotionGroups[group
+                                                          .key]![index]
+                                                      .value,
                                             ),
                                           ]);
                                     } else {
@@ -326,13 +342,14 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
                                           )
                                           .setEmotions([
                                             ...selectedEmotions,
-                                            group.value.elementAt(index),
+                                            emotionGroups[group.key]![index]
+                                                .value,
                                           ]);
                                     }
                                   },
                                 ),
                                 Text(
-                                  group.value.elementAt(index).name,
+                                  emotionGroups[group.key]![index].value.name,
                                   style: GoogleFonts.nothingYouCouldDo(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,

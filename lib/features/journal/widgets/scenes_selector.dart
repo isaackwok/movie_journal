@@ -38,7 +38,7 @@ class SceneButton extends StatelessWidget {
               padding: EdgeInsets.all(8),
             ),
             onPressed: onRemove,
-            icon: Icon(Icons.close, color: Colors.white, size: 24),
+            icon: Icon(Icons.close, color: Colors.white, size: 16),
           ),
         ),
       ],

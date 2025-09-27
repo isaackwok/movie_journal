@@ -38,7 +38,7 @@ class JournalsController extends StateNotifier<JournalsState> {
       print('Loaded ${journals.length} journals');
       state = state.copyWith(journals: journals);
     } catch (e) {
-      // print('Error loading journals: $e');
+      print('Error loading journals: $e');
       state = state.copyWith(journals: []);
     }
   }
