@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
+import 'package:movie_journal/features/journal/screens/thoughts.dart';
 import 'package:movie_journal/features/journal/widgets/questions_bottom_sheet.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
@@ -49,35 +50,10 @@ class SelectedQuestionItem extends StatelessWidget {
   }
 }
 
-class ThoughtsEditor extends ConsumerStatefulWidget {
+class ThoughtsEditor extends ConsumerWidget {
   const ThoughtsEditor({super.key});
 
-  @override
-  ConsumerState<ThoughtsEditor> createState() => _ThoughtsEditorState();
-}
-
-class _ThoughtsEditorState extends ConsumerState<ThoughtsEditor> {
-  final TextEditingController thoughtsController = TextEditingController(
-    text: '',
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    thoughtsController.addListener(() {
-      ref
-          .read(journalControllerProvider.notifier)
-          .setThoughts(thoughtsController.text);
-    });
-  }
-
-  @override
-  void dispose() {
-    thoughtsController.dispose();
-    super.dispose();
-  }
-
-  void _onButtonPressed(BuildContext context) {
+  void _onGenerateButtonPressed(BuildContext context, WidgetRef ref) {
     final movie = ref.read(movieDetailControllerProvider).movie;
     final quesgenState = ref.read(quesgenControllerProvider);
     if (movie != null && quesgenState.questions.isEmpty) {
@@ -97,83 +73,95 @@ class _ThoughtsEditorState extends ConsumerState<ThoughtsEditor> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final journal = ref.watch(journalControllerProvider);
     final selectedQuestions = journal.selectedQuestions;
-    return Column(
-      spacing: 16,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'Write down your thoughts and feelings.',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            fontFamily: 'AvenirNext',
-          ),
-        ),
-        Container(
-          alignment: Alignment.centerLeft,
-          child: ElevatedButton.icon(
-            icon: Icon(Icons.lightbulb_outline, color: Colors.white),
-            label: Text(
-              'Select Questions',
-              style: TextStyle(color: Colors.white, fontFamily: 'AvenirNext'),
+    return InkWell(
+      splashColor: Colors.transparent,
+      onTap:
+          () => {
+            // TODO: open a new screen to enter thoughts
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ThoughtsScreen()),
             ),
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              textStyle: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-              overlayColor: Color(0xFFA8DADD),
-              backgroundColor: Colors.transparent,
-              side: BorderSide(color: Color(0xFFA8DADD), width: 1),
-            ),
-            onPressed: () => _onButtonPressed(context),
-          ),
-        ),
-
-        if (selectedQuestions.isNotEmpty) ...[
-          ...selectedQuestions.map(
-            (question) => SelectedQuestionItem(
-              question: question,
-              onRemove: () {
-                ref
-                    .read(journalControllerProvider.notifier)
-                    .removeSelectedQuestion(question);
-              },
-            ),
-          ),
-        ],
-        TextField(
-          controller: thoughtsController,
-          onTapOutside:
-              (event) => FocusManager.instance.primaryFocus?.unfocus(),
-          maxLines: null,
-          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400),
-          decoration: InputDecoration(
-            hintText: 'Enter your text here...',
-            hintStyle: GoogleFonts.nothingYouCouldDo(
+          },
+      child: Column(
+        spacing: 16,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Write down your thoughts and feelings.',
+            style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.white.withAlpha(128),
+              fontWeight: FontWeight.w500,
+              fontFamily: 'AvenirNext',
             ),
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            disabledBorder: InputBorder.none,
-            errorBorder: InputBorder.none,
-            focusedErrorBorder: InputBorder.none,
-            fillColor: Colors.transparent,
           ),
-        ),
-        SizedBox(height: 200),
-      ],
+
+          // Container(
+          //   alignment: Alignment.centerLeft,
+          //   child: ElevatedButton.icon(
+          //     icon: Icon(Icons.lightbulb_outline, color: Colors.white),
+          //     label: Text(
+          //       'Select Questions',
+          //       style: TextStyle(color: Colors.white, fontFamily: 'AvenirNext'),
+          //     ),
+          //     style: ElevatedButton.styleFrom(
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(16),
+          //       ),
+          //       padding: const EdgeInsets.symmetric(
+          //         horizontal: 16,
+          //         vertical: 12,
+          //       ),
+          //       textStyle: const TextStyle(
+          //         fontSize: 14,
+          //         fontWeight: FontWeight.w500,
+          //         color: Colors.white,
+          //       ),
+          //       overlayColor: Color(0xFFA8DADD),
+          //       backgroundColor: Colors.transparent,
+          //       side: BorderSide(color: Color(0xFFA8DADD), width: 1),
+          //     ),
+          //     onPressed: () => _onGenerateButtonPressed(context, ref),
+          //   ),
+          // ),
+          if (selectedQuestions.isNotEmpty) ...[
+            ...selectedQuestions.map(
+              (question) => SelectedQuestionItem(
+                question: question,
+                onRemove: () {
+                  ref
+                      .read(journalControllerProvider.notifier)
+                      .removeSelectedQuestion(question);
+                },
+              ),
+            ),
+          ],
+          Container(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              journal.thoughts.isNotEmpty
+                  ? journal.thoughts
+                  : 'Enter your text here...',
+              style:
+                  journal.thoughts.isNotEmpty
+                      ? GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white,
+                      )
+                      : GoogleFonts.nothingYouCouldDo(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white.withAlpha(128),
+                      ),
+            ),
+          ),
+          SizedBox(height: 200),
+        ],
+      ),
     );
   }
 }

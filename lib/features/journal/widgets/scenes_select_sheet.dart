@@ -170,7 +170,7 @@ class ScenesSelectSheet extends ConsumerWidget {
             ),
             child: Text(
               'Done',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),
         ],
