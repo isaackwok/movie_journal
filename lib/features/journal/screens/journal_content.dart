@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
+import 'package:movie_journal/features/journal/widgets/ai_references_accordion.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector.dart';
 
 class JournalContent extends ConsumerWidget {
@@ -71,7 +72,7 @@ class JournalContent extends ConsumerWidget {
                     ),
                   ),
                   SizedBox(height: 24),
-                  Row(
+                  Wrap(
                     spacing: 8,
                     children:
                         journal.emotions
@@ -137,6 +138,13 @@ class JournalContent extends ConsumerWidget {
                                 ),
                               ),
                         ],
+                      ),
+                  SizedBox(height: 24),
+                  journal.selectedQuestions.isEmpty
+                      ? const SizedBox.shrink()
+                      : AiReferencesAccordion(
+                        references: journal.selectedQuestions,
+                        onRemove: (index) {},
                       ),
                 ],
               ),

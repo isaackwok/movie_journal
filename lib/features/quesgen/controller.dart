@@ -63,6 +63,7 @@ class QuesgenController extends StateNotifier<QuesgenState> {
       );
       state = state.copyWith(questions: newQuestions, isLoading: false);
     } catch (e) {
+      print(e);
       state = state.copyWith(isLoading: false, isError: true);
     }
   }
