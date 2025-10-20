@@ -114,6 +114,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
               ),
               selectedReferences.isNotEmpty
                   ? AiReferencesAccordion(
+                    defaultExpanded: true,
                     references: selectedReferences,
                     onRemove: (index) {
                       ref

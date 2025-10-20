@@ -6,11 +6,12 @@ class AiReferencesAccordion extends StatefulWidget {
     super.key,
     required this.references,
     required this.onRemove,
+    this.defaultExpanded = false,
   });
 
   final List<String> references;
   final Function(int index) onRemove;
-
+  final bool defaultExpanded;
   @override
   State<AiReferencesAccordion> createState() => _AiReferencesAccordionState();
 }
@@ -32,6 +33,10 @@ class _AiReferencesAccordionState extends State<AiReferencesAccordion>
       parent: _animationController,
       curve: Curves.easeInOut,
     );
+    if (widget.defaultExpanded) {
+      _isExpanded = true;
+      _animationController.forward();
+    }
   }
 
   @override

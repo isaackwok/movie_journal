@@ -98,6 +98,7 @@ class ThoughtsEditor extends ConsumerWidget {
           ),
           selectedQuestions.isNotEmpty
               ? AiReferencesAccordion(
+                defaultExpanded: true,
                 references: selectedQuestions,
                 onRemove: (index) {
                   ref

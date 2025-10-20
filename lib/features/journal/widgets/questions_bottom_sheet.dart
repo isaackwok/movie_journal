@@ -141,6 +141,7 @@ class QuestionsBottomSheet extends ConsumerWidget {
                                     .read(journalControllerProvider.notifier)
                                     .addSelectedQuestion(question);
                               }
+                              Navigator.pop(context);
                             },
                           ),
                         )
