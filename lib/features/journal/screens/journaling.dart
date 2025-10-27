@@ -102,7 +102,6 @@ class JournalingScreen extends ConsumerWidget {
                               journal.thoughts.isEmpty
                           ? null
                           : () {
-                            // TODO: Show success toast message
                             ref
                                 .read(journalControllerProvider.notifier)
                                 .save(ref)
@@ -125,6 +124,7 @@ class JournalingScreen extends ConsumerWidget {
                                   ref
                                       .read(quesgenControllerProvider.notifier)
                                       .clear();
+                                  // TODO: Show success toast message
                                 });
 
                             // Fluttertoast.showToast(

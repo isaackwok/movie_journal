@@ -45,17 +45,15 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
   void _scrollToCursor() {
     if (!mounted) return;
 
-    final RenderBox? renderBox = textFieldKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? renderBox =
+        textFieldKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
     // Get the text painter to calculate cursor position
     final textPainter = TextPainter(
       text: TextSpan(
         text: thoughtsController.text,
-        style: GoogleFonts.inter(
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
+        style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400),
       ),
       textDirection: TextDirection.ltr,
       maxLines: null,
@@ -75,15 +73,19 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
 
     // Get viewport bounds
     final viewportHeight = MediaQuery.of(context).size.height;
-    final appBarHeight = AppBar().preferredSize.height + MediaQuery.of(context).padding.top;
+    final appBarHeight =
+        AppBar().preferredSize.height + MediaQuery.of(context).padding.top;
     final visibleTop = appBarHeight;
-    final visibleBottom = viewportHeight - 100; // Account for floating action button
+    final visibleBottom =
+        viewportHeight - 100; // Account for floating action button
 
     // Check if cursor is outside viewport
     if (cursorGlobalY < visibleTop || cursorGlobalY > visibleBottom) {
       // Calculate target scroll position
       final currentScroll = scrollController.offset;
-      final targetScroll = currentScroll + (cursorGlobalY - (visibleTop + 100)); // 100px padding from top
+      final targetScroll =
+          currentScroll +
+          (cursorGlobalY - (visibleTop + 100)); // 100px padding from top
 
       // Animate to target position
       scrollController.animateTo(
@@ -217,7 +219,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
             color: Colors.white,
           ),
           overlayColor: Color(0xFFA8DADD),
-          backgroundColor: Colors.transparent,
+          backgroundColor: Colors.black,
           side: BorderSide(color: Color(0xFFA8DADD), width: 1),
         ),
         onPressed: () => _onReferencesButtonPressed(context),
