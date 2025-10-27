@@ -18,40 +18,42 @@ class QuestionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withAlpha(76), width: 1),
-      ),
-      child: Row(
-        spacing: 8,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Flexible(
-            child: Text(
-              question,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
-                color: Colors.white,
+    return InkWell(
+      onTap: onSelect,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withAlpha(76), width: 1),
+        ),
+        child: Row(
+          spacing: 8,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              child: Text(
+                question,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
-          InkWell(
-            onTap: onSelect,
-            child: Container(
-              alignment: Alignment.topCenter,
-              padding: EdgeInsets.all(4),
-              child: Icon(
-                size: 24,
-                isSelected ? Icons.bookmark : Icons.bookmark_border,
-                color: Color(0xFFA8DADD),
+            InkWell(
+              child: Container(
+                alignment: Alignment.topCenter,
+                padding: EdgeInsets.all(4),
+                child: Icon(
+                  size: 24,
+                  isSelected ? Icons.bookmark : Icons.bookmark_border,
+                  color: Color(0xFFA8DADD),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
