@@ -12,16 +12,16 @@ final movieRepoProvider = Provider(
 );
 
 final searchMovieControllerProvider =
-    StateNotifierProvider<SearchMovieController, SearchMovieState>(
-      (ref) => SearchMovieController(ref.read(movieRepoProvider)),
+    NotifierProvider<SearchMovieController, SearchMovieState>(
+      SearchMovieController.new,
     );
 
 final movieDetailControllerProvider =
-    StateNotifierProvider<MovieDetailController, MovieDetailState>(
-      (ref) => MovieDetailController(ref.read(movieRepoProvider)),
+    NotifierProvider<MovieDetailController, MovieDetailState>(
+      MovieDetailController.new,
     );
 
 final movieImagesControllerProvider =
-    StateNotifierProvider<MovieImagesController, MovieImagesState>(
-      (ref) => MovieImagesController(ref.read(movieRepoProvider)),
+    NotifierProvider<MovieImagesController, MovieImagesState>(
+      MovieImagesController.new,
     );

@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/quesgen/api.dart';
 
+final quesgenApiProvider = Provider((_) => QuesgenAPI());
+
 class QuesgenState {
   final List<String> questions;
   final bool isLoading;
@@ -25,11 +27,11 @@ class QuesgenState {
   }
 }
 
-class QuesgenController extends StateNotifier<QuesgenState> {
-  final QuesgenAPI api;
-
-  QuesgenController(this.api)
-    : super(QuesgenState(questions: [], isLoading: false, isError: false));
+class QuesgenController extends Notifier<QuesgenState> {
+  @override
+  QuesgenState build() {
+    return QuesgenState(questions: [], isLoading: false, isError: false);
+  }
 
   Future<void> generateQuestions({
     required int movieId,
@@ -47,7 +49,7 @@ class QuesgenController extends StateNotifier<QuesgenState> {
   }) async {
     state = state.copyWith(isLoading: true);
     try {
-      final newQuestions = await api.generateQuestions(
+      final newQuestions = await ref.read(quesgenApiProvider).generateQuestions(
         movieId: movieId,
         // name: name,
         // year: year,

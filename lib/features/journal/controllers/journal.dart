@@ -110,8 +110,11 @@ class JournalState {
   }
 }
 
-class JournalController extends StateNotifier<JournalState> {
-  JournalController() : super(JournalState());
+class JournalController extends Notifier<JournalState> {
+  @override
+  JournalState build() {
+    return JournalState();
+  }
 
   JournalController setMovie(int tmdbId, String title, String poster) {
     state = state.copyWith(
@@ -194,7 +197,7 @@ class JournalController extends StateNotifier<JournalState> {
     return this;
   }
 
-  Future<JournalController> save(WidgetRef ref) async {
+  Future<JournalController> save() async {
     // Set creation and update times
     final now = Jiffy.now();
     state = state.copyWith(createdAt: state.createdAt, updatedAt: now);
@@ -206,6 +209,6 @@ class JournalController extends StateNotifier<JournalState> {
 }
 
 final journalControllerProvider =
-    StateNotifierProvider<JournalController, JournalState>((ref) {
-      return JournalController();
-    });
+    NotifierProvider<JournalController, JournalState>(
+      JournalController.new,
+    );

@@ -14,9 +14,12 @@ class JournalsState {
   }
 }
 
-class JournalsController extends StateNotifier<JournalsState> {
-  JournalsController() : super(JournalsState()) {
-    _loadJournals();
+class JournalsController extends Notifier<JournalsState> {
+  @override
+  JournalsState build() {
+    // Initialize the state and load data asynchronously
+    Future.microtask(() => _loadJournals());
+    return JournalsState();
   }
 
   Future<void> _loadJournals() async {
@@ -84,6 +87,6 @@ class JournalsController extends StateNotifier<JournalsState> {
 }
 
 final journalsControllerProvider =
-    StateNotifierProvider<JournalsController, JournalsState>((ref) {
-      return JournalsController();
-    });
+    NotifierProvider<JournalsController, JournalsState>(
+      JournalsController.new,
+    );

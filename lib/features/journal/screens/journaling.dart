@@ -104,7 +104,7 @@ class JournalingScreen extends ConsumerWidget {
                           : () {
                             ref
                                 .read(journalControllerProvider.notifier)
-                                .save(ref)
+                                .save()
                                 .then((value) {
                                   if (context.mounted) {
                                     Navigator.pushAndRemoveUntil(

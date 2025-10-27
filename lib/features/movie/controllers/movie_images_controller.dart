@@ -1,26 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/data/models/movie_image.dart';
+import 'package:movie_journal/features/movie/movie_providers.dart';
 
-import 'package:movie_journal/features/movie/data/repositories/movie_repository.dart';
-
-class MovieImagesController extends StateNotifier<MovieImagesState> {
-  final MovieRepository repository;
-
-  MovieImagesController(this.repository)
-    : super(
-        MovieImagesState(
-          posters: [],
-          logos: [],
-          backdrops: [],
-          isLoading: false,
-          isError: false,
-        ),
-      );
+class MovieImagesController extends Notifier<MovieImagesState> {
+  @override
+  MovieImagesState build() {
+    return MovieImagesState(
+      posters: [],
+      logos: [],
+      backdrops: [],
+      isLoading: false,
+      isError: false,
+    );
+  }
 
   Future<void> getMovieImages({required int id, String? language}) async {
     state = state.copyWith(isLoading: true);
     try {
-      final images = await repository.getMovieImages(
+      final images = await ref.read(movieRepoProvider).getMovieImages(
         id: id,
         language: language,
       );

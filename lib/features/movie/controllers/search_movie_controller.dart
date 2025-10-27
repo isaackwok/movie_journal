@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/data/data_sources/movie_api.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
-import 'package:movie_journal/features/movie/data/repositories/movie_repository.dart';
+import 'package:movie_journal/features/movie/movie_providers.dart';
 
 enum SearchMovieMode { search, popular }
 
@@ -55,11 +55,12 @@ bool movieIntegrityChecker(BriefMovie movie) =>
     movie.overview.isNotEmpty &&
     movie.title.isNotEmpty;
 
-class SearchMovieController extends StateNotifier<SearchMovieState> {
-  final MovieRepository repository;
-
-  SearchMovieController(this.repository) : super(SearchMovieState()) {
-    fetchNext();
+class SearchMovieController extends Notifier<SearchMovieState> {
+  @override
+  SearchMovieState build() {
+    // Initialize the state and fetch data asynchronously
+    Future.microtask(() => fetchNext());
+    return SearchMovieState();
   }
 
   Future<void> search(String query) async {
@@ -75,9 +76,9 @@ class SearchMovieController extends StateNotifier<SearchMovieState> {
     try {
       late final MovieListResponse result;
       if (state.query.isEmpty) {
-        result = await repository.popular(page: state.page);
+        result = await ref.read(movieRepoProvider).popular(page: state.page);
       } else {
-        result = await repository.search(query: state.query, page: state.page);
+        result = await ref.read(movieRepoProvider).search(query: state.query, page: state.page);
       }
       state = state.copyWith(
         movies: [
