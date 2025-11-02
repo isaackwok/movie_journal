@@ -55,6 +55,173 @@ class ScenesSelector extends ConsumerStatefulWidget {
 }
 
 class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
+  static const double _borderRadius = 16.0;
+  static const double _minMaxHeight = 215.0;
+  static const Color _accentColor = Color(0xFFA8DADD);
+
+  void _navigateToScenesSelectSheet() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ScenesSelectSheet()),
+    );
+  }
+
+  Widget _buildEmptyScenesView(String firstBackdropPath) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: _minMaxHeight,
+        maxHeight: _minMaxHeight,
+      ),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(_borderRadius),
+            child: Image.network(
+              'https://image.tmdb.org/t/p/w500$firstBackdropPath',
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              errorBuilder: (context, error, stackTrace) {
+                return const Center(child: Text('Error loading image'));
+              },
+            ),
+          ),
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(_borderRadius),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withAlpha(102),
+                  borderRadius: BorderRadius.circular(_borderRadius),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _navigateToScenesSelectSheet,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Center(
+                      child: Text(
+                        "+  Add Scenes",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'AvenirNext',
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectedScenesView(List<String> selectedScenes) {
+    return Column(
+      spacing: 16,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GridView.builder(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            mainAxisExtent: 120,
+          ),
+          itemCount: selectedScenes.length,
+          itemBuilder: (context, index) {
+            return SceneButton(
+              imageUrl:
+                  'https://image.tmdb.org/t/p/w500${selectedScenes[index]}',
+              onRemove: () {
+                ref
+                    .read(journalControllerProvider.notifier)
+                    .removeScene(selectedScenes[index]);
+              },
+            );
+          },
+        ),
+        ElevatedButton.icon(
+          icon: Icon(Icons.add, color: Colors.white),
+          label: Text(
+            'Add Scenes',
+            style: TextStyle(color: Colors.white, fontFamily: 'AvenirNext'),
+          ),
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(_borderRadius),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            textStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+            overlayColor: _accentColor,
+            backgroundColor: Colors.transparent,
+            side: BorderSide(color: _accentColor, width: 1),
+          ),
+          onPressed: _navigateToScenesSelectSheet,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyBackdropsState() {
+    return Container(
+      height: _minMaxHeight,
+      decoration: BoxDecoration(
+        color: Color(0xFF1C1C1E),
+        borderRadius: BorderRadius.circular(_borderRadius),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Scene missing!',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'AvenirNext',
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "We couldn't find any scene photos for this movie.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontFamily: 'AvenirNext',
+                letterSpacing: 0,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Keep this one in your memory. ✨',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                letterSpacing: 0,
+                fontSize: 14,
+                fontFamily: 'AvenirNext',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final movieImagesAsync = ref.watch(movieImagesControllerProvider);
@@ -77,150 +244,23 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
           data: (movieImages) {
             final backdrops = movieImages.backdrops;
             if (backdrops.isEmpty) {
-              return const Center(child: Text('No scenes available'));
+              return _buildEmptyBackdropsState();
             }
+
             return selectedScenes.isEmpty
-                ? ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minHeight: 215,
-                    maxHeight: 215,
-                  ),
-                  child: Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child:
-                            backdrops.isNotEmpty
-                                ? Image.network(
-                                  'https://image.tmdb.org/t/p/w500${backdrops[0].filePath}',
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Center(
-                                      child: Text('Error loading image'),
-                                    );
-                                  },
-                                )
-                                : const SizedBox.shrink(),
-                      ),
-                      Positioned.fill(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.black.withAlpha(102),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ScenesSelectSheet(),
-                                    ),
-                                  );
-                                },
-                                borderRadius: BorderRadius.circular(8),
-                                child: Center(
-                                  child: Text(
-                                    "+  Add Scenes",
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'AvenirNext',
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-                : Column(
-                  spacing: 16,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    selectedScenes.isEmpty
-                        ? const SizedBox.shrink()
-                        : GridView.builder(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
-                                mainAxisExtent: 120,
-                              ),
-                          itemCount: selectedScenes.length,
-                          itemBuilder: (context, index) {
-                            return SceneButton(
-                              imageUrl:
-                                  'https://image.tmdb.org/t/p/w500${selectedScenes[index]}',
-                              onRemove: () {
-                                ref
-                                    .read(journalControllerProvider.notifier)
-                                    .removeScene(selectedScenes[index]);
-                              },
-                            );
-                          },
-                        ),
-                    ElevatedButton.icon(
-                      icon: Icon(Icons.add, color: Colors.white),
-                      label: Text(
-                        'Add Scenes',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'AvenirNext',
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                        overlayColor: Color(0xFFA8DADD),
-                        backgroundColor: Colors.transparent,
-                        side: BorderSide(color: Color(0xFFA8DADD), width: 1),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ScenesSelectSheet(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                );
+                ? _buildEmptyScenesView(backdrops[0].filePath)
+                : _buildSelectedScenesView(selectedScenes);
           },
           loading:
               () => Skeletonizer(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(
-                    minHeight: 215,
-                    maxHeight: 215,
+                    minHeight: _minMaxHeight,
+                    maxHeight: _minMaxHeight,
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Bone(width: double.infinity, height: 215),
+                    borderRadius: BorderRadius.circular(_borderRadius),
+                    child: Bone(width: double.infinity, height: _minMaxHeight),
                   ),
                 ),
               ),
