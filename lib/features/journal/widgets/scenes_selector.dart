@@ -218,13 +218,9 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
                     minHeight: 215,
                     maxHeight: 215,
                   ),
-                  child: Container(
-                    width: double.infinity,
-                    height: 215,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Bone(width: double.infinity, height: 215),
                   ),
                 ),
               ),
