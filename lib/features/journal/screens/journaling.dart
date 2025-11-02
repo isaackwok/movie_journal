@@ -9,6 +9,7 @@ import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
 import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
+import 'package:movie_journal/features/toast/custom_toast.dart';
 
 class SectionSeperator extends StatelessWidget {
   const SectionSeperator({super.key});
@@ -43,6 +44,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    CustomToast.init(context);
   }
 
   @override
@@ -126,6 +128,9 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                                 .save()
                                 .then((value) {
                                   if (context.mounted) {
+                                    CustomToast.showSuccess(
+                                      'Your journal has been saved.',
+                                    );
                                     Navigator.pushAndRemoveUntil(
                                       context,
                                       MaterialPageRoute(
@@ -143,18 +148,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                                   ref
                                       .read(quesgenControllerProvider.notifier)
                                       .clear();
-                                  // TODO: Show success toast message
                                 });
-
-                            // Fluttertoast.showToast(
-                            //   msg: 'Your journal has been saved',
-                            //   toastLength: Toast.LENGTH_SHORT,
-                            //   gravity: ToastGravity.BOTTOM,
-                            //   timeInSecForIosWeb: 1,
-                            //   backgroundColor: Colors.black,
-                            //   textColor: Colors.white,
-                            //   fontSize: 16,
-                            // );
                           },
                   style: ButtonStyle(
                     shape: WidgetStateProperty.all(
