@@ -156,25 +156,41 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                             //   fontSize: 16,
                             // );
                           },
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  style: ButtonStyle(
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                    padding: WidgetStateProperty.all(
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
-                    textStyle: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                    textStyle: WidgetStateProperty.all(
+                      const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
                     ),
-                    overlayColor: Color(0xFFA8DADD),
-                    backgroundColor: Colors.transparent,
-                    side: BorderSide(color: Color(0xFFA8DADD), width: 1),
-                    disabledBackgroundColor: Colors.transparent,
-                    disabledForegroundColor: Colors.white.withAlpha(76),
-                    foregroundColor: Colors.white,
+                    overlayColor: WidgetStateProperty.all(Color(0xFFA8DADD)),
+                    backgroundColor: WidgetStateProperty.all(
+                      Colors.transparent,
+                    ),
+                    side: WidgetStateProperty.resolveWith((states) {
+                      if (states.contains(WidgetState.disabled)) {
+                        return BorderSide(
+                          color: Color(0xFFA8DADD).withAlpha(76),
+                          width: 1,
+                        );
+                      }
+                      return BorderSide(color: Color(0xFFA8DADD), width: 1);
+                    }),
+                    foregroundColor: WidgetStateProperty.resolveWith((states) {
+                      if (states.contains(WidgetState.disabled)) {
+                        return Colors.white.withAlpha(76);
+                      }
+                      return Colors.white;
+                    }),
                   ),
                   child: Text('Save'),
                 ),
