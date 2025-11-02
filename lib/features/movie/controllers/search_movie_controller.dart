@@ -5,22 +5,19 @@ import 'package:movie_journal/features/movie/movie_providers.dart';
 
 enum SearchMovieMode { search, popular }
 
+// Simplified state without manual async flags
 class SearchMovieState {
   final List<BriefMovie> movies;
   final String query;
   final int page;
-  final bool isLoading;
   final bool hasMore;
-  final bool isError;
   final SearchMovieMode mode;
 
   SearchMovieState({
     this.movies = const [],
     this.query = '',
     this.page = 1,
-    this.isLoading = false,
     this.hasMore = true,
-    this.isError = false,
     this.mode = SearchMovieMode.popular,
   });
 
@@ -28,9 +25,7 @@ class SearchMovieState {
     List<BriefMovie>? movies,
     String? query,
     int? page,
-    bool? isLoading,
     bool? hasMore,
-    bool? isError,
     SearchMovieMode? mode,
   }) {
     final nextQuery = query ?? this.query;
@@ -38,9 +33,7 @@ class SearchMovieState {
       movies: movies ?? this.movies,
       query: nextQuery,
       page: page ?? this.page,
-      isLoading: isLoading ?? this.isLoading,
       hasMore: hasMore ?? this.hasMore,
-      isError: isError ?? this.isError,
       mode:
           mode ??
           (nextQuery.isEmpty
@@ -55,48 +48,79 @@ bool movieIntegrityChecker(BriefMovie movie) =>
     movie.overview.isNotEmpty &&
     movie.title.isNotEmpty;
 
-class SearchMovieController extends Notifier<SearchMovieState> {
+class SearchMovieController extends AsyncNotifier<SearchMovieState> {
   @override
-  SearchMovieState build() {
-    // Initialize the state and fetch data asynchronously
-    Future.microtask(() => fetchNext());
-    return SearchMovieState();
+  Future<SearchMovieState> build() async {
+    // Load initial popular movies
+    final result = await ref.read(movieRepoProvider).popular(page: 1);
+    return SearchMovieState(
+      movies: result.results.where(movieIntegrityChecker).toList(),
+      page: 2,
+      hasMore: result.page < result.totalPages,
+      mode: SearchMovieMode.popular,
+    );
   }
 
   Future<void> search(String query) async {
-    state = SearchMovieState(query: query, isError: false);
-    fetchNext();
+    if (query.isEmpty) {
+      // Reset to popular movies
+      state = const AsyncLoading();
+      state = await AsyncValue.guard(() async {
+        final result = await ref.read(movieRepoProvider).popular(page: 1);
+        return SearchMovieState(
+          movies: result.results.where(movieIntegrityChecker).toList(),
+          page: 2,
+          hasMore: result.page < result.totalPages,
+          mode: SearchMovieMode.popular,
+        );
+      });
+    } else {
+      // Search with new query
+      state = const AsyncLoading();
+      state = await AsyncValue.guard(() async {
+        final result = await ref.read(movieRepoProvider).search(query: query, page: 1);
+        return SearchMovieState(
+          movies: result.results.where(movieIntegrityChecker).toList(),
+          query: query,
+          page: 2,
+          hasMore: result.page < result.totalPages,
+          mode: SearchMovieMode.search,
+        );
+      });
+    }
   }
 
-  Future<void> fetchNext() async {
-    if (state.isLoading || !state.hasMore) return;
+  Future<void> loadMore() async {
+    final currentState = state.value;
+    if (currentState == null || !currentState.hasMore) return;
 
-    state = state.copyWith(isLoading: true);
-
+    // Keep current state while loading more
     try {
       late final MovieListResponse result;
-      if (state.query.isEmpty) {
-        result = await ref.read(movieRepoProvider).popular(page: state.page);
+      if (currentState.query.isEmpty) {
+        result = await ref.read(movieRepoProvider).popular(page: currentState.page);
       } else {
-        result = await ref.read(movieRepoProvider).search(query: state.query, page: state.page);
+        result = await ref.read(movieRepoProvider).search(
+          query: currentState.query,
+          page: currentState.page,
+        );
       }
-      state = state.copyWith(
+
+      state = AsyncData(currentState.copyWith(
         movies: [
-          ...state.movies,
+          ...currentState.movies,
           ...result.results.where(movieIntegrityChecker),
         ],
-        page: state.page + 1,
+        page: currentState.page + 1,
         hasMore: result.page < result.totalPages,
-        isLoading: false,
-        isError: false,
-      );
-    } catch (e) {
-      state = state.copyWith(isLoading: false, isError: true);
+      ));
+    } catch (error, stackTrace) {
+      // Keep current movies but show error for pagination
+      state = AsyncError(error, stackTrace);
     }
   }
 
   void reset() {
-    state = SearchMovieState();
-    fetchNext();
+    ref.invalidateSelf();
   }
 }

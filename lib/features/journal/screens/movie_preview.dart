@@ -12,200 +12,269 @@ class MoviePreviewScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(movieDetailControllerProvider);
+    final asyncState = ref.watch(movieDetailControllerProvider);
 
-    if (state.isError) {
-      return Scaffold(
-        key: ValueKey(movieId),
-        body: Padding(
-          padding: EdgeInsets.all(16),
-          child: Center(
-            child: Text(
-              'Error loading movies',
-              style: TextStyle(
-                color: Color(0xFFFCA311),
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+    return asyncState.when(
+      data:
+          (movie) => Scaffold(
+            key: ValueKey(movieId),
+            body: SafeArea(
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.only(bottom: 50),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Skeleton.replace(
+                                height: 492,
+                                width: double.infinity,
+                                child:
+                                    movie.posterPath != null
+                                        ? Image.network(
+                                          'https://image.tmdb.org/t/p/w500${movie.posterPath}',
+                                          fit: BoxFit.cover,
+                                        )
+                                        : Image.asset(
+                                          'assets/images/avatar.png',
+                                          fit: BoxFit.cover,
+                                        ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              child: Column(
+                                spacing: 12,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${movie.title}${movie.originalTitle.isNotEmpty && movie.originalTitle != movie.title ? ' (${movie.originalTitle})' : ''}',
+                                    style: const TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${movie.credits.crew.where((e) => e.job == 'Director').firstOrNull?.name ?? 'Unknown'} | ${movie.year} |  ${movie.originCountry.isNotEmpty ? movie.originCountry.first : ''}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFFC5C5C5),
+                                    ),
+                                  ),
+                                  Text(
+                                    movie.overview,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xFFC5C5C5),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 60,
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              Theme.of(context).colorScheme.surface,
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  Positioned(
+                    top: 12,
+                    right: 24,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withAlpha(128),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        style: IconButton.styleFrom(padding: EdgeInsets.zero),
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                        padding: const EdgeInsets.all(8),
+                        // constraints: const BoxConstraints(
+                        //   minWidth: 36,
+                        //   minHeight: 36,
+                        // ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            bottomNavigationBar: BottomAppBar(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              shadowColor: Colors.black26,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  textStyle: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'AvenirNext',
+                  ),
+                  backgroundColor: Color(0xFFA8DADD),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(16)),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                onPressed: () {
+                  if (movie.posterPath != null) {
+                    ref
+                        .read(movieImagesControllerProvider.notifier)
+                        .getMovieImages(id: movieId);
+                    ref
+                        .read(journalControllerProvider.notifier)
+                        .setMovie(movieId, movie.title, movie.posterPath!);
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => JournalingScreen(
+                              movieTitle: movie.title,
+                              moviePosterUrl: movie.posterPath!,
+                            ),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Start Journaling'),
               ),
             ),
           ),
-        ),
-      );
-    }
-    // if (state.isLoading) {
-    //   return Scaffold(
-    //     key: ValueKey(movieId),
-    //     body: Padding(
-    //       padding: EdgeInsets.all(16),
-    //       child: Center(child: CircularProgressIndicator()),
-    //     ),
-    //   );
-    // }
-    final movie = state.movie;
-    if (movie == null) {
-      return Text('Movie not found');
-    }
-    return Skeletonizer(
-      enabled: state.isLoading,
-      child: Scaffold(
-        key: ValueKey(movieId),
-        body: SafeArea(
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 50),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Skeleton.replace(
-                            height: 492,
-                            width: double.infinity,
-                            child:
-                                movie.posterPath != null
-                                    ? Image.network(
-                                      'https://image.tmdb.org/t/p/w500${movie.posterPath}',
-                                      fit: BoxFit.cover,
-                                    )
-                                    : Image.asset(
-                                      'assets/images/avatar.png',
-                                      fit: BoxFit.cover,
-                                    ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+      loading:
+          () => Scaffold(
+            key: ValueKey(movieId),
+            body: SafeArea(
+              child: Skeletonizer(
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.only(bottom: 50),
                           child: Column(
-                            spacing: 12,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text(
-                                '${movie.title}${movie.originalTitle.isNotEmpty && movie.originalTitle != movie.title ? ' (${movie.originalTitle})' : ''}',
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Bone.square(size: 492),
                               ),
-                              Text(
-                                '${movie.credits.crew.where((e) => e.job == 'Director').firstOrNull?.name ?? 'Unknown'} | ${movie.year} |  ${movie.originCountry.isNotEmpty ? movie.originCountry.first : ''}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFFC5C5C5),
+                              const SizedBox(height: 24),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
                                 ),
-                              ),
-                              Text(
-                                movie.overview,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                  color: Color(0xFFC5C5C5),
+                                child: Column(
+                                  spacing: 12,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Bone.text(words: 3, fontSize: 28),
+                                    Bone.text(words: 5, fontSize: 14),
+                                    Bone.multiText(lines: 4, fontSize: 14),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: 60,
-                child: IgnorePointer(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Theme.of(context).colorScheme.surface,
-                          Colors.transparent,
-                        ],
                       ),
                     ),
-                  ),
-                ),
-              ),
-
-              Positioned(
-                top: 12,
-                right: 24,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withAlpha(128),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    style: IconButton.styleFrom(padding: EdgeInsets.zero),
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                    padding: const EdgeInsets.all(8),
-                    // constraints: const BoxConstraints(
-                    //   minWidth: 36,
-                    //   minHeight: 36,
-                    // ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: BottomAppBar(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          clipBehavior: Clip.antiAliasWithSaveLayer,
-          shadowColor: Colors.black26,
-          child: TextButton(
-            style: TextButton.styleFrom(
-              textStyle: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'AvenirNext',
-              ),
-              backgroundColor: Color(0xFFA8DADD),
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(16)),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            onPressed: () {
-              if (movie.posterPath != null) {
-                ref
-                    .read(movieImagesControllerProvider.notifier)
-                    .getMovieImages(id: movieId);
-                ref
-                    .read(journalControllerProvider.notifier)
-                    .setMovie(movieId, movie.title, movie.posterPath!);
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) => JournalingScreen(
-                          movieTitle: movie.title,
-                          moviePosterUrl: movie.posterPath!,
+                    Positioned(
+                      top: 12,
+                      right: 24,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withAlpha(128),
+                          shape: BoxShape.circle,
                         ),
-                  ),
-                );
-              }
-            },
-            child: const Text('Start Journaling'),
+                        child: IconButton(
+                          style: IconButton.styleFrom(padding: EdgeInsets.zero),
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                          padding: const EdgeInsets.all(8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            bottomNavigationBar: BottomAppBar(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              shadowColor: Colors.black26,
+              child: Bone.button(
+                width: double.infinity,
+                height: 48,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
           ),
-        ),
-      ),
+      error:
+          (error, stackTrace) => Scaffold(
+            key: ValueKey(movieId),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Error loading movie',
+                    style: TextStyle(
+                      color: Color(0xFFFCA311),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => ref.refresh(movieDetailControllerProvider),
+                    child: Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
     );
   }
 }

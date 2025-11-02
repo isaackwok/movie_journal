@@ -15,11 +15,14 @@ class _SearchMovieScreenState extends ConsumerState<SearchMovieScreen> {
   final scrollController = ScrollController();
 
   void _onScroll() {
-    final state = ref.read(searchMovieControllerProvider);
+    final asyncState = ref.read(searchMovieControllerProvider);
     if (scrollController.position.pixels >=
-            scrollController.position.maxScrollExtent - 200 &&
-        !state.isLoading) {
-      ref.read(searchMovieControllerProvider.notifier).fetchNext();
+            scrollController.position.maxScrollExtent - 200) {
+      asyncState.whenData((state) {
+        if (state.hasMore) {
+          ref.read(searchMovieControllerProvider.notifier).loadMore();
+        }
+      });
     }
   }
 

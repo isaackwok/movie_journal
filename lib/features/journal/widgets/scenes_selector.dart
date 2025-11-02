@@ -57,10 +57,10 @@ class ScenesSelector extends ConsumerStatefulWidget {
 class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
   @override
   Widget build(BuildContext context) {
-    final movieImages = ref.watch(movieImagesControllerProvider);
+    final movieImagesAsync = ref.watch(movieImagesControllerProvider);
     final journal = ref.watch(journalControllerProvider);
-    final backdrops = movieImages.backdrops;
     final selectedScenes = journal.selectedScenes;
+
     return Column(
       spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -73,154 +73,165 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
             fontFamily: 'AvenirNext',
           ),
         ),
-        movieImages.isError
-            ? const Center(child: Text('Error loading images'))
-            : Skeletonizer(
-              enabled: movieImages.isLoading,
-              child:
-                  selectedScenes.isEmpty
-                      ? ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          minHeight: 215,
-                          maxHeight: 215,
-                        ),
-                        child: Stack(
-                          children: [
-                            ClipRRect(
+        movieImagesAsync.when(
+          data: (movieImages) {
+            final backdrops = movieImages.backdrops;
+            if (backdrops.isEmpty) {
+              return const Center(child: Text('No scenes available'));
+            }
+            return selectedScenes.isEmpty
+                ? ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minHeight: 215,
+                    maxHeight: 215,
+                  ),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child:
+                            backdrops.isNotEmpty
+                                ? Image.network(
+                                  'https://image.tmdb.org/t/p/w500${backdrops[0].filePath}',
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Center(
+                                      child: Text('Error loading image'),
+                                    );
+                                  },
+                                )
+                                : const SizedBox.shrink(),
+                      ),
+                      Positioned.fill(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withAlpha(102),
                               borderRadius: BorderRadius.circular(16),
-                              child:
-                                  backdrops.isNotEmpty
-                                      ? Image.network(
-                                        'https://image.tmdb.org/t/p/w500${backdrops[0].filePath}',
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                        height: double.infinity,
-                                        errorBuilder: (
-                                          context,
-                                          error,
-                                          stackTrace,
-                                        ) {
-                                          return const Center(
-                                            child: Text('Error loading image'),
-                                          );
-                                        },
-                                      )
-                                      : const SizedBox.shrink(),
                             ),
-                            Positioned.fill(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withAlpha(102),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder:
-                                                (context) =>
-                                                    ScenesSelectSheet(),
-                                          ),
-                                        );
-                                      },
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Center(
-                                        child: Text(
-                                          "+  Add Scenes",
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            fontFamily: 'AvenirNext',
-                                          ),
-                                        ),
-                                      ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ScenesSelectSheet(),
                                     ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      : Column(
-                        spacing: 16,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          selectedScenes.isEmpty
-                              ? const SizedBox.shrink()
-                              : GridView.builder(
-                                padding: EdgeInsets.zero,
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2,
-                                      crossAxisSpacing: 8,
-                                      mainAxisSpacing: 8,
-                                      mainAxisExtent: 120,
-                                    ),
-                                itemCount: selectedScenes.length,
-                                itemBuilder: (context, index) {
-                                  return SceneButton(
-                                    imageUrl:
-                                        'https://image.tmdb.org/t/p/w500${selectedScenes[index]}',
-                                    onRemove: () {
-                                      ref
-                                          .read(
-                                            journalControllerProvider.notifier,
-                                          )
-                                          .removeScene(selectedScenes[index]);
-                                    },
                                   );
                                 },
-                              ),
-                          ElevatedButton.icon(
-                            icon: Icon(Icons.add, color: Colors.white),
-                            label: Text(
-                              'Add Scenes',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'AvenirNext',
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
-                              ),
-                              overlayColor: Color(0xFFA8DADD),
-                              backgroundColor: Colors.transparent,
-                              side: BorderSide(
-                                color: Color(0xFFA8DADD),
-                                width: 1,
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ScenesSelectSheet(),
+                                borderRadius: BorderRadius.circular(8),
+                                child: Center(
+                                  child: Text(
+                                    "+  Add Scenes",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'AvenirNext',
+                                    ),
+                                  ),
                                 ),
-                              );
-                            },
+                              ),
+                            ),
                           ),
-                        ],
+                        ),
                       ),
-            ),
+                    ],
+                  ),
+                )
+                : Column(
+                  spacing: 16,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    selectedScenes.isEmpty
+                        ? const SizedBox.shrink()
+                        : GridView.builder(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 8,
+                                mainAxisSpacing: 8,
+                                mainAxisExtent: 120,
+                              ),
+                          itemCount: selectedScenes.length,
+                          itemBuilder: (context, index) {
+                            return SceneButton(
+                              imageUrl:
+                                  'https://image.tmdb.org/t/p/w500${selectedScenes[index]}',
+                              onRemove: () {
+                                ref
+                                    .read(journalControllerProvider.notifier)
+                                    .removeScene(selectedScenes[index]);
+                              },
+                            );
+                          },
+                        ),
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.add, color: Colors.white),
+                      label: Text(
+                        'Add Scenes',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'AvenirNext',
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                        overlayColor: Color(0xFFA8DADD),
+                        backgroundColor: Colors.transparent,
+                        side: BorderSide(color: Color(0xFFA8DADD), width: 1),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ScenesSelectSheet(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                );
+          },
+          loading:
+              () => Skeletonizer(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minHeight: 215,
+                    maxHeight: 215,
+                  ),
+                  child: Container(
+                    width: double.infinity,
+                    height: 215,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+          error:
+              (error, stack) =>
+                  const Center(child: Text('Error loading images')),
+        ),
       ],
     );
   }

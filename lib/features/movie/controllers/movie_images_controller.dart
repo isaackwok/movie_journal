@@ -2,69 +2,59 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 
-class MovieImagesController extends Notifier<MovieImagesState> {
+class MovieImagesController extends AsyncNotifier<MovieImagesState> {
+  int? _movieId;
+
   @override
-  MovieImagesState build() {
-    return MovieImagesState(
-      posters: [],
-      logos: [],
-      backdrops: [],
-      isLoading: false,
-      isError: false,
-    );
+  Future<MovieImagesState> build() async {
+    // Return empty state initially - will be fetched via getMovieImages
+    throw UnimplementedError('Use getMovieImages(id) to load images');
   }
 
   Future<void> getMovieImages({required int id, String? language}) async {
-    state = state.copyWith(isLoading: true);
-    try {
+    _movieId = id;
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
       final images = await ref.read(movieRepoProvider).getMovieImages(
         id: id,
         language: language,
       );
-      state = state.copyWith(
+      return MovieImagesState(
         posters: images.posters,
         logos: images.logos,
         backdrops: images.backdrops,
-        isError: false,
       );
-    } catch (e, stackTrace) {
-      print(e);
-      print(stackTrace);
-      state = state.copyWith(isError: true, isLoading: false);
-    } finally {
-      state = state.copyWith(isLoading: false);
+    });
+  }
+
+  Future<void> refresh() async {
+    if (_movieId != null) {
+      await getMovieImages(id: _movieId!);
     }
   }
 }
 
+// Simplified state without manual async flags
 class MovieImagesState {
   final List<MovieImage> posters;
   final List<MovieImage> logos;
   final List<MovieImage> backdrops;
-  final bool isLoading;
-  final bool isError;
 
   MovieImagesState({
     required this.posters,
     required this.logos,
     required this.backdrops,
-    required this.isLoading,
-    required this.isError,
   });
 
   MovieImagesState copyWith({
     List<MovieImage>? posters,
     List<MovieImage>? logos,
     List<MovieImage>? backdrops,
-    bool? isLoading,
-    bool? isError,
   }) {
     return MovieImagesState(
       posters: posters ?? this.posters,
       logos: logos ?? this.logos,
       backdrops: backdrops ?? this.backdrops,
-      isLoading: isLoading ?? this.isLoading,
-      isError: isError ?? this.isError,
     );
   }
 }

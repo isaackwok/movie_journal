@@ -33,7 +33,8 @@ class JournalingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final movieId = ref.watch(movieDetailControllerProvider).movie?.id;
+    final movieAsync = ref.watch(movieDetailControllerProvider);
+    final movieId = movieAsync.hasValue ? movieAsync.value!.id : 0;
     final journal = ref.watch(journalControllerProvider);
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -195,7 +196,7 @@ class JournalingScreen extends ConsumerWidget {
                   const SectionSeperator(),
                   EmotionsSelector(),
                   const SectionSeperator(),
-                  ScenesSelector(movieId: movieId ?? 0),
+                  ScenesSelector(movieId: movieId),
                   const SectionSeperator(),
                   ThoughtsEditor(),
                 ],

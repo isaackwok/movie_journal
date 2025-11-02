@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:movie_journal/features/journal/screens/movie_preview.dart';
 import 'package:movie_journal/features/movie/controllers/search_movie_controller.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
@@ -12,44 +13,86 @@ class MovieResultList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(searchMovieControllerProvider);
-    return ListView.separated(
-      padding: const EdgeInsets.only(bottom: 100),
-      controller: scrollController,
-      itemCount: state.movies.length + (state.isLoading ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (state.mode == SearchMovieMode.popular && index == 0) {
-          return Text(
-            'People watched',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-          );
-        }
-        if (index < state.movies.length) {
-          return MovieResultItem(movie: state.movies[index]);
-        }
-        if (state.isError) {
-          return Padding(
-            padding: EdgeInsets.all(16),
-            child: Center(
-              child: Text(
-                'Error loading movies',
-                style: TextStyle(
-                  color: Color(0xFFFCA311),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+    final asyncState = ref.watch(searchMovieControllerProvider);
+
+    return asyncState.when(
+      data:
+          (state) => ListView.separated(
+            padding: const EdgeInsets.only(bottom: 100),
+            controller: scrollController,
+            itemCount: state.movies.length,
+            itemBuilder: (context, index) {
+              if (state.mode == SearchMovieMode.popular && index == 0) {
+                return Text(
+                  'People watched',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                );
+              }
+              return MovieResultItem(movie: state.movies[index]);
+            },
+            separatorBuilder: (context, index) {
+              return const SizedBox(height: 12);
+            },
+          ),
+      loading:
+          () => Skeletonizer(
+            enabled: true,
+            child: ListView.separated(
+              padding: const EdgeInsets.only(bottom: 100),
+              controller: scrollController,
+              itemCount: 5, // Show 5 skeleton items
+              itemBuilder: (context, index) {
+                return SizedBox(
+                  height: 128,
+                  child: Row(
+                    spacing: 16,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Bone(width: 96, height: 128),
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: 8,
+                          children: [
+                            Bone.text(words: 3, fontSize: 20),
+                            Bone.text(words: 1, fontSize: 12),
+                            Bone.multiText(lines: 3, fontSize: 14),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              separatorBuilder: (context, index) {
+                return const SizedBox(height: 12);
+              },
             ),
-          );
-        }
-        return Padding(
-          padding: EdgeInsets.all(16),
-          child: Center(child: CircularProgressIndicator()),
-        );
-      },
-      separatorBuilder: (context, index) {
-        return const SizedBox(height: 12);
-      },
+          ),
+      error:
+          (error, stack) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Error loading movies',
+                  style: TextStyle(
+                    color: Color(0xFFFCA311),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => ref.refresh(searchMovieControllerProvider),
+                  child: Text('Retry'),
+                ),
+              ],
+            ),
+          ),
     );
   }
 }

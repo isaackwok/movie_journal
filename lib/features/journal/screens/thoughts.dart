@@ -99,7 +99,8 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
   }
 
   void _onReferencesButtonPressed(BuildContext context) {
-    final movie = ref.read(movieDetailControllerProvider).movie;
+    final movieAsync = ref.read(movieDetailControllerProvider);
+    final movie = movieAsync.hasValue ? movieAsync.value : null;
     final quesgenState = ref.read(quesgenControllerProvider);
     if (movie != null && quesgenState.questions.isEmpty) {
       ref

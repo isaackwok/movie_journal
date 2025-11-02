@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
+import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 
 class SceneButton extends StatelessWidget {
   const SceneButton({
@@ -87,8 +88,8 @@ class ScenesSelectSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final movieImages = ref.watch(movieImagesControllerProvider);
-    final backdrops = movieImages.backdrops;
+    final movieImagesAsync = ref.watch(movieImagesControllerProvider);
+    final backdrops = movieImagesAsync.hasValue ? movieImagesAsync.value!.backdrops : <MovieImage>[];
     final journal = ref.watch(journalControllerProvider);
     final selectedScenes = journal.selectedScenes;
 
