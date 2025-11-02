@@ -129,6 +129,7 @@ class EmotionsSelector extends ConsumerStatefulWidget {
 
 class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
     with SingleTickerProviderStateMixin {
+  static const int _maxEmotionLimit = 10;
   String? selectedEmotion;
   late final TabController _tabController;
   final emotionGroups = {
@@ -158,6 +159,7 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
   Widget build(BuildContext context) {
     final journal = ref.watch(journalControllerProvider);
     final selectedEmotions = journal.emotions;
+    final isAtMaxLimit = selectedEmotions.length >= _maxEmotionLimit;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -170,13 +172,29 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
           ),
         ),
         SizedBox(height: 8),
-        Text(
-          '${selectedEmotions.length} selected',
-          style: TextStyle(
-            fontSize: 14,
-            fontFamily: 'AvenirNext',
-            fontWeight: FontWeight.w500,
-            color: Color(0xFFC5C5C5),
+        RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: '${selectedEmotions.length} selected',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontFamily: 'AvenirNext',
+                  fontWeight: FontWeight.w500,
+                  color: isAtMaxLimit ? Colors.red : Color(0xFFC5C5C5),
+                ),
+              ),
+              if (isAtMaxLimit)
+                TextSpan(
+                  text: ' (maximum limit)',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontFamily: 'AvenirNext',
+                    fontWeight: FontWeight.w500,
+                    color: Colors.red,
+                  ),
+                ),
+            ],
           ),
         ),
         SizedBox(height: 16),
@@ -318,8 +336,10 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
                                     emotionGroups[group.key]![index].value,
                                   ),
                                   onTap: (e) {
+                                    final currentEmotion =
+                                        emotionGroups[group.key]![index].value;
                                     if (selectedEmotions.contains(
-                                      emotionGroups[group.key]![index].value,
+                                      currentEmotion,
                                     )) {
                                       ref
                                           .read(
@@ -327,22 +347,21 @@ class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
                                           )
                                           .setEmotions([
                                             ...selectedEmotions.where(
-                                              (e) =>
-                                                  e !=
-                                                  emotionGroups[group
-                                                          .key]![index]
-                                                      .value,
+                                              (e) => e != currentEmotion,
                                             ),
                                           ]);
                                     } else {
+                                      if (selectedEmotions.length >=
+                                          _maxEmotionLimit) {
+                                        return;
+                                      }
                                       ref
                                           .read(
                                             journalControllerProvider.notifier,
                                           )
                                           .setEmotions([
                                             ...selectedEmotions,
-                                            emotionGroups[group.key]![index]
-                                                .value,
+                                            currentEmotion,
                                           ]);
                                     }
                                   },
