@@ -22,7 +22,7 @@ class SectionSeperator extends StatelessWidget {
   }
 }
 
-class JournalingScreen extends ConsumerWidget {
+class JournalingScreen extends ConsumerStatefulWidget {
   final String movieTitle;
   final String moviePosterUrl;
   const JournalingScreen({
@@ -32,13 +32,46 @@ class JournalingScreen extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<JournalingScreen> createState() => _JournalingScreenState();
+}
+
+class _JournalingScreenState extends ConsumerState<JournalingScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool _showTitle = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    // Show title when scrolled down more than 100 pixels
+    final showTitle =
+        _scrollController.hasClients && _scrollController.offset > 100;
+    if (showTitle != _showTitle) {
+      setState(() {
+        _showTitle = showTitle;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final movieAsync = ref.watch(movieDetailControllerProvider);
     final movieId = movieAsync.hasValue ? movieAsync.value!.id : 0;
     final journal = ref.watch(journalControllerProvider);
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: [
           SliverAppBar(
             backgroundColor: Theme.of(context).colorScheme.surface,
@@ -47,34 +80,19 @@ class JournalingScreen extends ConsumerWidget {
             snap: true,
             automaticallyImplyLeading: false,
             centerTitle: true,
-            // title: Text(
-            //   movieTitle,
-            //   style: GoogleFonts.inter(
-            //     fontSize: 28,
-            //     fontWeight: FontWeight.w500,
-            //   ),
-            // ),
-            // title: Column(
-            //   crossAxisAlignment: CrossAxisAlignment.start,
-            //   spacing: 12,
-            //   children: [
-            //     Text(
-            //       movieTitle,
-            //       style: GoogleFonts.inter(
-            //         fontSize: 28,
-            //         fontWeight: FontWeight.w500,
-            //       ),
-            //     ),
-            //     Text(
-            //       Jiffy.now().format(pattern: 'MMM do yyyy'),
-            //       style: GoogleFonts.nothingYouCouldDo(
-            //         fontSize: 12,
-            //         fontWeight: FontWeight.bold,
-            //         color: Colors.white.withAlpha(179),
-            //       ),
-            //     ),
-            //   ],
-            // ),
+            title: AnimatedOpacity(
+              opacity: _showTitle ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 200),
+              child: Text(
+                widget.movieTitle,
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             leading: IconButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -176,7 +194,7 @@ class JournalingScreen extends ConsumerWidget {
                       spacing: 12,
                       children: [
                         Text(
-                          movieTitle,
+                          widget.movieTitle,
                           style: GoogleFonts.inter(
                             fontSize: 28,
                             fontWeight: FontWeight.w500,
