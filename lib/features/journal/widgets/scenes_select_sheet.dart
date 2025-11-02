@@ -86,12 +86,18 @@ class SceneButton extends StatelessWidget {
 class ScenesSelectSheet extends ConsumerWidget {
   const ScenesSelectSheet({super.key});
 
+  static const int _maxSceneLimit = 10;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final movieImagesAsync = ref.watch(movieImagesControllerProvider);
-    final backdrops = movieImagesAsync.hasValue ? movieImagesAsync.value!.backdrops : <MovieImage>[];
+    final backdrops =
+        movieImagesAsync.hasValue
+            ? movieImagesAsync.value!.backdrops
+            : <MovieImage>[];
     final journal = ref.watch(journalControllerProvider);
     final selectedScenes = journal.selectedScenes;
+    final isAtMaxLimit = selectedScenes.length >= _maxSceneLimit;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -102,13 +108,29 @@ class ScenesSelectSheet extends ConsumerWidget {
             spacing: 8,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '${selectedScenes.length} selected',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: 'AvenirNext',
-                  color: Color(0xFFA0A0A0),
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '${selectedScenes.length} selected',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'AvenirNext',
+                        color: isAtMaxLimit ? Colors.red : Color(0xFFA0A0A0),
+                      ),
+                    ),
+                    if (isAtMaxLimit)
+                      TextSpan(
+                        text: ' (maximum limit)',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'AvenirNext',
+                          color: Colors.red,
+                        ),
+                      ),
+                  ],
                 ),
               ),
               GridView.builder(
@@ -123,19 +145,22 @@ class ScenesSelectSheet extends ConsumerWidget {
                 itemCount: backdrops.length,
                 itemBuilder: (context, index) {
                   final backdrop = backdrops[index];
+                  final isSelected = selectedScenes.contains(backdrop.filePath);
 
                   return SceneButton(
                     index: selectedScenes.indexOf(backdrop.filePath),
                     imageUrl:
                         'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
-                    isSelected: selectedScenes.contains(backdrop.filePath),
+                    isSelected: isSelected,
                     onTap: () {
-                      // TODO: if selected scenes is greater than 10, show toast and do nothing
-                      if (selectedScenes.contains(backdrop.filePath)) {
+                      if (isSelected) {
                         ref
                             .read(journalControllerProvider.notifier)
                             .removeScene(backdrop.filePath);
                       } else {
+                        if (selectedScenes.length >= _maxSceneLimit) {
+                          return;
+                        }
                         ref
                             .read(journalControllerProvider.notifier)
                             .addScene(backdrop.filePath);
