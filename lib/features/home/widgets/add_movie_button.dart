@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movie_journal/features/search_movie/screens/search_movie.dart';
+import 'package:movie_journal/firebase_manager.dart';
 
 class AddMovieButton extends StatelessWidget {
   const AddMovieButton({super.key});

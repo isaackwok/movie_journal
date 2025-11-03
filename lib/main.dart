@@ -9,7 +9,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
-  runApp(const MyApp());
   await dotenv.load(fileName: '.env');
   final runnableApp = _buildRunnableApp(
     isWeb: kIsWeb,
