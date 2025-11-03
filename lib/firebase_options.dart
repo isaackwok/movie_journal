@@ -64,6 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '398534187117',
     projectId: 'the-movie-journal',
     storageBucket: 'the-movie-journal.firebasestorage.app',
+    iosClientId: '398534187117-dvbjhr3k2sh5ifoafop7p4jnndnuj641.apps.googleusercontent.com',
     iosBundleId: 'com.isaackwok.moviejournal',
   );
 
@@ -73,6 +74,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '398534187117',
     projectId: 'the-movie-journal',
     storageBucket: 'the-movie-journal.firebasestorage.app',
+    iosClientId: '398534187117-7t4gsvtt1ca25iseivalliovpc4it5rm.apps.googleusercontent.com',
     iosBundleId: 'com.example.movieJournal',
   );
 

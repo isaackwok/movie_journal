@@ -12,7 +12,12 @@
           "package_name": "com.example.movie_journal"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "398534187117-g9mqvgtu6c6m2jgnni6cqsv3i8npumih.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyALwTyTR2W_PoAa35q8bBabX9RwZbtjIBI"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "398534187117-g9mqvgtu6c6m2jgnni6cqsv3i8npumih.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "398534187117-7t4gsvtt1ca25iseivalliovpc4it5rm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.movieJournal"
+              }
+            }
+          ]
         }
       }
     }

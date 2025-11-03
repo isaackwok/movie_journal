@@ -81,6 +81,92 @@ class FirebaseManager {
     }
   }
 
+  /// Sign in with Google using Firebase Auth
+  ///
+  /// Returns the [UserCredential] on successful sign-in
+  /// Throws [FirebaseAuthException] on error
+  ///
+  /// To enable Google Sign-In:
+  /// 1. Go to Firebase Console > Authentication > Sign-in method
+  /// 2. Enable Google as a sign-in provider
+  /// 3. Add your SHA-1 fingerprint for Android (if needed)
+  /// 4. Configure OAuth consent screen in Google Cloud Console
+  ///
+  /// Example Usage:
+  /// ```dart
+  /// final firebaseManager = FirebaseManager();
+  /// try {
+  ///   UserCredential userCredential = await firebaseManager.signInWithGoogle();
+  ///   // Handle successful sign-in
+  /// } on FirebaseAuthException catch (e) {
+  ///   // Handle Firebase auth errors
+  /// } catch (e) {
+  ///   // Handle other errors
+  /// }
+  /// ```
+  Future<UserCredential> signInWithGoogle() async {
+    try {
+      if (kIsWeb) {
+        // Web flow using popup
+        final googleProvider = GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
+        return await _auth.signInWithPopup(googleProvider);
+      } else {
+        // Native mobile flow using google_sign_in package
+        // Trigger the authentication flow
+        final GoogleSignInAccount googleUser =
+            await GoogleSignIn.instance.authenticate();
+
+        // Obtain the auth details from the request
+        final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+
+        // Create a new credential
+        final credential = GoogleAuthProvider.credential(
+          idToken: googleAuth.idToken,
+        );
+
+        // Once signed in, return the UserCredential
+        return await FirebaseAuth.instance.signInWithCredential(credential);
+        //
+      }
+    } on FirebaseAuthException catch (e) {
+      // Handle specific error codes
+      switch (e.code) {
+        case 'account-exists-with-different-credential':
+          throw FirebaseAuthException(
+            code: e.code,
+            message:
+                'An account already exists with the same email address but different sign-in credentials.',
+          );
+        case 'invalid-credential':
+          throw FirebaseAuthException(
+            code: e.code,
+            message: 'The credential is malformed or has expired.',
+          );
+        case 'operation-not-allowed':
+          throw FirebaseAuthException(
+            code: e.code,
+            message:
+                'Google sign-in is not enabled. Please enable it in the Firebase Console.',
+          );
+        case 'user-disabled':
+          throw FirebaseAuthException(
+            code: e.code,
+            message: 'This user account has been disabled.',
+          );
+        case 'popup-closed-by-user':
+        case 'sign-in-cancelled':
+          rethrow;
+        default:
+          rethrow;
+      }
+    } catch (e) {
+      // Handle other errors (like network issues or google_sign_in errors)
+      throw Exception('Failed to sign in with Google: $e');
+    }
+  }
+
   /// Sign out the current user
   Future<void> signOut() async {
     await _auth.signOut();
