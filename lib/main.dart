@@ -5,8 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/themes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
+  runApp(const MyApp());
   await dotenv.load(fileName: '.env');
   final runnableApp = _buildRunnableApp(
     isWeb: kIsWeb,
@@ -23,6 +26,12 @@ Future<void> main() async {
     await prefs.setString('journals', '[]');
     await prefs.setString('storageVersion', '1');
   }
+
+  // Initialize Firebase
+  // TODO: check https://firebase.google.com/docs/flutter/setup?platform=ios#add-plugins
+  // to install other firebase plugins if needed
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(runnableApp);
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "398534187117",
+    "project_id": "the-movie-journal",
+    "storage_bucket": "the-movie-journal.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:398534187117:android:5d322aab2d2c19b2f00764",
+        "android_client_info": {
+          "package_name": "com.example.movie_journal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALwTyTR2W_PoAa35q8bBabX9RwZbtjIBI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
