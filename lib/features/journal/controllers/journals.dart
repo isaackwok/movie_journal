@@ -1,8 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:movie_journal/shared_preferences_manager.dart';
 
 class JournalsState {
   final List<JournalState> journals;
@@ -24,20 +22,7 @@ class JournalsController extends Notifier<JournalsState> {
 
   Future<void> _loadJournals() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final journalsJson = prefs.getString('journals') ?? '[]';
-      // print('Loading journals from SharedPreferences: $journalsJson');
-
-      final journalsList = jsonDecode(journalsJson) as List<dynamic>;
-      // print('Decoded journals list length: ${journalsList.length}');
-
-      final journals =
-          journalsList
-              .map(
-                (journalJson) => JournalState.fromJson(journalJson.toString()),
-              )
-              .toList();
-
+      final journals = SharedPreferencesManager.getJournals();
       print('Loaded ${journals.length} journals');
       state = state.copyWith(journals: journals);
     } catch (e) {
@@ -69,12 +54,8 @@ class JournalsController extends Notifier<JournalsState> {
 
   Future<void> _saveJournals(List<JournalState> journals) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final journalsJsonList =
-          journals.map((journal) => journal.toJson()).toList();
-      final jsonString = jsonEncode(journalsJsonList);
-      print('Saving journals to SharedPreferences: $jsonString');
-      await prefs.setString('journals', jsonString);
+      print('Saving ${journals.length} journals to SharedPreferences');
+      await SharedPreferencesManager.saveJournals(journals);
       print('Successfully saved ${journals.length} journals');
     } catch (e) {
       print('Error saving journals: $e');
@@ -87,6 +68,4 @@ class JournalsController extends Notifier<JournalsState> {
 }
 
 final journalsControllerProvider =
-    NotifierProvider<JournalsController, JournalsState>(
-      JournalsController.new,
-    );
+    NotifierProvider<JournalsController, JournalsState>(JournalsController.new);

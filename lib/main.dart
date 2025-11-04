@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
+import 'package:movie_journal/shared_preferences_manager.dart';
 import 'package:movie_journal/themes.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -16,15 +16,8 @@ Future<void> main() async {
     app: const ProviderScope(child: MyApp()),
   );
 
-  // Initialize shared preferences with default journals if not exists
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  final journals = prefs.getString('journals');
-  final storageVersion = prefs.getString('storageVersion');
-  // prefs.setString('journals', '[]');
-  if (journals == null || storageVersion == null) {
-    await prefs.setString('journals', '[]');
-    await prefs.setString('storageVersion', '1');
-  }
+  // Initialize shared preferences with default values
+  await SharedPreferencesManager.init();
 
   // Initialize Firebase
   // TODO: check https://firebase.google.com/docs/flutter/setup?platform=ios#add-plugins
