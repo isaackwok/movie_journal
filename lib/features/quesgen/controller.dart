@@ -49,23 +49,24 @@ class QuesgenController extends Notifier<QuesgenState> {
   }) async {
     state = state.copyWith(isLoading: true);
     try {
-      final newQuestions = await ref.read(quesgenApiProvider).generateQuestions(
-        movieId: movieId,
-        // name: name,
-        // year: year,
-        // overview: overview,
-        // genres: genres,
-        // runtime: runtime,
-        // voteAverage: voteAverage,
-        // productionCompanies: productionCompanies,
-        // numOfQuestions: numOfQuestions ?? 6,
-        // language: language,
-        // searchPrompt: searchPrompt,
-        // questionPrompt: questionPrompt,
-      );
+      final newQuestions = await ref
+          .read(quesgenApiProvider)
+          .generateQuestions(
+            movieId: movieId,
+            // name: name,
+            // year: year,
+            // overview: overview,
+            // genres: genres,
+            // runtime: runtime,
+            // voteAverage: voteAverage,
+            // productionCompanies: productionCompanies,
+            // numOfQuestions: numOfQuestions ?? 6,
+            // language: language,
+            // searchPrompt: searchPrompt,
+            // questionPrompt: questionPrompt,
+          );
       state = state.copyWith(questions: newQuestions, isLoading: false);
     } catch (e) {
-      print(e);
       state = state.copyWith(isLoading: false, isError: true);
     }
   }

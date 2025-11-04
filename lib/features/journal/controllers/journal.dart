@@ -13,7 +13,7 @@ class JournalState {
   String moviePoster = '';
   List<Emotion> emotions = [];
   List<String> selectedScenes = [];
-  List<String> selectedQuestions = [];
+  List<String> selectedRefs = [];
   String thoughts = '';
   String userId = '';
   late Jiffy createdAt;
@@ -26,7 +26,7 @@ class JournalState {
     this.moviePoster = '',
     this.emotions = const [],
     this.selectedScenes = const [],
-    this.selectedQuestions = const [],
+    this.selectedRefs = const [],
     this.thoughts = '',
     this.userId = '',
     Jiffy? createdAt,
@@ -44,7 +44,7 @@ class JournalState {
     String? moviePoster,
     List<Emotion>? emotions,
     List<String>? selectedScenes,
-    List<String>? selectedQuestions,
+    List<String>? selectedRefs,
     String? thoughts,
     Jiffy? createdAt,
     Jiffy? updatedAt,
@@ -57,7 +57,7 @@ class JournalState {
       moviePoster: moviePoster ?? this.moviePoster,
       emotions: emotions ?? this.emotions,
       selectedScenes: selectedScenes ?? this.selectedScenes,
-      selectedQuestions: selectedQuestions ?? this.selectedQuestions,
+      selectedRefs: selectedRefs ?? this.selectedRefs,
       thoughts: thoughts ?? this.thoughts,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -72,7 +72,7 @@ class JournalState {
       'moviePoster': moviePoster,
       'emotions': emotions.map((e) => e.id).toList(),
       'selectedScenes': selectedScenes,
-      'selectedQuestions': selectedQuestions,
+      'selectedRefs': selectedRefs,
       'thoughts': thoughts,
       'createdAt': createdAt.toString(),
       'updatedAt': updatedAt.toString(),
@@ -88,7 +88,7 @@ class JournalState {
       'moviePoster': moviePoster,
       'emotions': emotions.map((e) => e.id).toList(),
       'selectedScenes': selectedScenes,
-      'selectedQuestions': selectedQuestions,
+      'selectedRefs': selectedRefs,
       'thoughts': thoughts,
       'createdAt': createdAt.toString(),
       'updatedAt': updatedAt.toString(),
@@ -116,7 +116,7 @@ class JournalState {
             return emotionEntry.value;
           }).toList(),
       selectedScenes: List<String>.from(map['selectedScenes'] ?? []),
-      selectedQuestions: List<String>.from(map['selectedQuestions'] ?? []),
+      selectedRefs: List<String>.from(map['selectedRefs'] ?? []),
       thoughts: map['thoughts'] ?? '',
       createdAt:
           map['createdAt'] != null
@@ -171,8 +171,8 @@ class JournalController extends Notifier<JournalState> {
     return this;
   }
 
-  JournalController setSelectedQuestions(List<String> questions) {
-    state = state.copyWith(selectedQuestions: questions);
+  JournalController setselectedRefs(List<String> questions) {
+    state = state.copyWith(selectedRefs: questions);
     return this;
   }
 
@@ -187,16 +187,13 @@ class JournalController extends Notifier<JournalState> {
   }
 
   JournalController addSelectedQuestion(String question) {
-    state = state.copyWith(
-      selectedQuestions: [...state.selectedQuestions, question],
-    );
+    state = state.copyWith(selectedRefs: [...state.selectedRefs, question]);
     return this;
   }
 
   JournalController removeSelectedQuestion(String question) {
     state = state.copyWith(
-      selectedQuestions:
-          state.selectedQuestions.where((e) => e != question).toList(),
+      selectedRefs: state.selectedRefs.where((e) => e != question).toList(),
     );
     return this;
   }

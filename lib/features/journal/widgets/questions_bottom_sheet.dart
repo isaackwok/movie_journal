@@ -68,7 +68,7 @@ class QuestionsBottomSheet extends ConsumerWidget {
     final questions = quesgenState.questions;
     final isLoading = quesgenState.isLoading;
     final journal = ref.watch(journalControllerProvider);
-    final selectedQuestions = journal.selectedQuestions;
+    final selectedRefs = journal.selectedRefs;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -132,9 +132,9 @@ class QuestionsBottomSheet extends ConsumerWidget {
                         ? questions.map(
                           (question) => QuestionItem(
                             question: question,
-                            isSelected: selectedQuestions.contains(question),
+                            isSelected: selectedRefs.contains(question),
                             onSelect: () {
-                              if (selectedQuestions.contains(question)) {
+                              if (selectedRefs.contains(question)) {
                                 ref
                                     .read(journalControllerProvider.notifier)
                                     .removeSelectedQuestion(question);

@@ -140,10 +140,10 @@ class JournalContent extends ConsumerWidget {
                         ],
                       ),
                   SizedBox(height: 24),
-                  journal.selectedQuestions.isEmpty
+                  journal.selectedRefs.isEmpty
                       ? const SizedBox.shrink()
                       : AiReferencesAccordion(
-                        references: journal.selectedQuestions,
+                        references: journal.selectedRefs,
                         onRemove: (index) {},
                       ),
                 ],

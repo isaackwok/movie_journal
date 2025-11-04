@@ -121,7 +121,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
   @override
   Widget build(BuildContext context) {
     final selectedReferences =
-        ref.watch(journalControllerProvider).selectedQuestions;
+        ref.watch(journalControllerProvider).selectedRefs;
     return Scaffold(
       appBar: AppBar(
         title: Text('Thoughts & Feelings'),

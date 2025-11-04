@@ -54,7 +54,7 @@ class ThoughtsEditor extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final journal = ref.watch(journalControllerProvider);
-    final selectedQuestions = journal.selectedQuestions;
+    final selectedRefs = journal.selectedRefs;
     return InkWell(
       splashColor: Colors.transparent,
       onTap:
@@ -96,14 +96,14 @@ class ThoughtsEditor extends ConsumerWidget {
                       ),
             ),
           ),
-          selectedQuestions.isNotEmpty
+          selectedRefs.isNotEmpty
               ? AiReferencesAccordion(
                 defaultExpanded: true,
-                references: selectedQuestions,
+                references: selectedRefs,
                 onRemove: (index) {
                   ref
                       .read(journalControllerProvider.notifier)
-                      .removeSelectedQuestion(selectedQuestions[index]);
+                      .removeSelectedQuestion(selectedRefs[index]);
                 },
               )
               : SizedBox.shrink(),
