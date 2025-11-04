@@ -15,6 +15,7 @@ class JournalState {
   List<String> selectedScenes = [];
   List<String> selectedQuestions = [];
   String thoughts = '';
+  String userId = '';
   late Jiffy createdAt;
   late Jiffy updatedAt;
 
@@ -27,6 +28,7 @@ class JournalState {
     this.selectedScenes = const [],
     this.selectedQuestions = const [],
     this.thoughts = '',
+    this.userId = '',
     Jiffy? createdAt,
     Jiffy? updatedAt,
   }) {
@@ -46,6 +48,7 @@ class JournalState {
     String? thoughts,
     Jiffy? createdAt,
     Jiffy? updatedAt,
+    String? userId,
   }) {
     return JournalState(
       id: id ?? this.id,
@@ -58,7 +61,23 @@ class JournalState {
       thoughts: thoughts ?? this.thoughts,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      userId: userId ?? this.userId,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'tmdbId': tmdbId,
+      'movieTitle': movieTitle,
+      'moviePoster': moviePoster,
+      'emotions': emotions.map((e) => e.id).toList(),
+      'selectedScenes': selectedScenes,
+      'selectedQuestions': selectedQuestions,
+      'thoughts': thoughts,
+      'createdAt': createdAt.toString(),
+      'updatedAt': updatedAt.toString(),
+      'userId': userId,
+    };
   }
 
   String toJson() {
@@ -73,6 +92,7 @@ class JournalState {
       'thoughts': thoughts,
       'createdAt': createdAt.toString(),
       'updatedAt': updatedAt.toString(),
+      'userId': userId,
     });
   }
 
@@ -106,6 +126,7 @@ class JournalState {
           map['updatedAt'] != null
               ? Jiffy.parse(map['updatedAt'])
               : Jiffy.now(),
+      userId: map['userId'] ?? '',
     );
   }
 }
@@ -209,6 +230,4 @@ class JournalController extends Notifier<JournalState> {
 }
 
 final journalControllerProvider =
-    NotifierProvider<JournalController, JournalState>(
-      JournalController.new,
-    );
+    NotifierProvider<JournalController, JournalState>(JournalController.new);
