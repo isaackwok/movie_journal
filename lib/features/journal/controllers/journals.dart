@@ -23,22 +23,16 @@ class JournalsController extends Notifier<JournalsState> {
   Future<void> _loadJournals() async {
     try {
       final journals = SharedPreferencesManager.getJournals();
-      print('Loaded ${journals.length} journals');
       state = state.copyWith(journals: journals);
     } catch (e) {
-      print('Error loading journals: $e');
       state = state.copyWith(journals: []);
     }
   }
 
   Future<void> addJournal(JournalState journal) async {
-    print('Adding journal: ${journal.movieTitle} (ID: ${journal.id})');
     final updatedJournals = [...state.journals, journal];
     state = state.copyWith(journals: updatedJournals);
     await _saveJournals(updatedJournals);
-    print(
-      'Journal added successfully. Total journals: ${state.journals.length}',
-    );
   }
 
   Future<void> removeJournal(String id) async {
@@ -54,11 +48,9 @@ class JournalsController extends Notifier<JournalsState> {
 
   Future<void> _saveJournals(List<JournalState> journals) async {
     try {
-      print('Saving ${journals.length} journals to SharedPreferences');
       await SharedPreferencesManager.saveJournals(journals);
-      print('Successfully saved ${journals.length} journals');
     } catch (e) {
-      print('Error saving journals: $e');
+      // Handle error if needed
     }
   }
 
