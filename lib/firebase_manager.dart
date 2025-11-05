@@ -4,13 +4,13 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 /// A class providing Firebase method wrappers for authentication
 class FirebaseManager {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  static final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// Get the current user
-  User? get currentUser => _auth.currentUser;
+  static User? get currentUser => _auth.currentUser;
 
   /// Stream of auth state changes
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  static Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   /// Sign in with Apple using Firebase Auth
   ///
@@ -35,7 +35,7 @@ class FirebaseManager {
   /// } catch (e) {
   ///  // Handle other errors
   /// }
-  Future<UserCredential> signInWithApple() async {
+  static Future<UserCredential> signInWithApple() async {
     try {
       // TEMPORARY: Using anonymous auth for development
       // Remove this and uncomment the Apple auth code below when ready
@@ -105,7 +105,7 @@ class FirebaseManager {
   ///   // Handle other errors
   /// }
   /// ```
-  Future<UserCredential> signInWithGoogle() async {
+  static Future<UserCredential> signInWithGoogle() async {
     try {
       if (kIsWeb) {
         // Web flow using popup

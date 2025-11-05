@@ -13,13 +13,17 @@ class SharedPreferencesManager {
 
     // Initialize default values if they do not exist
     final journals = prefs.getString(StorageKey.journals.name);
-    final storageVersion = prefs.getString('storageVersion');
-    if (journals == null) {
-      await prefs.setString(StorageKey.journals.name, '[]');
-    }
-    if (storageVersion == null) {
-      await prefs.setString(StorageKey.storageVersion.name, '1.0');
-    }
+
+    String migratedJournals = journals ?? '[]';
+
+    // Migrate 'selectedQuestions' to 'selectedRefs' if needed
+    // TODO: remove this migration logic once all users have updated
+    migratedJournals = migratedJournals.replaceAll(
+      'selectedQuestions',
+      'selectedRefs',
+    );
+
+    await prefs.setString(StorageKey.journals.name, migratedJournals);
   }
 
   static List<JournalState> getJournals() {

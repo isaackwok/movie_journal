@@ -15,7 +15,6 @@ class JournalState {
   List<String> selectedScenes = [];
   List<String> selectedRefs = [];
   String thoughts = '';
-  String userId = '';
   late Jiffy createdAt;
   late Jiffy updatedAt;
 
@@ -28,7 +27,6 @@ class JournalState {
     this.selectedScenes = const [],
     this.selectedRefs = const [],
     this.thoughts = '',
-    this.userId = '',
     Jiffy? createdAt,
     Jiffy? updatedAt,
   }) {
@@ -48,7 +46,6 @@ class JournalState {
     String? thoughts,
     Jiffy? createdAt,
     Jiffy? updatedAt,
-    String? userId,
   }) {
     return JournalState(
       id: id ?? this.id,
@@ -61,7 +58,6 @@ class JournalState {
       thoughts: thoughts ?? this.thoughts,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      userId: userId ?? this.userId,
     );
   }
 
@@ -76,7 +72,6 @@ class JournalState {
       'thoughts': thoughts,
       'createdAt': createdAt.toString(),
       'updatedAt': updatedAt.toString(),
-      'userId': userId,
     };
   }
 
@@ -92,7 +87,6 @@ class JournalState {
       'thoughts': thoughts,
       'createdAt': createdAt.toString(),
       'updatedAt': updatedAt.toString(),
-      'userId': userId,
     });
   }
 
@@ -126,7 +120,6 @@ class JournalState {
           map['updatedAt'] != null
               ? Jiffy.parse(map['updatedAt'])
               : Jiffy.now(),
-      userId: map['userId'] ?? '',
     );
   }
 }
