@@ -33,4 +33,64 @@ class FirestoreManager {
 
     return docRefList;
   }
+
+  /// Create a user document in the users collection
+  ///
+  /// Parameters:
+  /// - [userId]: Firebase user ID (UID)
+  /// - [username]: Custom username for the user
+  ///
+  /// Returns the DocumentReference of the created user document
+  ///
+  /// Example:
+  /// ```dart
+  /// final firestoreManager = FirestoreManager();
+  /// await firestoreManager.createUser(
+  ///   userId: 'firebase_uid_123',
+  ///   username: 'moviefan42',
+  /// );
+  /// ```
+  Future<DocumentReference<Map<String, dynamic>>> createUser({
+    required String userId,
+    required String username,
+  }) async {
+    final userDoc = _db.collection('users').doc(userId);
+
+    await userDoc.set({
+      'userId': userId,
+      'username': username,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    return userDoc;
+  }
+
+  /// Check if a user document exists
+  ///
+  /// Returns true if the user document exists, false otherwise
+  Future<bool> userExists(String userId) async {
+    final userDoc = await _db.collection('users').doc(userId).get();
+    return userDoc.exists;
+  }
+
+  /// Get user document data
+  ///
+  /// Returns a Map with user data or null if user doesn't exist
+  Future<Map<String, dynamic>?> getUser(String userId) async {
+    final userDoc = await _db.collection('users').doc(userId).get();
+    return userDoc.data();
+  }
+
+  /// Update username for a user
+  ///
+  /// Updates only the username field in the user document
+  Future<void> updateUsername({
+    required String userId,
+    required String username,
+  }) async {
+    await _db.collection('users').doc(userId).update({
+      'username': username,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
 }

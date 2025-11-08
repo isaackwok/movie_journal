@@ -7,10 +7,10 @@ class FirebaseManager {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// Get the current user
-  static User? get currentUser => _auth.currentUser;
+  User? get currentUser => _auth.currentUser;
 
   /// Stream of auth state changes
-  static Stream<User?> get authStateChanges => _auth.authStateChanges();
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   /// Sign in with Apple using Firebase Auth
   ///
@@ -169,7 +169,7 @@ class FirebaseManager {
   }
 
   /// Sign out the current user
-  Future<void> signOut() async {
+  static Future<void> signOut() async {
     await _auth.signOut();
   }
 
