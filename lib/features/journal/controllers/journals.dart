@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
-import 'package:movie_journal/shared_preferences_manager.dart';
+import 'package:movie_journal/firestore_manager.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class JournalsState {
   final List<JournalState> journals;
@@ -12,52 +13,65 @@ class JournalsState {
   }
 }
 
-class JournalsController extends Notifier<JournalsState> {
-  @override
-  JournalsState build() {
-    // Initialize the state and load data asynchronously
-    Future.microtask(() => _loadJournals());
-    return JournalsState();
-  }
+// AsyncNotifier for loading journals from Firestore
+class JournalsController extends AsyncNotifier<JournalsState> {
+  final FirestoreManager _firestoreManager = FirestoreManager();
 
-  Future<void> _loadJournals() async {
-    try {
-      final journals = SharedPreferencesManager.getJournals();
-      state = state.copyWith(journals: journals);
-    } catch (e) {
-      state = state.copyWith(journals: []);
+  @override
+  Future<JournalsState> build() async {
+    // Get current user from Firebase Auth
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception('User not logged in');
     }
+
+    // Load journals from Firestore
+    final journals = await _firestoreManager.getJournalsCollection(user.uid);
+    return JournalsState(journals: journals);
   }
 
   Future<void> addJournal(JournalState journal) async {
-    final updatedJournals = [...state.journals, journal];
-    state = state.copyWith(journals: updatedJournals);
-    await _saveJournals(updatedJournals);
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final updatedJournals = [...currentState.journals, journal];
+    state = AsyncValue.data(currentState.copyWith(journals: updatedJournals));
+
+    // TODO: Add Firestore write logic here
   }
 
   Future<void> removeJournal(String id) async {
-    final updatedJournals = state.journals.where((j) => j.id != id).toList();
-    state = state.copyWith(journals: updatedJournals);
-    await _saveJournals(updatedJournals);
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final updatedJournals =
+        currentState.journals.where((j) => j.id != id).toList();
+    state = AsyncValue.data(currentState.copyWith(journals: updatedJournals));
+
+    // TODO: Add Firestore delete logic here
   }
 
   Future<void> setJournals(List<JournalState> journals) async {
-    state = state.copyWith(journals: journals);
-    await _saveJournals(journals);
-  }
+    final currentState = state.value;
+    if (currentState == null) return;
 
-  Future<void> _saveJournals(List<JournalState> journals) async {
-    try {
-      await SharedPreferencesManager.saveJournals(journals);
-    } catch (e) {
-      // Handle error if needed
-    }
+    state = AsyncValue.data(currentState.copyWith(journals: journals));
   }
 
   Future<void> refreshJournals() async {
-    await _loadJournals();
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
+      final journals = await _firestoreManager.getJournalsCollection(user.uid);
+      return JournalsState(journals: journals);
+    });
   }
 }
 
 final journalsControllerProvider =
-    NotifierProvider<JournalsController, JournalsState>(JournalsController.new);
+    AsyncNotifierProvider<JournalsController, JournalsState>(
+      JournalsController.new,
+    );

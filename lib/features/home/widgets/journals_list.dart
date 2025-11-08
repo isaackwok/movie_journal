@@ -11,7 +11,11 @@ class JournalsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final journals = ref.watch(journalsControllerProvider).journals;
+    final journalsAsync = ref.watch(journalsControllerProvider);
+
+    // Since this widget is only shown when data is loaded (from home.dart),
+    // we can safely access the value
+    final journals = journalsAsync.value?.journals ?? [];
 
     // sort & group by month & year
     final grouppedJournals = <String, List<JournalState>>{};

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 
@@ -13,7 +15,12 @@ class FirestoreManager {
             .docs;
     if (documents.isNotEmpty) {
       return documents.map((doc) {
-        return JournalState.fromJson(doc.data().toString());
+        final data = doc.data();
+        // Remove userId field as JournalState doesn't expect it
+        data.remove('userId');
+        // Add the Firestore document ID
+        data['id'] = doc.id;
+        return JournalState.fromJson(jsonEncode(data));
       }).toList();
     }
     return [];

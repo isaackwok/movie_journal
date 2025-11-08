@@ -11,8 +11,24 @@ class JournalContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final journals = ref.watch(journalsControllerProvider).journals;
-    final journal = journals.firstWhere((journal) => journal.id == journalId);
+    final journalsAsync = ref.watch(journalsControllerProvider);
+
+    // Handle loading and error states
+    if (journalsAsync.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (journalsAsync.hasError) {
+      return Scaffold(
+        body: Center(child: Text('Error: ${journalsAsync.error}')),
+      );
+    }
+
+    final journals = journalsAsync.value?.journals ?? [];
+    final journal = journals.firstWhere(
+      (journal) => journal.id == journalId,
+      orElse: () => throw Exception('Journal not found'),
+    );
 
     return Scaffold(
       body: CustomScrollView(
