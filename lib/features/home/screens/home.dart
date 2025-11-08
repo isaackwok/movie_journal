@@ -29,6 +29,16 @@ final currentUsernameProvider = FutureProvider<String>((ref) async {
   return userData?['username'] ?? 'User';
 });
 
+/// Reusable loading widget with centered circular progress indicator
+class LoadingScaffold extends StatelessWidget {
+  const LoadingScaffold({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  }
+}
+
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -50,9 +60,7 @@ class HomeScreen extends ConsumerWidget {
           builder: (context, snapshot) {
             // Still loading user existence check
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
+              return const LoadingScaffold();
             }
 
             // Error checking user existence
@@ -74,9 +82,7 @@ class HomeScreen extends ConsumerWidget {
           },
         );
       },
-      loading:
-          () =>
-              const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => const LoadingScaffold(),
       error:
           (error, stack) =>
               Scaffold(body: Center(child: Text('Error: $error'))),
@@ -160,9 +166,7 @@ class HomeScreen extends ConsumerWidget {
           ),
         );
       },
-      loading:
-          () =>
-              const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => const LoadingScaffold(),
       error:
           (error, stack) => Scaffold(
             body: Center(child: Text('Error loading journals: $error')),

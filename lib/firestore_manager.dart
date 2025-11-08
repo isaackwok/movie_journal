@@ -7,23 +7,25 @@ class FirestoreManager {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   Future<List<JournalState>> getJournalsCollection(String userId) async {
-    var documents =
-        (await _db
-                .collection('journals')
-                .where('userId', isEqualTo: userId)
-                .get())
-            .docs;
-    if (documents.isNotEmpty) {
-      return documents.map((doc) {
-        final data = doc.data();
-        // Remove userId field as JournalState doesn't expect it
-        data.remove('userId');
-        // Add the Firestore document ID
-        data['id'] = doc.id;
-        return JournalState.fromJson(jsonEncode(data));
-      }).toList();
+    final snapshot =
+        await _db
+            .collection('journals')
+            .where('userId', isEqualTo: userId)
+            .get();
+
+    if (snapshot.docs.isEmpty) {
+      return [];
     }
-    return [];
+
+    // Process documents asynchronously to avoid blocking UI
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      // Remove userId field as JournalState doesn't expect it
+      data.remove('userId');
+      // Add the Firestore document ID
+      data['id'] = doc.id;
+      return JournalState.fromJson(jsonEncode(data));
+    }).toList();
   }
 
   Future<List<DocumentReference<Map<String, dynamic>>>> addJournalsToCollection(
