@@ -41,6 +41,22 @@ class FirestoreManager {
     return docRefList;
   }
 
+  /// Add a single journal to Firestore
+  ///
+  /// Parameters:
+  /// - [userId]: The user ID to associate with the journal
+  /// - [journal]: The journal to save
+  ///
+  /// Returns the DocumentReference of the created journal
+  Future<DocumentReference<Map<String, dynamic>>> addJournal(
+    String userId,
+    JournalState journal,
+  ) async {
+    final journalData = journal.toMap();
+    journalData['userId'] = userId;
+    return await _db.collection('journals').add(journalData);
+  }
+
   /// Create a user document in the users collection
   ///
   /// Parameters:

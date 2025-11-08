@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
+import 'package:movie_journal/firestore_manager.dart';
 import 'package:uuid/uuid.dart';
 
 class JournalState {
@@ -213,8 +215,23 @@ class JournalController extends Notifier<JournalState> {
     final now = Jiffy.now();
     state = state.copyWith(createdAt: state.createdAt, updatedAt: now);
 
+    // Get current user
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception('User not logged in');
+    }
+
+    // Save to Firestore
+    final firestoreManager = FirestoreManager();
+    final docRef = await firestoreManager.addJournal(user.uid, state);
+
+    // Update the state with the Firestore document ID
+    state = state.copyWith(id: docRef.id);
+
+    // Refresh the journals list from Firestore to include the new journal
     final journalsController = ref.read(journalsControllerProvider.notifier);
-    await journalsController.addJournal(state);
+    await journalsController.refreshJournals();
+
     return this;
   }
 }

@@ -1,7 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/firestore_manager.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class JournalsState {
   final List<JournalState> journals;
@@ -59,7 +59,7 @@ class JournalsController extends AsyncNotifier<JournalsState> {
   }
 
   Future<void> refreshJournals() async {
-    state = const AsyncValue.loading();
+    // Keep the current data while loading to prevent UI flicker
     state = await AsyncValue.guard(() async {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
