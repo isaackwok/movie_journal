@@ -5,6 +5,7 @@ import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_content.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector.dart';
+import 'package:movie_journal/features/journal/widgets/poster_preview_modal.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
 import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
@@ -223,6 +224,38 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                   ),
                   const SectionSeperator(),
                   EmotionsSelector(),
+                  const SectionSeperator(),
+                  // Poster Preview Button
+                  Center(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            fullscreenDialog: true,
+                            builder:
+                                (context) => PosterPreviewModal(
+                                  movieId: movieId,
+                                  movieTitle: widget.movieTitle,
+                                ),
+                          ),
+                        );
+                      },
+                      icon: Icon(Icons.palette_outlined, size: 20),
+                      label: Text('Preview Poster Colors'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: BorderSide(color: Color(0xFFA8DADD)),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ),
                   const SectionSeperator(),
                   ScenesSelector(movieId: movieId),
                   const SectionSeperator(),
