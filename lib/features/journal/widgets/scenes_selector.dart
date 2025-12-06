@@ -17,31 +17,57 @@ class SceneButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.network(
-            imageUrl,
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-          ),
-        ),
-        Positioned(
-          top: 0,
-          right: 0,
-          child: IconButton(
-            style: IconButton.styleFrom(
-              minimumSize: Size(24, 24),
-              backgroundColor: Colors.black,
-              side: BorderSide(color: Color(0xFFA8DADD), width: 1),
+    return SizedBox(
+      width: 240,
+      height: 175,
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              width: 240,
+              height: 175,
             ),
-            onPressed: onRemove,
-            icon: Icon(Icons.close, color: Colors.white, size: 16),
           ),
-        ),
-      ],
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              style: IconButton.styleFrom(
+                minimumSize: Size(24, 24),
+                padding: EdgeInsets.zero,
+                backgroundColor: Color(0xFF151515).withAlpha(204),
+                shape: CircleBorder(),
+              ),
+              onPressed: onRemove,
+              icon: Icon(Icons.close, color: Colors.white, size: 16),
+            ),
+          ),
+          Positioned(
+            bottom: 8,
+            left: 8,
+            child: GestureDetector(
+              onTap: () {
+                // Leave empty for now
+              },
+              child: Container(
+                padding: EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withAlpha(128),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Icon(
+                  Icons.text_fields,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -57,7 +83,6 @@ class ScenesSelector extends ConsumerStatefulWidget {
 class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
   static const double _borderRadius = 16.0;
   static const double _minMaxHeight = 215.0;
-  static const Color _accentColor = Color(0xFFA8DADD);
 
   void _navigateToScenesSelectSheet() {
     Navigator.push(
@@ -121,56 +146,24 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
   }
 
   Widget _buildSelectedScenesView(List<String> selectedScenes) {
-    return Column(
-      spacing: 16,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GridView.builder(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-            mainAxisExtent: 120,
-          ),
-          itemCount: selectedScenes.length,
-          itemBuilder: (context, index) {
-            return SceneButton(
-              imageUrl:
-                  'https://image.tmdb.org/t/p/w500${selectedScenes[index]}',
-              onRemove: () {
-                ref
-                    .read(journalControllerProvider.notifier)
-                    .removeScene(selectedScenes[index]);
-              },
-            );
-          },
-        ),
-        ElevatedButton.icon(
-          icon: Icon(Icons.add, color: Colors.white),
-          label: Text(
-            'Add Scenes',
-            style: TextStyle(color: Colors.white, fontFamily: 'AvenirNext'),
-          ),
-          style: ElevatedButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(_borderRadius),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            textStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-            overlayColor: _accentColor,
-            backgroundColor: Colors.transparent,
-            side: BorderSide(color: _accentColor, width: 1),
-          ),
-          onPressed: _navigateToScenesSelectSheet,
-        ),
-      ],
+    return SizedBox(
+      height: 175,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: selectedScenes.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          return SceneButton(
+            imageUrl:
+                'https://image.tmdb.org/t/p/w500${selectedScenes[index]}',
+            onRemove: () {
+              ref
+                  .read(journalControllerProvider.notifier)
+                  .removeScene(selectedScenes[index]);
+            },
+          );
+        },
+      ),
     );
   }
 
