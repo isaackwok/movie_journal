@@ -17,41 +17,41 @@ class SceneButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 240,
-      height: 175,
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.cover,
-              width: 240,
-              height: 175,
-            ),
-          ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: IconButton(
-              style: IconButton.styleFrom(
-                minimumSize: Size(24, 24),
-                padding: EdgeInsets.zero,
-                backgroundColor: Color(0xFF151515).withAlpha(204),
-                shape: CircleBorder(),
+    return GestureDetector(
+      onTap: () {
+        // Leave empty for now
+      },
+      child: SizedBox(
+        width: 240,
+        height: 175,
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                width: 240,
+                height: 175,
               ),
-              onPressed: onRemove,
-              icon: Icon(Icons.close, color: Colors.white, size: 16),
             ),
-          ),
-          Positioned(
-            bottom: 8,
-            left: 8,
-            child: GestureDetector(
-              onTap: () {
-                // Leave empty for now
-              },
+            Positioned(
+              top: 0,
+              right: 0,
+              child: IconButton(
+                style: IconButton.styleFrom(
+                  minimumSize: Size(24, 24),
+                  padding: EdgeInsets.zero,
+                  backgroundColor: Color(0xFF151515).withAlpha(204),
+                  shape: CircleBorder(),
+                ),
+                onPressed: onRemove,
+                icon: Icon(Icons.close, color: Colors.white, size: 16),
+              ),
+            ),
+            Positioned(
+              bottom: 8,
+              left: 8,
               child: Container(
                 padding: EdgeInsets.all(4),
                 decoration: BoxDecoration(
@@ -65,8 +65,8 @@ class SceneButton extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -146,24 +146,51 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
   }
 
   Widget _buildSelectedScenesView(List<String> selectedScenes) {
-    return SizedBox(
-      height: 175,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: selectedScenes.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          return SceneButton(
-            imageUrl:
-                'https://image.tmdb.org/t/p/w500${selectedScenes[index]}',
-            onRemove: () {
-              ref
-                  .read(journalControllerProvider.notifier)
-                  .removeScene(selectedScenes[index]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 16,
+      children: [
+        SizedBox(
+          height: 175,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: selectedScenes.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              return SceneButton(
+                imageUrl:
+                    'https://image.tmdb.org/t/p/w500${selectedScenes[index]}',
+                onRemove: () {
+                  ref
+                      .read(journalControllerProvider.notifier)
+                      .removeScene(selectedScenes[index]);
+                },
+              );
             },
-          );
-        },
-      ),
+          ),
+        ),
+        OutlinedButton.icon(
+          onPressed: _navigateToScenesSelectSheet,
+          icon: Icon(Icons.add, color: Colors.white, size: 20),
+          label: Text(
+            'Add Scene',
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'AvenirNext',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          style: OutlinedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            side: BorderSide(color: Color(0xFFA8DADD), width: 1),
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(_borderRadius),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
