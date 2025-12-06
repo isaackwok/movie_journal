@@ -3,6 +3,94 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 
+class _AnimatedEmotionChip extends StatefulWidget {
+  final Emotion emotion;
+  final bool isSelected;
+  final Color sectionColor;
+  final VoidCallback onTap;
+
+  const _AnimatedEmotionChip({
+    required this.emotion,
+    required this.isSelected,
+    required this.sectionColor,
+    required this.onTap,
+  });
+
+  @override
+  State<_AnimatedEmotionChip> createState() => _AnimatedEmotionChipState();
+}
+
+class _AnimatedEmotionChipState extends State<_AnimatedEmotionChip>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    _controller.forward().then((_) {
+      _controller.reverse();
+    });
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _handleTap,
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color:
+                    widget.isSelected
+                        ? widget.sectionColor.withAlpha(102) // 40% opacity
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: widget.sectionColor.withAlpha(179), // 70% opacity
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                widget.emotion.name,
+                style: TextStyle(
+                  fontFamily: 'AvenirNext',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class EmotionsSelectorBottomSheet extends ConsumerStatefulWidget {
   final int maxSelectionLimit = 3;
 
@@ -173,10 +261,10 @@ class _EmotionsSelectorBottomSheetState
               child: Container(
                 margin: EdgeInsets.only(top: 12, bottom: 16),
                 width: 36,
-                height: 5,
+                height: 3,
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(153),
-                  borderRadius: BorderRadius.circular(2.5),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
             ),
@@ -261,12 +349,12 @@ class _EmotionsSelectorBottomSheetState
                             pageTitle,
                             style: TextStyle(
                               fontFamily: 'AvenirNext',
-                              fontSize: 20,
+                              fontSize: 16,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
                           ),
-                          SizedBox(height: 20),
+                          SizedBox(height: 16),
 
                           // Sections
                           ...sections.asMap().entries.map((entry) {
@@ -301,40 +389,12 @@ class _EmotionsSelectorBottomSheetState
                                         final isSelected = _tempSelectedEmotions
                                             .contains(emotion);
 
-                                        return GestureDetector(
+                                        return _AnimatedEmotionChip(
+                                          emotion: emotion,
+                                          isSelected: isSelected,
+                                          sectionColor: sectionColor,
                                           onTap:
                                               () => _handleEmotionTap(emotion),
-                                          child: Container(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 12,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  isSelected
-                                                      ? sectionColor.withAlpha(
-                                                        102,
-                                                      ) // 40% opacity
-                                                      : Colors.transparent,
-                                              borderRadius:
-                                                  BorderRadius.circular(999),
-                                              border: Border.all(
-                                                color: sectionColor.withAlpha(
-                                                  179,
-                                                ), // 70% opacity
-                                                width: 1,
-                                              ),
-                                            ),
-                                            child: Text(
-                                              emotion.name,
-                                              style: TextStyle(
-                                                fontFamily: 'AvenirNext',
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
                                         );
                                       }).toList(),
                                 ),
