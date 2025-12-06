@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_content.dart';
-import 'package:movie_journal/features/journal/widgets/emotions_selector.dart';
+import 'package:movie_journal/features/journal/widgets/emotions_selector_button.dart';
 import 'package:movie_journal/features/journal/widgets/poster_preview_modal.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
 import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
@@ -222,9 +222,10 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                       ],
                     ),
                   ),
-                  const SectionSeperator(),
-                  EmotionsSelector(),
-                  const SectionSeperator(),
+                  const SizedBox(height: 36),
+                  EmotionsSelectorButton(),
+                  const SizedBox(height: 36),
+
                   // Poster Preview Button
                   Center(
                     child: OutlinedButton.icon(

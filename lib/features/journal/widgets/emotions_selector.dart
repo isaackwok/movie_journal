@@ -77,11 +77,7 @@ class _EmotionButtonState extends State<EmotionButton>
                         //     widget.isSelected
                         //         ? Theme.of(context).primaryColor
                         //         : Color(0xFFD9D9D9),
-                        gradient: LinearGradient(
-                          begin: Alignment.topRight,
-                          end: Alignment.bottomLeft,
-                          colors: widget.emotion.colors,
-                        ),
+                        color: widget.emotion.color,
                         shape: BoxShape.circle,
                         border:
                             widget.isSelected
@@ -130,6 +126,7 @@ class EmotionsSelector extends ConsumerStatefulWidget {
 class _EmotionsSelectorState extends ConsumerState<EmotionsSelector>
     with SingleTickerProviderStateMixin {
   static const int _maxEmotionLimit = 10;
+  bool isBottomSheetOpen = false;
   String? selectedEmotion;
   late final TabController _tabController;
   final emotionGroups = {
