@@ -56,7 +56,7 @@ class SceneButton extends StatelessWidget {
                 padding: EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: Colors.black.withAlpha(128),
-                  borderRadius: BorderRadius.circular(4),
+                  shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.text_fields,
