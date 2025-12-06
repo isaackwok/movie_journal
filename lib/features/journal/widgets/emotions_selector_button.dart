@@ -138,7 +138,7 @@ class EmotionsSelectorButton extends ConsumerWidget {
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
             border: Border.all(color: color, width: 1),
             borderRadius: BorderRadius.circular(16),
