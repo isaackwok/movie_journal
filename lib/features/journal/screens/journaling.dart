@@ -227,37 +227,37 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                   const SizedBox(height: 36),
 
                   // Poster Preview Button
-                  Center(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            fullscreenDialog: true,
-                            builder:
-                                (context) => PosterPreviewModal(
-                                  movieId: movieId,
-                                  movieTitle: widget.movieTitle,
-                                ),
-                          ),
-                        );
-                      },
-                      icon: Icon(Icons.palette_outlined, size: 20),
-                      label: Text('Preview Poster Colors'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: BorderSide(color: Color(0xFFA8DADD)),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SectionSeperator(),
+                  // Center(
+                  //   child: OutlinedButton.icon(
+                  //     onPressed: () {
+                  //       Navigator.push(
+                  //         context,
+                  //         MaterialPageRoute(
+                  //           fullscreenDialog: true,
+                  //           builder:
+                  //               (context) => PosterPreviewModal(
+                  //                 movieId: movieId,
+                  //                 movieTitle: widget.movieTitle,
+                  //               ),
+                  //         ),
+                  //       );
+                  //     },
+                  //     icon: Icon(Icons.palette_outlined, size: 20),
+                  //     label: Text('Preview Poster Colors'),
+                  //     style: OutlinedButton.styleFrom(
+                  //       foregroundColor: Colors.white,
+                  //       side: BorderSide(color: Color(0xFFA8DADD)),
+                  //       padding: EdgeInsets.symmetric(
+                  //         horizontal: 24,
+                  //         vertical: 12,
+                  //       ),
+                  //       shape: RoundedRectangleBorder(
+                  //         borderRadius: BorderRadius.circular(16),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                  // const SectionSeperator(),
                   ScenesSelector(movieId: movieId),
                   const SectionSeperator(),
                   ThoughtsEditor(),
