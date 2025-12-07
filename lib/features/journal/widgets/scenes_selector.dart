@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
+import 'package:movie_journal/features/journal/screens/caption_editor.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_select_sheet.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
@@ -10,16 +11,51 @@ class SceneButton extends StatelessWidget {
     super.key,
     required this.imageUrl,
     required this.onRemove,
+    required this.sceneIndex,
   });
 
   final String imageUrl;
   final VoidCallback onRemove;
+  final int sceneIndex;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Leave empty for now
+        showModalBottomSheet(
+          useSafeArea: true,
+          isScrollControlled: true,
+          context: context,
+          builder: (context) => CaptionEditor(
+            initialSceneIndex: sceneIndex,
+          ),
+        );
+        // Navigator.push(
+        //   context,
+        //   PageRouteBuilder(
+        //     pageBuilder:
+        //         (context, animation, secondaryAnimation) =>
+        //             const CaptionEditor(),
+        //     transitionsBuilder: (
+        //       context,
+        //       animation,
+        //       secondaryAnimation,
+        //       child,
+        //     ) {
+        //       const begin = Offset(0.0, 1.0);
+        //       const end = Offset.zero;
+        //       const curve = Curves.easeInOut;
+
+        //       var tween = Tween(
+        //         begin: begin,
+        //         end: end,
+        //       ).chain(CurveTween(curve: curve));
+        //       var offsetAnimation = animation.drive(tween);
+
+        //       return SlideTransition(position: offsetAnimation, child: child);
+        //     },
+        //   ),
+        // );
       },
       child: SizedBox(
         width: 240,
@@ -58,11 +94,7 @@ class SceneButton extends StatelessWidget {
                   color: Colors.black.withAlpha(128),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.text_fields,
-                  color: Colors.white,
-                  size: 16,
-                ),
+                child: Icon(Icons.text_fields, color: Colors.white, size: 16),
               ),
             ),
           ],
@@ -157,13 +189,15 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
             itemCount: selectedScenes.length,
             separatorBuilder: (context, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
+              final scenePath = selectedScenes[index];
               return SceneButton(
                 imageUrl:
-                    'https://image.tmdb.org/t/p/w500${selectedScenes[index]}',
+                    'https://image.tmdb.org/t/p/w500$scenePath',
+                sceneIndex: index,
                 onRemove: () {
                   ref
                       .read(journalControllerProvider.notifier)
-                      .removeScene(selectedScenes[index]);
+                      .removeScene(scenePath);
                 },
               );
             },
