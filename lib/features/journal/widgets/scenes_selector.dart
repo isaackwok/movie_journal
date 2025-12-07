@@ -177,7 +177,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
     );
   }
 
-  Widget _buildSelectedScenesView(List<String> selectedScenes) {
+  Widget _buildSelectedScenesView(List<SceneItem> selectedScenes) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 16,
@@ -189,15 +189,15 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
             itemCount: selectedScenes.length,
             separatorBuilder: (context, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
-              final scenePath = selectedScenes[index];
+              final scene = selectedScenes[index];
               return SceneButton(
                 imageUrl:
-                    'https://image.tmdb.org/t/p/w500$scenePath',
+                    'https://image.tmdb.org/t/p/w500${scene.path}',
                 sceneIndex: index,
                 onRemove: () {
                   ref
                       .read(journalControllerProvider.notifier)
-                      .removeScene(scenePath);
+                      .removeScene(scene.path);
                 },
               );
             },

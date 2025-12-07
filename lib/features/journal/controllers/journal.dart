@@ -8,13 +8,48 @@ import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/firestore_manager.dart';
 import 'package:uuid/uuid.dart';
 
+// Scene item with path and optional caption
+class SceneItem {
+  final String path;
+  final String? caption;
+
+  SceneItem({required this.path, this.caption});
+
+  Map<String, dynamic> toMap() {
+    final map = {'path': path};
+    if (caption != null && caption!.isNotEmpty) {
+      map['caption'] = caption!;
+    }
+    return map;
+  }
+
+  static SceneItem fromMap(Map<String, dynamic> map) {
+    return SceneItem(
+      path: map['path'] as String,
+      caption: map['caption'] as String?,
+    );
+  }
+
+  // Backward compatibility: parse from string format
+  static SceneItem fromString(String path) {
+    return SceneItem(path: path);
+  }
+
+  SceneItem copyWith({String? path, String? caption}) {
+    return SceneItem(
+      path: path ?? this.path,
+      caption: caption ?? this.caption,
+    );
+  }
+}
+
 class JournalState {
   String id = '';
   int tmdbId = 0;
   String movieTitle = '';
   String moviePoster = '';
   List<Emotion> emotions = [];
-  List<String> selectedScenes = [];
+  List<SceneItem> selectedScenes = [];
   List<String> selectedRefs = [];
   String thoughts = '';
   late Jiffy createdAt;
@@ -43,7 +78,7 @@ class JournalState {
     String? movieTitle,
     String? moviePoster,
     List<Emotion>? emotions,
-    List<String>? selectedScenes,
+    List<SceneItem>? selectedScenes,
     List<String>? selectedRefs,
     String? thoughts,
     Jiffy? createdAt,
@@ -69,7 +104,7 @@ class JournalState {
       'movieTitle': movieTitle,
       'moviePoster': moviePoster,
       'emotions': emotions.map((e) => e.id).toList(),
-      'selectedScenes': selectedScenes,
+      'selectedScenes': selectedScenes.map((scene) => scene.toMap()).toList(),
       'selectedRefs': selectedRefs,
       'thoughts': thoughts,
       'createdAt': createdAt.toString(),
@@ -84,7 +119,7 @@ class JournalState {
       'movieTitle': movieTitle,
       'moviePoster': moviePoster,
       'emotions': emotions.map((e) => e.id).toList(),
-      'selectedScenes': selectedScenes,
+      'selectedScenes': selectedScenes.map((scene) => scene.toMap()).toList(),
       'selectedRefs': selectedRefs,
       'thoughts': thoughts,
       'createdAt': createdAt.toString(),
@@ -95,6 +130,24 @@ class JournalState {
   static JournalState fromJson(String json) {
     // Decode a given json string and return a JournalState object
     final map = jsonDecode(json);
+
+    // Parse selectedScenes with backward compatibility
+    List<SceneItem> parseSelectedScenes(dynamic scenesData) {
+      if (scenesData == null) return [];
+
+      final scenesList = scenesData as List<dynamic>;
+      return scenesList.map((item) {
+        if (item is String) {
+          // Backward compatibility: old format was just strings
+          return SceneItem.fromString(item);
+        } else if (item is Map<String, dynamic>) {
+          // New format: object with path and optional caption
+          return SceneItem.fromMap(item);
+        }
+        return SceneItem(path: item.toString());
+      }).toList();
+    }
+
     return JournalState(
       id: map['id'] ?? '',
       tmdbId:
@@ -111,7 +164,7 @@ class JournalState {
             );
             return emotionEntry.value;
           }).toList(),
-      selectedScenes: List<String>.from(map['selectedScenes'] ?? []),
+      selectedScenes: parseSelectedScenes(map['selectedScenes']),
       selectedRefs: List<String>.from(map['selectedRefs'] ?? []),
       thoughts: map['thoughts'] ?? '',
       createdAt:
@@ -161,7 +214,7 @@ class JournalController extends Notifier<JournalState> {
     return this;
   }
 
-  JournalController setSelectedScenes(List<String> scenes) {
+  JournalController setSelectedScenes(List<SceneItem> scenes) {
     state = state.copyWith(selectedScenes: scenes);
     return this;
   }
@@ -176,8 +229,10 @@ class JournalController extends Notifier<JournalState> {
     return this;
   }
 
-  JournalController addSelectedScene(String scene) {
-    state = state.copyWith(selectedScenes: [...state.selectedScenes, scene]);
+  JournalController addSelectedScene(String scenePath) {
+    state = state.copyWith(
+      selectedScenes: [...state.selectedScenes, SceneItem(path: scenePath)],
+    );
     return this;
   }
 
@@ -193,16 +248,39 @@ class JournalController extends Notifier<JournalState> {
     return this;
   }
 
-  JournalController addScene(String scene) {
-    state = state.copyWith(selectedScenes: [...state.selectedScenes, scene]);
+  JournalController addScene(String scenePath) {
+    state = state.copyWith(
+      selectedScenes: [...state.selectedScenes, SceneItem(path: scenePath)],
+    );
     return this;
   }
 
-  JournalController removeScene(String scene) {
+  JournalController removeScene(String scenePath) {
     state = state.copyWith(
-      selectedScenes: state.selectedScenes.where((e) => e != scene).toList(),
+      selectedScenes:
+          state.selectedScenes.where((scene) => scene.path != scenePath).toList(),
     );
     return this;
+  }
+
+  JournalController updateSceneCaption(String scenePath, String caption) {
+    final updatedScenes = state.selectedScenes.map((scene) {
+      if (scene.path == scenePath) {
+        return scene.copyWith(caption: caption.isEmpty ? null : caption);
+      }
+      return scene;
+    }).toList();
+
+    state = state.copyWith(selectedScenes: updatedScenes);
+    return this;
+  }
+
+  String getSceneCaption(String scenePath) {
+    final scene = state.selectedScenes.firstWhere(
+      (scene) => scene.path == scenePath,
+      orElse: () => SceneItem(path: scenePath),
+    );
+    return scene.caption ?? '';
   }
 
   JournalController clear() {

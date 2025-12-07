@@ -145,10 +145,11 @@ class ScenesSelectSheet extends ConsumerWidget {
                 itemCount: backdrops.length,
                 itemBuilder: (context, index) {
                   final backdrop = backdrops[index];
-                  final isSelected = selectedScenes.contains(backdrop.filePath);
+                  final isSelected = selectedScenes.any((scene) => scene.path == backdrop.filePath);
+                  final selectedIndex = selectedScenes.indexWhere((scene) => scene.path == backdrop.filePath);
 
                   return SceneButton(
-                    index: selectedScenes.indexOf(backdrop.filePath),
+                    index: selectedIndex,
                     imageUrl:
                         'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
                     isSelected: isSelected,

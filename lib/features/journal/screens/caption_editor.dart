@@ -5,10 +5,7 @@ import 'package:movie_journal/features/journal/controllers/journal.dart';
 class CaptionEditor extends ConsumerStatefulWidget {
   final int initialSceneIndex;
 
-  const CaptionEditor({
-    super.key,
-    required this.initialSceneIndex,
-  });
+  const CaptionEditor({super.key, required this.initialSceneIndex});
 
   @override
   ConsumerState<CaptionEditor> createState() => _CaptionEditorState();
@@ -16,17 +13,52 @@ class CaptionEditor extends ConsumerStatefulWidget {
 
 class _CaptionEditorState extends ConsumerState<CaptionEditor> {
   late PageController _pageController;
+  late Map<String, TextEditingController> _captionControllers;
+  int _currentPage = 0;
 
   @override
   void initState() {
     super.initState();
+    _currentPage = widget.initialSceneIndex;
     _pageController = PageController(initialPage: widget.initialSceneIndex);
+
+    // Initialize caption controllers for each scene
+    final selectedScenes = ref.read(journalControllerProvider).selectedScenes;
+    _captionControllers = {};
+
+    for (final scene in selectedScenes) {
+      _captionControllers[scene.path] = TextEditingController(
+        text: scene.caption ?? '',
+      );
+    }
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    // Dispose all caption controllers
+    for (final controller in _captionControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
+  }
+
+  void _onPageChanged(int page) {
+    setState(() {
+      _currentPage = page;
+    });
+  }
+
+  void _saveAllCaptions() {
+    // Save all captions to Riverpod
+    for (final entry in _captionControllers.entries) {
+      final scenePath = entry.key;
+      final caption = entry.value.text;
+      ref
+          .read(journalControllerProvider.notifier)
+          .updateSceneCaption(scenePath, caption);
+    }
+    Navigator.pop(context);
   }
 
   @override
@@ -66,9 +98,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {
-                    // Leave empty for now
-                  },
+                  onPressed: _saveAllCaptions,
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     backgroundColor: Colors.transparent,
@@ -92,26 +122,134 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
         body: Column(
           children: [
             SizedBox(height: 55),
-            SizedBox(
-              height: 205,
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: selectedScenes.length,
-                itemBuilder: (context, index) {
-                  final scenePath = selectedScenes[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        'https://image.tmdb.org/t/p/original$scenePath',
-                        width: double.infinity,
-                        height: 205,
-                        fit: BoxFit.cover,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: SizedBox(
+                height: 260,
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: _onPageChanged,
+                  itemCount: selectedScenes.length,
+                  itemBuilder: (context, index) {
+                    final scene = selectedScenes[index];
+                    final controller = _captionControllers[scene.path];
+
+                    return SingleChildScrollView(
+                      child: Column(
+                        spacing: 0,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(12),
+                              topRight: Radius.circular(12),
+                            ),
+                            child: Image.network(
+                              'https://image.tmdb.org/t/p/original${scene.path}',
+                              width: double.infinity,
+                              height: 205,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          TextField(
+                            controller: controller,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: 'AvenirNext',
+                              height: 1.4,
+                            ),
+                            maxLines: 2,
+                            minLines: 1,
+                            decoration: InputDecoration(
+                              hintText: 'Add a caption...',
+                              hintStyle: TextStyle(
+                                color: Colors.white.withAlpha(153),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: 'AvenirNext',
+                              ),
+                              filled: true,
+                              fillColor: Color(0xFF151515),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(8),
+                                  bottomRight: Radius.circular(8),
+                                ),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(8),
+                                  bottomRight: Radius.circular(8),
+                                ),
+                                borderSide: BorderSide.none,
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(8),
+                                  bottomRight: Radius.circular(8),
+                                ),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: SizedBox(
+                width: double.infinity,
+                height: 24,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Centered dots
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 4,
+                      children: List.generate(
+                        selectedScenes.length,
+                        (index) => Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color:
+                                index == _currentPage
+                                    ? Colors.white
+                                    : Colors.white.withAlpha(77),
+                          ),
+                        ),
                       ),
                     ),
-                  );
-                },
+                    // Text positioned on the right
+                    Positioned(
+                      right: 0,
+                      child: Text(
+                        '${_currentPage + 1} of ${selectedScenes.length}',
+                        style: TextStyle(
+                          color: Colors.white.withAlpha(153),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: 'AvenirNext',
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

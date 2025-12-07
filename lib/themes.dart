@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 const Color _darkSurface = Color(0xFF000000);
 const Color _darkOnSurface = Colors.white;
-const Color _darkPrimary = Color(0xFFFCA311);
+const Color _darkPrimary = Color(0xFFA8DADD);
 const Color _darkOnPrimary = Colors.black;
 const String _defaultFontFamily = 'Inter';
 
