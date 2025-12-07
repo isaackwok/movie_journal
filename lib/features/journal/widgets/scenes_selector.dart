@@ -107,7 +107,7 @@ class SceneButton extends StatelessWidget {
                   ),
 
                   if (caption != null && caption!.isNotEmpty)
-                    Expanded(
+                    Flexible(
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
