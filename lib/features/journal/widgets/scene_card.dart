@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class SceneCard extends StatelessWidget {
+class SceneCard extends StatefulWidget {
   final String imagePath;
   final String? caption;
   final TextEditingController? controller;
@@ -15,6 +15,20 @@ class SceneCard extends StatelessWidget {
   });
 
   @override
+  State<SceneCard> createState() => _SceneCardState();
+}
+
+class _SceneCardState extends State<SceneCard> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize controller text with caption if controller is provided
+    if (widget.controller != null && widget.caption != null) {
+      widget.controller!.text = widget.caption!;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       spacing: 0,
@@ -26,15 +40,15 @@ class SceneCard extends StatelessWidget {
             topRight: Radius.circular(12),
           ),
           child: Image.network(
-            'https://image.tmdb.org/t/p/original$imagePath',
+            'https://image.tmdb.org/t/p/original${widget.imagePath}',
             width: double.infinity,
             height: 205,
             fit: BoxFit.cover,
           ),
         ),
         TextField(
-          enabled: isEditable,
-          controller: controller,
+          enabled: widget.isEditable,
+          controller: widget.controller,
           style: TextStyle(
             color: Colors.white,
             fontSize: 13,
@@ -45,7 +59,7 @@ class SceneCard extends StatelessWidget {
           maxLines: 2,
           minLines: 1,
           decoration: InputDecoration(
-            hintText: isEditable ? 'Add a caption...' : '<No caption>',
+            hintText: widget.isEditable ? 'Add a caption...' : '<No caption>',
             hintStyle: TextStyle(
               color: Colors.white.withAlpha(153),
               fontSize: 13,
