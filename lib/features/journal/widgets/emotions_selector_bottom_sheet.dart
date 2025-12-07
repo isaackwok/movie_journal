@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
-import 'package:movie_journal/features/journal/controllers/journal.dart';
 
 class _AnimatedEmotionChip extends StatefulWidget {
   final Emotion emotion;
@@ -93,8 +92,14 @@ class _AnimatedEmotionChipState extends State<_AnimatedEmotionChip>
 
 class EmotionsSelectorBottomSheet extends ConsumerStatefulWidget {
   final int maxSelectionLimit = 3;
+  final List<Emotion> initialEmotions;
+  final Function(List<Emotion>)? onSave;
 
-  const EmotionsSelectorBottomSheet({super.key});
+  const EmotionsSelectorBottomSheet({
+    super.key,
+    this.initialEmotions = const [],
+    this.onSave,
+  });
 
   @override
   ConsumerState<EmotionsSelectorBottomSheet> createState() =>
@@ -184,9 +189,8 @@ class _EmotionsSelectorBottomSheetState
   @override
   void initState() {
     super.initState();
-    // Initialize temp state with current emotions
-    final journal = ref.read(journalControllerProvider);
-    _tempSelectedEmotions = List.from(journal.emotions);
+    // Initialize temp state with provided initial emotions
+    _tempSelectedEmotions = List.from(widget.initialEmotions);
 
     // Initialize page keys for height measurement
     _pageKeys = List.generate(2, (_) => GlobalKey());
@@ -274,10 +278,10 @@ class _EmotionsSelectorBottomSheetState
   }
 
   void _handleDone() {
-    // Save the temporary selections to the actual state
-    ref
-        .read(journalControllerProvider.notifier)
-        .setEmotions(_tempSelectedEmotions);
+    // Call the onSave callback if provided
+    if (widget.onSave != null) {
+      widget.onSave!(_tempSelectedEmotions);
+    }
     Navigator.of(context).pop();
   }
 

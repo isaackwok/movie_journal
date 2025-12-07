@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:movie_journal/features/journal/controllers/journal.dart';
+import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector_bottom_sheet.dart';
 
-class EmotionsSelectorButton extends ConsumerWidget {
-  const EmotionsSelectorButton({super.key});
+class EmotionsSelectorButton extends StatelessWidget {
+  final List<Emotion> emotions;
+  final Function(List<Emotion>)? onSave;
+  final bool readonly;
+
+  const EmotionsSelectorButton({
+    super.key,
+    required this.emotions,
+    this.onSave,
+    this.readonly = false,
+  });
 
   // Configuration map for button states
   static const Map<String, dynamic> _buttonConfig = {
@@ -114,33 +122,42 @@ class EmotionsSelectorButton extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final journal = ref.watch(journalControllerProvider);
-    final selectedEmotions = journal.emotions;
-    final hasSelection = selectedEmotions.isNotEmpty;
+  Widget build(BuildContext context) {
+    final hasSelection = emotions.isNotEmpty;
 
     // Get config based on state
     final config =
         hasSelection ? _buttonConfig['selected']! : _buttonConfig['empty']!;
     final color = Color(0xFFA8DADD);
-    final buttonText = _getButtonText(selectedEmotions);
+    final buttonText = _getButtonText(emotions);
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          showModalBottomSheet(
-            context: context,
-            backgroundColor: Colors.transparent,
-            isScrollControlled: true,
-            builder: (context) => EmotionsSelectorBottomSheet(),
-          );
-        },
+        onTap:
+            readonly
+                ? null
+                : () {
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: Colors.transparent,
+                    isScrollControlled: true,
+                    builder:
+                        (context) => EmotionsSelectorBottomSheet(
+                          initialEmotions: emotions,
+                          onSave: onSave,
+                        ),
+                  );
+                },
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
-            border: Border.all(color: color, width: 1),
+            color: Color(0xFF151515),
+            border: Border.all(
+              color: readonly ? Colors.transparent : color,
+              width: 1,
+            ),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
@@ -154,9 +171,11 @@ class EmotionsSelectorButton extends ConsumerWidget {
               const SizedBox(width: 12),
               // Text
               Expanded(child: buttonText),
-              const SizedBox(width: 12),
-              // Icon (arrow or pen)
-              Icon(config['icon'] as IconData, color: color, size: 24),
+              if (!readonly) ...[
+                const SizedBox(width: 12),
+                // Icon (arrow or pen)
+                Icon(config['icon'] as IconData, color: color, size: 24),
+              ],
             ],
           ),
         ),

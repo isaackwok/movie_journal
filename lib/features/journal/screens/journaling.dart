@@ -282,7 +282,14 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                       ),
                     ),
                     const SizedBox(height: 36),
-                    EmotionsSelectorButton(),
+                    EmotionsSelectorButton(
+                      emotions: journal.emotions,
+                      onSave: (selectedEmotions) {
+                        ref
+                            .read(journalControllerProvider.notifier)
+                            .setEmotions(selectedEmotions);
+                      },
+                    ),
                     const SizedBox(height: 36),
 
                     // Poster Preview Button
