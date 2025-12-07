@@ -19,13 +19,27 @@ class SceneCard extends StatefulWidget {
 }
 
 class _SceneCardState extends State<SceneCard> {
+  late TextEditingController _effectiveController;
+  bool _shouldDisposeController = false;
   @override
   void initState() {
     super.initState();
-    // Initialize controller text with caption if controller is provided
-    if (widget.controller != null && widget.caption != null) {
-      widget.controller!.text = widget.caption!;
+    // Use provided controller or create one with caption text
+    if (widget.controller != null) {
+      _effectiveController = widget.controller!;
+      _shouldDisposeController = false;
+    } else {
+      _effectiveController = TextEditingController(text: widget.caption ?? '');
+      _shouldDisposeController = true;
     }
+  }
+
+  @override
+  void dispose() {
+    if (_shouldDisposeController) {
+      _effectiveController.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -48,7 +62,7 @@ class _SceneCardState extends State<SceneCard> {
         ),
         TextField(
           enabled: widget.isEditable,
-          controller: widget.controller,
+          controller: _effectiveController,
           style: TextStyle(
             color: Colors.white,
             fontSize: 13,
