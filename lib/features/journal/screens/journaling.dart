@@ -177,6 +177,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                                   .read(journalControllerProvider.notifier)
                                   .save()
                                   .then((value) {
+                                    final savedJournalId = ref.read(journalControllerProvider).id;
                                     if (context.mounted) {
                                       CustomToast.showSuccess(
                                         'Your journal has been saved.',
@@ -186,7 +187,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                                         MaterialPageRoute(
                                           builder:
                                               (context) => JournalContent(
-                                                journalId: journal.id,
+                                                journalId: savedJournalId,
                                               ),
                                         ),
                                         (route) => route.isFirst,

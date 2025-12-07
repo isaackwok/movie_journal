@@ -4,13 +4,40 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/journal/widgets/ai_references_accordion.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector.dart';
+import 'package:movie_journal/features/journal/widgets/scene_card.dart';
 
-class JournalContent extends ConsumerWidget {
+class JournalContent extends ConsumerStatefulWidget {
   final String journalId;
   const JournalContent({super.key, required this.journalId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<JournalContent> createState() => _JournalContentState();
+}
+
+class _JournalContentState extends ConsumerState<JournalContent> {
+  late PageController _pageController;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onPageChanged(int page) {
+    setState(() {
+      _currentPage = page;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final journalsAsync = ref.watch(journalsControllerProvider);
 
     // Handle loading and error states
@@ -26,7 +53,7 @@ class JournalContent extends ConsumerWidget {
 
     final journals = journalsAsync.value?.journals ?? [];
     final journal = journals.firstWhere(
-      (journal) => journal.id == journalId,
+      (journal) => journal.id == widget.journalId,
       orElse: () => throw Exception('Journal not found'),
     );
 
@@ -70,87 +97,146 @@ class JournalContent extends ConsumerWidget {
 
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    journal.movieTitle,
-                    style: GoogleFonts.inter(fontSize: 32),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      journal.movieTitle,
+                      style: GoogleFonts.inter(fontSize: 32),
+                    ),
                   ),
                   SizedBox(height: 8),
-                  Text(
-                    journal.updatedAt.format(pattern: 'MMM do yyyy'),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white.withAlpha(178),
-                      fontFamily: 'AvenirNext',
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      journal.updatedAt.format(pattern: 'MMM do yyyy'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white.withAlpha(178),
+                        fontFamily: 'AvenirNext',
+                      ),
                     ),
                   ),
                   SizedBox(height: 24),
-                  Wrap(
-                    spacing: 8,
-                    children:
-                        journal.emotions
-                            .map(
-                              (emotion) => Padding(
-                                padding: const EdgeInsets.all(6),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  spacing: 8,
-                                  children: [
-                                    EmotionButton(
-                                      size: 40,
-                                      emotion: emotion,
-                                      isSelected: false,
-                                      onTap: (e) {},
-                                    ),
-                                    Text(
-                                      emotion.name,
-                                      style: GoogleFonts.nothingYouCouldDo(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Wrap(
+                      spacing: 8,
+                      children:
+                          journal.emotions
+                              .map(
+                                (emotion) => Padding(
+                                  padding: const EdgeInsets.all(6),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    spacing: 8,
+                                    children: [
+                                      EmotionButton(
+                                        size: 40,
+                                        emotion: emotion,
+                                        isSelected: false,
+                                        onTap: (e) {},
                                       ),
-                                    ),
-                                  ],
+                                      Text(
+                                        emotion.name,
+                                        style: GoogleFonts.nothingYouCouldDo(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            )
-                            .toList(),
+                              )
+                              .toList(),
+                    ),
                   ),
                   SizedBox(height: 24),
                   journal.selectedScenes.isEmpty
                       ? const SizedBox.shrink()
                       : Column(
-                        spacing: 12,
                         children: [
-                          ...journal.selectedScenes.map(
-                            (scene) => ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                'https://image.tmdb.org/t/p/w500$scene',
-                                fit: BoxFit.cover,
-                              ),
+                          SizedBox(
+                            height: 260,
+                            child: PageView.builder(
+                              controller: _pageController,
+                              onPageChanged: _onPageChanged,
+                              itemCount: journal.selectedScenes.length,
+                              itemBuilder: (context, index) {
+                                final scene = journal.selectedScenes[index];
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: SceneCard(
+                                    imagePath: scene.path,
+                                    caption: scene.caption,
+                                    isEditable: false,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 24,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Centered dots
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: 4,
+                                  children: List.generate(
+                                    journal.selectedScenes.length,
+                                    (index) => Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color:
+                                            index == _currentPage
+                                                ? Colors.white
+                                                : Colors.white.withAlpha(77),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                   SizedBox(height: 24),
-                  Text(
-                    journal.thoughts,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      journal.thoughts,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   SizedBox(height: 24),
-                  journal.selectedRefs.isEmpty
-                      ? const SizedBox.shrink()
-                      : AiReferencesAccordion(
-                        references: journal.selectedRefs,
-                        onRemove: (index) {},
-                      ),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child:
+                        journal.selectedRefs.isEmpty
+                            ? const SizedBox.shrink()
+                            : AiReferencesAccordion(
+                              references: journal.selectedRefs,
+                              onRemove: (index) {},
+                            ),
+                  ),
                 ],
               ),
             ),
