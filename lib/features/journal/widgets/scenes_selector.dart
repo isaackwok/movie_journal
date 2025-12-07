@@ -12,11 +12,13 @@ class SceneButton extends StatelessWidget {
     required this.imageUrl,
     required this.onRemove,
     required this.sceneIndex,
+    this.caption,
   });
 
   final String imageUrl;
   final VoidCallback onRemove;
   final int sceneIndex;
+  final String? caption;
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +28,7 @@ class SceneButton extends StatelessWidget {
           useSafeArea: true,
           isScrollControlled: true,
           context: context,
-          builder: (context) => CaptionEditor(
-            initialSceneIndex: sceneIndex,
-          ),
+          builder: (context) => CaptionEditor(initialSceneIndex: sceneIndex),
         );
         // Navigator.push(
         //   context,
@@ -88,13 +88,47 @@ class SceneButton extends StatelessWidget {
             Positioned(
               bottom: 8,
               left: 8,
-              child: Container(
-                padding: EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withAlpha(128),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.text_fields, color: Colors.white, size: 16),
+              right: 8,
+              child: Row(
+                spacing: 4,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withAlpha(128),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.text_fields,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
+
+                  if (caption != null && caption!.isNotEmpty)
+                    Expanded(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          caption!,
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: 'AvenirNext',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 10,
+                            height: 1.4,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
@@ -191,9 +225,9 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
             itemBuilder: (context, index) {
               final scene = selectedScenes[index];
               return SceneButton(
-                imageUrl:
-                    'https://image.tmdb.org/t/p/w500${scene.path}',
+                imageUrl: 'https://image.tmdb.org/t/p/w500${scene.path}',
                 sceneIndex: index,
+                caption: scene.caption,
                 onRemove: () {
                   ref
                       .read(journalControllerProvider.notifier)

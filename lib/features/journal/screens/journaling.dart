@@ -257,7 +257,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 12,
+                        spacing: 8,
                         children: [
                           Text(
                             widget.movieTitle,
@@ -268,10 +268,11 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                           ),
                           Text(
                             Jiffy.now().format(pattern: 'MMM do yyyy'),
-                            style: GoogleFonts.nothingYouCouldDo(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: Colors.white.withAlpha(179),
+                              fontFamily: 'AvenirNext',
                             ),
                           ),
                         ],
