@@ -40,15 +40,22 @@ class JournalsController extends AsyncNotifier<JournalsState> {
     // TODO: Add Firestore write logic here
   }
 
+  /// Remove a journal from both Firestore and local state
+  ///
+  /// This method first deletes the journal from Firestore, then updates
+  /// the local state to reflect the deletion. If Firestore deletion fails,
+  /// the local state is not updated.
   Future<void> removeJournal(String id) async {
     final currentState = state.value;
     if (currentState == null) return;
 
+    // Delete from Firestore first
+    await _firestoreManager.deleteJournal(id);
+
+    // Update local state after successful Firestore deletion
     final updatedJournals =
         currentState.journals.where((j) => j.id != id).toList();
     state = AsyncValue.data(currentState.copyWith(journals: updatedJournals));
-
-    // TODO: Add Firestore delete logic here
   }
 
   Future<void> setJournals(List<JournalState> journals) async {

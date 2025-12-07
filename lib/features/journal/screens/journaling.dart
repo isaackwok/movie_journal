@@ -10,6 +10,7 @@ import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
+import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
 
 class SectionSeperator extends StatelessWidget {
   const SectionSeperator({super.key});
@@ -177,7 +178,8 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                                   .read(journalControllerProvider.notifier)
                                   .save()
                                   .then((value) {
-                                    final savedJournalId = ref.read(journalControllerProvider).id;
+                                    final savedJournalId =
+                                        ref.read(journalControllerProvider).id;
                                     if (context.mounted) {
                                       CustomToast.showSuccess(
                                         'Your journal has been saved.',
@@ -334,87 +336,14 @@ class _DiscardChangesDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Color(0xFF151515),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Discard Changes',
-              style: const TextStyle(
-                fontFamily: 'AvenirNext',
-                fontSize: 24,
-                fontWeight: FontWeight.w500,
-                height: 32 / 24,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.left,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Are you sure you want to discard the changes? All changes will not be saved.',
-              style: const TextStyle(
-                fontFamily: 'AvenirNext',
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                height: 24 / 14,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.left,
-            ),
-            const SizedBox(height: 40),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(
-                      fontFamily: 'AvenirNext',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      height: 1.4,
-                      color: Color(0xFFFFFFFF),
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: const Text(
-                    'Discard',
-                    style: TextStyle(
-                      fontFamily: 'AvenirNext',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      height: 1.4,
-                      color: Color(0xFFFF615D),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+    return ConfirmationDialog(
+      title: 'Discard Changes',
+      description:
+          'Are you sure you want to discard the changes? All changes will not be saved.',
+      cancelText: 'Cancel',
+      confirmText: 'Discard',
+      onCancel: () => Navigator.pop(context, false),
+      onConfirm: () => Navigator.pop(context, true),
     );
   }
 }

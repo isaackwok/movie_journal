@@ -118,4 +118,14 @@ class FirestoreManager {
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
+
+  /// Delete a journal from Firestore
+  ///
+  /// Parameters:
+  /// - [journalId]: The Firestore document ID of the journal to delete
+  ///
+  /// Throws an exception if the deletion fails
+  Future<void> deleteJournal(String journalId) async {
+    await _db.collection('journals').doc(journalId).delete();
+  }
 }

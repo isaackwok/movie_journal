@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/journal/widgets/ai_references_accordion.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector.dart';
+import 'package:movie_journal/features/journal/widgets/journal_content_more_menu.dart';
 import 'package:movie_journal/features/journal/widgets/scene_card.dart';
 
 class JournalContent extends ConsumerStatefulWidget {
@@ -52,10 +53,21 @@ class _JournalContentState extends ConsumerState<JournalContent> {
     }
 
     final journals = journalsAsync.value?.journals ?? [];
-    final journal = journals.firstWhere(
-      (journal) => journal.id == widget.journalId,
-      orElse: () => throw Exception('Journal not found'),
-    );
+
+    // Try to find the journal, if not found (deleted), navigate back
+    final journalIndex = journals.indexWhere((j) => j.id == widget.journalId);
+    if (journalIndex == -1) {
+      // Journal was deleted, navigate back after this frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && Navigator.canPop(context)) {
+          Navigator.of(context).pop();
+        }
+      });
+      // Return empty scaffold while waiting for navigation
+      return const Scaffold(body: SizedBox.shrink());
+    }
+
+    final journal = journals[journalIndex];
 
     return Scaffold(
       body: CustomScrollView(
@@ -70,12 +82,9 @@ class _JournalContentState extends ConsumerState<JournalContent> {
             actions: [
               IconButton(
                 onPressed: () {},
-                icon: Icon(Icons.edit_outlined, color: Colors.white),
-              ),
-              IconButton(
-                onPressed: () {},
                 icon: Icon(Icons.ios_share, color: Colors.white),
               ),
+              JournalContentMoreMenu(journalId: widget.journalId),
             ],
             leading: IconButton(
               onPressed: () {
