@@ -59,9 +59,13 @@ class ThoughtsEditor extends ConsumerWidget {
       splashColor: Colors.transparent,
       onTap:
           () => {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ThoughtsScreen()),
+            showModalBottomSheet(
+              useSafeArea: true,
+              enableDrag: false,
+              context: context,
+              backgroundColor: Colors.transparent,
+              isScrollControlled: true,
+              builder: (context) => ThoughtsScreen(),
             ),
           },
       child: Column(

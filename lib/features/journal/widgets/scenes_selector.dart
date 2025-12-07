@@ -27,6 +27,7 @@ class SceneButton extends StatelessWidget {
         showModalBottomSheet(
           useSafeArea: true,
           isScrollControlled: true,
+          enableDrag: false,
           context: context,
           builder: (context) => CaptionEditor(initialSceneIndex: sceneIndex),
         );
@@ -109,7 +110,10 @@ class SceneButton extends StatelessWidget {
                   if (caption != null && caption!.isNotEmpty)
                     Flexible(
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(8),
