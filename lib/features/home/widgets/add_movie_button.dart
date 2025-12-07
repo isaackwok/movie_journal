@@ -18,7 +18,7 @@ class AddMovieButton extends StatelessWidget {
         maximumSize: const Size(52, 44),
         backgroundColor: Colors.transparent,
         shape: const CircleBorder(),
-        side: BorderSide(color: Colors.white.withAlpha(77), width: 1),
+        side: BorderSide(color: Color(0xFFA8DADD), width: 1),
       ),
     );
   }

@@ -155,9 +155,13 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
   static const double _minMaxHeight = 215.0;
 
   void _navigateToScenesSelectSheet() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => ScenesSelectSheet()),
+    showModalBottomSheet(
+      useSafeArea: true,
+      enableDrag: false,
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ScenesSelectSheet(),
     );
   }
 

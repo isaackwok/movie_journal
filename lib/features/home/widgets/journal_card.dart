@@ -22,9 +22,8 @@ class JournalCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
-          // border: Border.all(color: Colors.white.withAlpha(75)),
           borderRadius: BorderRadius.circular(12),
-          color: Color(0xFF002325),
+          color: Color(0xFF222222),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -33,8 +32,8 @@ class JournalCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
                 'https://image.tmdb.org/t/p/w500${journal.moviePoster}',
-                width: 151,
-                height: 207,
+                width: 150,
+                height: 215,
                 fit: BoxFit.cover,
                 alignment: Alignment.center,
               ),

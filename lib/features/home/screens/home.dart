@@ -120,8 +120,8 @@ class HomeScreen extends ConsumerWidget {
                               (username) => Text(
                                 username,
                                 style: GoogleFonts.nothingYouCouldDo(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                           loading:
@@ -143,7 +143,7 @@ class HomeScreen extends ConsumerWidget {
                         ),
                         Text(
                           '${journals.length} movie journals',
-                          style: TextStyle(
+                          style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),

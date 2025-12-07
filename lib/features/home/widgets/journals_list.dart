@@ -58,13 +58,13 @@ class JournalsList extends ConsumerWidget {
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 16,
-                          mainAxisExtent: 284,
-                        ),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 16,
+                      childAspectRatio:
+                          0.59, // Width:Height ratio (adjust based on your content)
+                    ),
                     itemCount: entry.value.length,
                     itemBuilder: (context, index) {
                       return JournalCard(journal: entry.value[index]);
