@@ -30,27 +30,31 @@ class MoviePreviewScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             if (movie.posterPath != null)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.network(
-                                  'https://image.tmdb.org/t/p/w500${movie.posterPath}',
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                                    if (wasSynchronouslyLoaded) {
+                              AnimatedSize(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    'https://image.tmdb.org/t/p/w500${movie.posterPath}',
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                                      if (wasSynchronouslyLoaded) {
+                                        return child;
+                                      }
+                                      // Show skeleton while loading
+                                      if (frame == null) {
+                                        return Skeleton.replace(
+                                          height: 492,
+                                          width: double.infinity,
+                                          child: Container(),
+                                        );
+                                      }
+                                      // Show actual image at its natural aspect ratio
                                       return child;
-                                    }
-                                    // Show skeleton while loading
-                                    if (frame == null) {
-                                      return Skeleton.replace(
-                                        height: 492,
-                                        width: double.infinity,
-                                        child: Container(),
-                                      );
-                                    }
-                                    // Show actual image at its natural aspect ratio
-                                    return child;
-                                  },
+                                    },
+                                  ),
                                 ),
                               ),
                             const SizedBox(height: 24),
