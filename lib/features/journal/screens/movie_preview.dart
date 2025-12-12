@@ -36,10 +36,15 @@ class MoviePreviewScreen extends ConsumerWidget {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
                                   child: Image.network(
-                                    'https://image.tmdb.org/t/p/w500${movie.posterPath}',
+                                    'https://image.tmdb.org/t/p/original${movie.posterPath}',
                                     fit: BoxFit.cover,
                                     width: double.infinity,
-                                    frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                                    frameBuilder: (
+                                      context,
+                                      child,
+                                      frame,
+                                      wasSynchronouslyLoaded,
+                                    ) {
                                       if (wasSynchronouslyLoaded) {
                                         return child;
                                       }
