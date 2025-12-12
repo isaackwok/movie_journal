@@ -160,7 +160,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                 disabledColor: Colors.white.withAlpha(76),
                 style: IconButton.styleFrom(
                   shape: CircleBorder(),
-                  side: BorderSide(color: Color(0xFFA8DADD)),
+                  side: BorderSide(color: Theme.of(context).colorScheme.primary),
                   alignment: Alignment.center,
                 ),
               ),
@@ -182,6 +182,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                                         ref.read(journalControllerProvider).id;
                                     if (context.mounted) {
                                       CustomToast.showSuccess(
+                                        context,
                                         'Your journal has been saved.',
                                       );
                                       Navigator.pushAndRemoveUntil(
@@ -223,18 +224,24 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                           color: Colors.white,
                         ),
                       ),
-                      overlayColor: WidgetStateProperty.all(Color(0xFFA8DADD)),
+                      overlayColor: WidgetStateProperty.all(
+                          Theme.of(context).colorScheme.primary),
                       backgroundColor: WidgetStateProperty.all(
                         Colors.transparent,
                       ),
                       side: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.disabled)) {
                           return BorderSide(
-                            color: Color(0xFFA8DADD).withAlpha(76),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withAlpha(76),
                             width: 1,
                           );
                         }
-                        return BorderSide(color: Color(0xFFA8DADD), width: 1);
+                        return BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 1);
                       }),
                       foregroundColor: WidgetStateProperty.resolveWith((
                         states,

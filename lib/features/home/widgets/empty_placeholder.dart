@@ -63,9 +63,10 @@ class EmptyPlaceholder extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
-                  overlayColor: Color(0xFFA8DADD),
+                  overlayColor: Theme.of(context).colorScheme.primary,
                   backgroundColor: Colors.transparent,
-                  side: BorderSide(color: Color(0xFFA8DADD), width: 1),
+                  side: BorderSide(
+                      color: Theme.of(context).colorScheme.primary, width: 1),
                 ),
                 onPressed: () {
                   Navigator.push(

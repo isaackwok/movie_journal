@@ -39,7 +39,7 @@ class ConfirmationDialog extends StatelessWidget {
       fontSize: 14,
       fontWeight: FontWeight.w500,
       height: 1.4,
-      color: Color(0xFFFFFFFF),
+      color: Colors.white,
     ),
     this.confirmTextStyle = const TextStyle(
       fontFamily: 'AvenirNext',

@@ -90,7 +90,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
                   child: Text(
                     'Cancel',
                     style: TextStyle(
-                      color: Color(0xFFA8DADD),
+                      color: Theme.of(context).colorScheme.primary,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       fontFamily: 'AvenirNext',
@@ -107,7 +107,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
                   child: Text(
                     'Done',
                     style: TextStyle(
-                      color: Color(0xFFA8DADD),
+                      color: Theme.of(context).colorScheme.primary,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       fontFamily: 'AvenirNext',

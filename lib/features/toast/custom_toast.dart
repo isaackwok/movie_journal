@@ -8,7 +8,7 @@ class CustomToast {
     _fToast.init(context);
   }
 
-  static void showSuccess(String message) {
+  static void showSuccess(BuildContext context, String message) {
     _fToast.showToast(
       gravity: ToastGravity.BOTTOM,
       toastDuration: const Duration(seconds: 2),
@@ -27,7 +27,8 @@ class CustomToast {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                border: Border.all(color: Color(0xFFA8DADD), width: 1),
+                border: Border.all(
+                    color: Theme.of(context).colorScheme.primary, width: 1),
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.check, color: Colors.white, size: 16),

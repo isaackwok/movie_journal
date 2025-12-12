@@ -190,7 +190,7 @@ class ScenesSelectSheet extends ConsumerWidget {
               surfaceTintColor: Colors.transparent,
               overlayColor: Colors.transparent,
               backgroundColor: Colors.transparent,
-              foregroundColor: Color(0xFFA8DADD),
+              foregroundColor: Theme.of(context).colorScheme.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),

@@ -64,7 +64,7 @@ class JournalContentMoreMenu extends ConsumerWidget {
       await ref.read(journalsControllerProvider.notifier).removeJournal(journalId);
 
       // Show success toast
-      CustomToast.showSuccess('Journal deleted successfully');
+      CustomToast.showSuccess(context, 'Journal deleted successfully');
 
       // Navigate back to home screen
       if (context.mounted) {

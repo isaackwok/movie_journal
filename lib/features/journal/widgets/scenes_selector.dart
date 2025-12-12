@@ -259,7 +259,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
           ),
           style: OutlinedButton.styleFrom(
             backgroundColor: Colors.transparent,
-            side: BorderSide(color: Color(0xFFA8DADD), width: 1),
+            side: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1),
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(_borderRadius),

@@ -48,7 +48,7 @@ class QuestionItem extends StatelessWidget {
                 child: Icon(
                   size: 24,
                   isSelected ? Icons.bookmark : Icons.bookmark_border,
-                  color: Color(0xFFA8DADD),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
@@ -123,7 +123,7 @@ class QuestionsBottomSheet extends ConsumerWidget {
                             padding: const EdgeInsets.all(20),
                             child: Center(
                               child: CircularProgressIndicator(
-                                color: Color(0xFFA8DADD),
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ),

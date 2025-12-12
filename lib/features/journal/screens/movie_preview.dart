@@ -145,8 +145,8 @@ class MoviePreviewScreen extends ConsumerWidget {
                     fontWeight: FontWeight.w700,
                     fontFamily: 'AvenirNext',
                   ),
-                  backgroundColor: Color(0xFFA8DADD),
-                  foregroundColor: Colors.black,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(16)),
                   ),

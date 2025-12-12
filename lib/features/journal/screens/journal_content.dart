@@ -98,7 +98,7 @@ class _JournalContentState extends ConsumerState<JournalContent> {
               disabledColor: Colors.white.withAlpha(76),
               style: IconButton.styleFrom(
                 shape: CircleBorder(),
-                side: BorderSide(color: Color(0xFFA8DADD)),
+                side: BorderSide(color: Theme.of(context).colorScheme.primary),
                 alignment: Alignment.center,
               ),
             ),

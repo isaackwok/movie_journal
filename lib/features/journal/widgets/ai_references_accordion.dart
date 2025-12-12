@@ -69,7 +69,8 @@ class _AiReferencesAccordionState extends State<AiReferencesAccordion>
               padding: EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(Icons.menu_book, color: Color(0xFFA8DADD), size: 24),
+                  Icon(Icons.menu_book,
+                      color: Theme.of(context).colorScheme.primary, size: 24),
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -163,7 +164,7 @@ class _ReferenceCard extends StatelessWidget {
                   ),
                   child: Icon(
                     Icons.bookmark,
-                    color: Color(0xFFA8DADD),
+                    color: Theme.of(context).colorScheme.primary,
                     size: 24,
                   ),
                 ),

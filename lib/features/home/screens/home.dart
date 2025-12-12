@@ -164,7 +164,7 @@ class HomeScreen extends ConsumerWidget {
                               child: Icon(
                                 Icons.settings,
                                 size: 16,
-                                color: Color(0xFFA8DADD),
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ],

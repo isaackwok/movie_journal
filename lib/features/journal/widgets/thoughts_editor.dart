@@ -40,7 +40,8 @@ class SelectedQuestionItem extends StatelessWidget {
           ),
           IconButton(
             onPressed: onRemove,
-            icon: Icon(size: 24, Icons.close, color: Color(0xFFA8DADD)),
+            icon: Icon(size: 24, Icons.close,
+                color: Theme.of(context).colorScheme.primary),
           ),
         ],
       ),

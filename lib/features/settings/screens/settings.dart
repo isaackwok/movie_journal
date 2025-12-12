@@ -120,12 +120,12 @@ class _AccountSection extends ConsumerWidget {
             title: 'Logout',
             description: 'Are you sure you want to logout?',
             confirmText: 'Logout',
-            confirmTextStyle: const TextStyle(
+            confirmTextStyle: TextStyle(
               fontFamily: 'AvenirNext',
               fontSize: 14,
               fontWeight: FontWeight.w500,
               height: 1.4,
-              color: Color(0xFFA8DADD),
+              color: Theme.of(context).colorScheme.primary,
             ),
             onCancel: () => Navigator.of(context).pop(),
             onConfirm: () async {

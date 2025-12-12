@@ -17,6 +17,9 @@ class Themes {
       seedColor: _darkOnSurface,
       brightness: Brightness.dark,
       surface: _darkSurface,
+      primary: _darkPrimary,
+      onPrimary: _darkOnPrimary,
+      onSurface: _darkOnSurface,
     ),
 
     textSelectionTheme: const TextSelectionThemeData(cursorColor: _darkPrimary),

@@ -128,7 +128,7 @@ class EmotionsSelectorButton extends StatelessWidget {
     // Get config based on state
     final config =
         hasSelection ? _buttonConfig['selected']! : _buttonConfig['empty']!;
-    final color = Color(0xFFA8DADD);
+    final color = Theme.of(context).colorScheme.primary;
     final buttonText = _getButtonText(emotions);
 
     return Material(

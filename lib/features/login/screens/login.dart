@@ -127,16 +127,18 @@ class _SignInButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: disabled ? null : onPressed,
         style: ButtonStyle(
-          overlayColor: WidgetStateProperty.all(Color(0xFFA8DADD)),
+          overlayColor: WidgetStateProperty.all(
+              Theme.of(context).colorScheme.primary),
           backgroundColor: WidgetStateProperty.all(Colors.transparent),
           side: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.disabled)) {
               return BorderSide(
-                color: Color(0xFFA8DADD).withAlpha(76),
+                color: Theme.of(context).colorScheme.primary.withAlpha(76),
                 width: 1,
               );
             }
-            return BorderSide(color: Color(0xFFA8DADD), width: 1);
+            return BorderSide(
+                color: Theme.of(context).colorScheme.primary, width: 1);
           }),
           textStyle: WidgetStateProperty.all(
             const TextStyle(
