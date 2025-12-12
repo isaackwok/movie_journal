@@ -5,12 +5,14 @@ class Emotion {
   final String name;
   final String group;
   final Color color;
+  final String energyLevel; // "high" or "low"
 
   const Emotion({
     required this.id,
     required this.name,
     required this.color,
     required this.group,
+    required this.energyLevel,
   });
 }
 
@@ -89,36 +91,42 @@ const emotionList = {
     name: "Joyful",
     color: Color(0xFFFADD9E),
     group: "Uplifting",
+    energyLevel: "high",
   ),
   EmotionType.funny: Emotion(
     id: "funny",
     name: "Funny",
     color: Color(0xFFFADD9E),
     group: "Uplifting",
+    energyLevel: "high",
   ),
   EmotionType.inspired: Emotion(
     id: "inspired",
     name: "Inspired",
     color: Color(0xFFFADD9E),
     group: "Uplifting",
+    energyLevel: "high",
   ),
   EmotionType.mindBlown: Emotion(
     id: "mindBlown",
     name: "Mind-blown",
     color: Color(0xFFFADD9E),
     group: "Uplifting",
+    energyLevel: "high",
   ),
   EmotionType.hopeful: Emotion(
     id: "hopeful",
     name: "Hopeful",
     color: Color(0xFFFADD9E),
     group: "Uplifting",
+    energyLevel: "high",
   ),
   EmotionType.fulfilling: Emotion(
     id: "fulfilling",
     name: "Fulfilling",
     color: Color(0xFFFADD9E),
     group: "Uplifting",
+    energyLevel: "high",
   ),
 
   // High Energy - Intense (uses FC8885)
@@ -127,36 +135,42 @@ const emotionList = {
     name: "Shocked",
     color: Color(0xFFFC8885),
     group: "Intense",
+    energyLevel: "high",
   ),
   EmotionType.angry: Emotion(
     id: "angry",
     name: "Angry",
     color: Color(0xFFFC8885),
     group: "Intense",
+    energyLevel: "high",
   ),
   EmotionType.terrified: Emotion(
     id: "terrified",
     name: "Terrified",
     color: Color(0xFFFC8885),
     group: "Intense",
+    energyLevel: "high",
   ),
   EmotionType.anxious: Emotion(
     id: "anxious",
     name: "Anxious",
     color: Color(0xFFFC8885),
     group: "Intense",
+    energyLevel: "high",
   ),
   EmotionType.overwhelmed: Emotion(
     id: "overwhelmed",
     name: "Overwhelmed",
     color: Color(0xFFFC8885),
     group: "Intense",
+    energyLevel: "high",
   ),
   EmotionType.disturbed: Emotion(
     id: "disturbed",
     name: "Disturbed",
     color: Color(0xFFFC8885),
     group: "Intense",
+    energyLevel: "high",
   ),
 
   // Low Energy - Soothing (uses FADD9E - same as Uplifting)
@@ -165,36 +179,42 @@ const emotionList = {
     name: "Heartwarming",
     color: Color(0xFFFADD9E),
     group: "Soothing",
+    energyLevel: "low",
   ),
   EmotionType.touched: Emotion(
     id: "touched",
     name: "Touched",
     color: Color(0xFFFADD9E),
     group: "Soothing",
+    energyLevel: "low",
   ),
   EmotionType.peaceful: Emotion(
     id: "peaceful",
     name: "Peaceful",
     color: Color(0xFFFADD9E),
     group: "Soothing",
+    energyLevel: "low",
   ),
   EmotionType.therapeutic: Emotion(
     id: "therapeutic",
     name: "Therapeutic",
     color: Color(0xFFFADD9E),
     group: "Soothing",
+    energyLevel: "low",
   ),
   EmotionType.nostalgic: Emotion(
     id: "nostalgic",
     name: "Nostalgic",
     color: Color(0xFFFADD9E),
     group: "Soothing",
+    energyLevel: "low",
   ),
   EmotionType.cozy: Emotion(
     id: "cozy",
     name: "Cozy",
     color: Color(0xFFFADD9E),
     group: "Soothing",
+    energyLevel: "low",
   ),
 
   // Low Energy - Quiet (uses FC8885 - same as Intense)
@@ -203,36 +223,42 @@ const emotionList = {
     name: "Melancholic",
     color: Color(0xFFFC8885),
     group: "Quiet",
+    energyLevel: "low",
   ),
   EmotionType.confused: Emotion(
     id: "confused",
     name: "Confused",
     color: Color(0xFFFC8885),
     group: "Quiet",
+    energyLevel: "low",
   ),
   EmotionType.thoughtProvoking: Emotion(
     id: "thoughtProvoking",
     name: "Thought-provoking",
     color: Color(0xFFFC8885),
     group: "Quiet",
+    energyLevel: "low",
   ),
   EmotionType.bittersweet: Emotion(
     id: "bittersweet",
     name: "Bittersweet",
     color: Color(0xFFFC8885),
     group: "Quiet",
+    energyLevel: "low",
   ),
   EmotionType.powerless: Emotion(
     id: "powerless",
     name: "Powerless",
     color: Color(0xFFFC8885),
     group: "Quiet",
+    energyLevel: "low",
   ),
   EmotionType.lonely: Emotion(
     id: "lonely",
     name: "Lonely",
     color: Color(0xFFFC8885),
     group: "Quiet",
+    energyLevel: "low",
   ),
 };
 // ------ END OF v2 New Emotions ------

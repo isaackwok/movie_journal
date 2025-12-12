@@ -18,16 +18,63 @@ class EmotionsSelectorButton extends StatelessWidget {
   // Configuration map for button states
   static const Map<String, dynamic> _buttonConfig = {
     'empty': {
-      'svgPath': 'assets/images/emotion_empty.svg',
+      'svgPath': 'assets/images/emotion_face.svg',
       'icon': Icons.arrow_forward,
       'iconOpacity': 0.3,
     },
     'selected': {
-      'svgPath': 'assets/images/emotion_selected.svg',
+      'svgPath': 'assets/images/emotion_face.svg',
       'icon': Icons.edit,
       'iconOpacity': 1.0,
     },
   };
+
+  /// Determines the gradient colors based on the energy mix of selected emotions
+  LinearGradient _getEnergyGradientColors(List<Emotion> selectedEmotions) {
+    if (selectedEmotions.isEmpty) {
+      // Default colors when no emotions are selected
+      return LinearGradient(
+        begin: Alignment.topRight,
+        end: Alignment.bottomLeft,
+        colors: [Color(0xFF545454), Color(0xFF545454)],
+      );
+    }
+
+    final hasHighEnergy = selectedEmotions.any((e) => e.energyLevel == 'high');
+    final hasLowEnergy = selectedEmotions.any((e) => e.energyLevel == 'low');
+
+    if (hasHighEnergy && !hasLowEnergy) {
+      // All High Energy: Pink/salmon gradient
+      return LinearGradient(
+        begin: Alignment.topRight,
+        end: Alignment.bottomLeft,
+        colors: [Color(0xFFFADD9E), Color(0xFFFF8784)],
+        stops: [0.1, 0.9],
+      );
+    } else if (!hasHighEnergy && hasLowEnergy) {
+      // All Low Energy: Teal/cyan gradient
+      return LinearGradient(
+        begin: Alignment.topRight,
+        end: Alignment.bottomLeft,
+        colors: [Color(0xFF87C997), Color(0xFF9ADCFF)],
+        stops: [0.1, 0.9],
+      );
+    } else {
+      // Mixed Energy: Yellow/green gradient
+      return LinearGradient(
+        begin: Alignment.topRight,
+        end: Alignment.bottomLeft,
+        colors: [
+          Color(0xFFFF8784),
+          Color(0xFFFADD9E),
+          Color(0xFFE1E9B1),
+          Color(0xFFA4E5B4),
+          Color(0xFF9ADCFF),
+        ],
+        stops: [0.15, 0.35, 0.5, 0.7, 0.9],
+      );
+    }
+  }
 
   Widget _getButtonText(List selectedEmotions) {
     if (selectedEmotions.isEmpty) {
@@ -130,6 +177,7 @@ class EmotionsSelectorButton extends StatelessWidget {
         hasSelection ? _buttonConfig['selected']! : _buttonConfig['empty']!;
     final color = Theme.of(context).colorScheme.primary;
     final buttonText = _getButtonText(emotions);
+    final gradientColors = _getEnergyGradientColors(emotions);
 
     return Material(
       color: Colors.transparent,
@@ -162,11 +210,21 @@ class EmotionsSelectorButton extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Emotion icon
-              SvgPicture.asset(
-                config['svgPath'] as String,
+              // Emotion icon with gradient background
+              Container(
                 width: 40,
                 height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: gradientColors,
+                ),
+                child: Center(
+                  child: SvgPicture.asset(
+                    config['svgPath'] as String,
+                    width: 40,
+                    height: 40,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               // Text
