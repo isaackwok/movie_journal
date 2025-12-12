@@ -29,23 +29,30 @@ class MoviePreviewScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Skeleton.replace(
-                                height: 492,
-                                width: double.infinity,
-                                child:
-                                    movie.posterPath != null
-                                        ? Image.network(
-                                          'https://image.tmdb.org/t/p/original${movie.posterPath}',
-                                          fit: BoxFit.cover,
-                                        )
-                                        : Image.asset(
-                                          'assets/images/avatar.png',
-                                          fit: BoxFit.cover,
-                                        ),
+                            if (movie.posterPath != null)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  'https://image.tmdb.org/t/p/w500${movie.posterPath}',
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                                    if (wasSynchronouslyLoaded) {
+                                      return child;
+                                    }
+                                    // Show skeleton while loading
+                                    if (frame == null) {
+                                      return Skeleton.replace(
+                                        height: 492,
+                                        width: double.infinity,
+                                        child: Container(),
+                                      );
+                                    }
+                                    // Show actual image at its natural aspect ratio
+                                    return child;
+                                  },
+                                ),
                               ),
-                            ),
                             const SizedBox(height: 24),
                             Padding(
                               padding: const EdgeInsets.symmetric(
