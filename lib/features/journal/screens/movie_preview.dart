@@ -37,7 +37,7 @@ class MoviePreviewScreen extends ConsumerWidget {
                                 child:
                                     movie.posterPath != null
                                         ? Image.network(
-                                          'https://image.tmdb.org/t/p/w500${movie.posterPath}',
+                                          'https://image.tmdb.org/t/p/original${movie.posterPath}',
                                           fit: BoxFit.cover,
                                         )
                                         : Image.asset(

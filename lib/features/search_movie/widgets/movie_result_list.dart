@@ -134,7 +134,7 @@ class MovieResultItem extends ConsumerWidget {
               child:
                   movie.posterPath != null
                       ? Image.network(
-                        'https://image.tmdb.org/t/p/w500/${movie.posterPath}',
+                        'https://image.tmdb.org/t/p/w154/${movie.posterPath}',
                         width: 96,
                         height: 128,
                         fit: BoxFit.cover,

@@ -44,6 +44,18 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
     super.dispose();
   }
 
+  @override
+  void didChangeDependencies() {
+    var selectedScenes = ref.read(journalControllerProvider).selectedScenes;
+    for (var scene in selectedScenes) {
+      precacheImage(
+        NetworkImage('https://image.tmdb.org/t/p/w500${scene.path}'),
+        context,
+      );
+    }
+    super.didChangeDependencies();
+  }
+
   void _onPageChanged(int page) {
     setState(() {
       _currentPage = page;
@@ -124,7 +136,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
           children: [
             SizedBox(height: 55),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 0),
               child: SizedBox(
                 height: 260,
                 child: PageView.builder(
@@ -136,10 +148,13 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
                     final controller = _captionControllers[scene.path];
 
                     return SingleChildScrollView(
-                      child: SceneCard(
-                        imagePath: scene.path,
-                        controller: controller,
-                        isEditable: true,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: SceneCard(
+                          imagePath: scene.path,
+                          controller: controller,
+                          isEditable: true,
+                        ),
                       ),
                     );
                   },

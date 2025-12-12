@@ -54,7 +54,7 @@ class _SceneCardState extends State<SceneCard> {
             topRight: Radius.circular(12),
           ),
           child: Image.network(
-            'https://image.tmdb.org/t/p/original${widget.imagePath}',
+            'https://image.tmdb.org/t/p/w500${widget.imagePath}',
             width: double.infinity,
             height: 205,
             fit: BoxFit.cover,

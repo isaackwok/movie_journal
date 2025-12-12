@@ -31,7 +31,7 @@ class JournalCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
-                'https://image.tmdb.org/t/p/w500${journal.moviePoster}',
+                'https://image.tmdb.org/t/p/w342${journal.moviePoster}',
                 width: 150,
                 height: 215,
                 fit: BoxFit.cover,
