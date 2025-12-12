@@ -26,8 +26,9 @@ class Themes {
       centerTitle: false,
       backgroundColor: _darkSurface,
       titleTextStyle: TextStyle(
-        fontWeight: FontWeight.w600,
-        fontSize: 24,
+        fontWeight: FontWeight.w500,
+        fontSize: 22,
+        height: 1.25,
         color: _darkOnSurface,
         fontFamily: 'AvenirNext',
       ),

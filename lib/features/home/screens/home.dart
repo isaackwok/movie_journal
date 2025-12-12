@@ -8,6 +8,7 @@ import 'package:movie_journal/features/home/widgets/journals_list.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/login/screens/login.dart';
 import 'package:movie_journal/features/login/screens/create_user.dart';
+import 'package:movie_journal/features/settings/screens/settings.dart';
 import 'package:movie_journal/firebase_manager.dart';
 import 'package:movie_journal/firestore_manager.dart';
 
@@ -141,12 +142,32 @@ class HomeScreen extends ConsumerWidget {
                                 ),
                               ),
                         ),
-                        Text(
-                          '${journals.length} movie journals',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '${journals.length} movie journals',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => const SettingsScreen(),
+                                  ),
+                                );
+                              },
+                              child: Icon(
+                                Icons.settings,
+                                size: 16,
+                                color: Color(0xFFA8DADD),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

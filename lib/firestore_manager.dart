@@ -128,4 +128,27 @@ class FirestoreManager {
   Future<void> deleteJournal(String journalId) async {
     await _db.collection('journals').doc(journalId).delete();
   }
+
+  /// Delete a user and all their associated data
+  ///
+  /// Parameters:
+  /// - [userId]: The Firebase user ID to delete
+  ///
+  /// This deletes:
+  /// - All journals belonging to the user
+  /// - The user document itself
+  Future<void> deleteUser(String userId) async {
+    // Delete all journals belonging to this user
+    final journals = await _db
+        .collection('journals')
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    for (final doc in journals.docs) {
+      await doc.reference.delete();
+    }
+
+    // Delete the user document
+    await _db.collection('users').doc(userId).delete();
+  }
 }
