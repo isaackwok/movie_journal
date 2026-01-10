@@ -53,26 +53,66 @@ flutter pub outdated
 
 The app follows a feature-based architecture where each feature is self-contained in `lib/features/`:
 
-- **home/** - Main dashboard displaying journal entries, empty states, and add movie button
-- **movie/** - Movie details display with data models and controllers
-- **search_movie/** - Movie search functionality integrating with TMDB API
-- **journal/** - Core journaling features including emotion selection, thoughts editor, scenes selector, and AI-generated questions
-- **emotion/** - Emotion tracking and selection UI components
-- **quesgen/** - AI question generation for movie reflection prompts
-- **login/** - Authentication screens and flows
+- **home/** - Main dashboard displaying journal entries list, empty state placeholders, and add movie button
+  - `screens/` - HomeScreen with navigation
+  - `widgets/` - JournalCard, JournalsList, EmptyPlaceholder, AddMovieButton
+
+- **journal/** - Core journaling features with full workflow from movie selection to saving
+  - `controllers/` - JournalState (single journal), JournalsState (list of journals)
+  - `screens/` - Journaling (main editor), JournalContent (view saved journal), MoviePreview, ThoughtsEditor, CaptionEditor
+  - `widgets/` - EmotionsSelector, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, QuestionsBottomSheet, ThoughtsEditor, PosterPreviewModal, AiReferencesAccordion, JournalContentMoreMenu
+
+- **movie/** - Movie data management with repository pattern
+  - `controllers/` - MovieDetailController, MovieImagesController, SearchMovieController
+  - `data/models/` - BriefMovie, DetailedMovie, MovieImage
+  - `data/data_sources/` - MovieApi (TMDB integration)
+  - `data/repositories/` - MovieRepository
+  - `movie_providers.dart` - Riverpod providers for movie-related state
+
+- **search_movie/** - Movie search interface integrating with TMDB API
+  - `screens/` - SearchMovieScreen
+  - `widgets/` - MovieSearchBar, MovieResultList
+
+- **emotion/** - Emotion data model and definitions
+  - `emotion.dart` - Emotion class and EmotionType enum with 24 emotions organized into 4 groups:
+    - **Uplifting** (high energy, positive): Joyful, Funny, Inspired, Mind-blown, Hopeful, Fulfilling
+    - **Intense** (high energy, negative): Shocked, Angry, Terrified, Anxious, Overwhelmed, Disturbed
+    - **Soothing** (low energy, positive): Heartwarming, Touched, Peaceful, Therapeutic, Nostalgic, Cozy
+    - **Quiet** (low energy, negative): Melancholic, Confused, Thought-provoking, Bittersweet, Powerless, Lonely
+
+- **quesgen/** - AI question generation service for movie reflection prompts
+  - `controller.dart` - Question generation logic
+  - `provider.dart` - Riverpod provider
+  - `api.dart` - API integration for AI-generated questions
+
+- **login/** - Authentication screens and user creation flows
+  - `screens/` - LoginScreen, CreateUserScreen
+
+- **settings/** - User settings and account management
+  - `screens/` - SettingsScreen (displays username, sign out, delete account options)
+
 - **toast/** - Toast notification utilities
+  - `custom_toast.dart` - Custom toast implementation using fluttertoast
 
 ### Core Infrastructure
 
 **lib/core/**
-- `network/` - Dio HTTP clients for TMDB and question generation APIs
+- `network/` - Dio HTTP clients for external APIs
+  - `tmdb_dio_client.dart` - The Movie Database API client
+  - `quesgen_dio_client.dart` - AI question generation API client
 - `utils/` - Shared utility functions
+  - `color_utils.dart` - Color manipulation utilities
+
+**lib/shared_widgets/**
+- Reusable UI components used across features
+- `confirmation_dialog.dart` - Generic confirmation dialog widget
 
 **Root-level managers:**
 - `firebase_manager.dart` - Firebase Authentication wrapper (Apple Sign-In, Google Sign-In)
 - `firestore_manager.dart` - Firestore CRUD operations for journal entries
 - `shared_preferences_manager.dart` - Local preferences storage
 - `themes.dart` - App-wide theme definitions (light/dark mode)
+- `main.dart` - App entry point with Firebase initialization and web responsiveness
 
 ### State Management
 
@@ -83,24 +123,47 @@ Uses **Riverpod** for state management:
 
 ### Data Flow
 
-1. **Movie Search**: User searches → TMDB API (via `tmdb_dio_client.dart`) → Movie data models → Display results
-2. **Journal Creation**: Select movie → Create journal entry → Add emotions/thoughts/scenes → Generate AI questions (via `quesgen_dio_client.dart`) → Save to Firestore
-3. **Authentication**: Apple/Google Sign-In → Firebase Auth → Store user session → Sync journals by userId
+1. **Movie Search**:
+   - User searches → SearchMovieController → TMDB API (via `tmdb_dio_client.dart`) → BriefMovie models → Display results in MovieResultList
+   - User selects movie → MovieDetailController → Fetch detailed movie data → Display in MoviePreview
+
+2. **Journal Creation**:
+   - Select movie → MoviePreview → Start journaling → Journaling screen
+   - Select emotions (EmotionsSelectorBottomSheet) → Select scenes (ScenesSelectSheet) → Write thoughts (ThoughtsEditor)
+   - Optionally generate AI questions (QuestionsBottomSheet via `quesgen_dio_client.dart`)
+   - Add caption (CaptionEditor) → Save to Firestore (via `FirestoreManager`) with userId
+
+3. **Journal Viewing**:
+   - HomeScreen displays JournalsList → Fetch from Firestore by userId
+   - Select journal → JournalContent screen → View emotions, thoughts, scenes, questions
+
+4. **Authentication**:
+   - LoginScreen → Apple/Google Sign-In → Firebase Auth → Store user session
+   - CreateUserScreen for new users → Set username → Store in Firestore
+   - Journals synced by userId field in Firestore documents
 
 ## Key Dependencies
 
-- **flutter_riverpod** (3.0.3) - State management
-- **dio** (5.8.0) - HTTP client for API calls
+- **flutter_riverpod** (3.0.3) - State management framework
+- **dio** (5.8.0+1) - HTTP client for API calls
 - **firebase_core** (4.2.0) - Firebase initialization
-- **firebase_auth** (6.1.1) - Authentication
-- **cloud_firestore** (6.1.0) - Cloud database
-- **google_sign_in** (7.2.0) - Google authentication
+- **firebase_auth** (6.1.1) - User authentication (Apple, Google)
+- **cloud_firestore** (6.1.0) - NoSQL cloud database
+- **google_sign_in** (7.2.0) - Google authentication integration
+- **shared_preferences** (2.5.3) - Local key-value storage
 - **flutter_dotenv** (6.0.0) - Environment variables (API keys stored in `.env`)
-- **skeletonizer** (2.0.1) - Loading state animations
-- **google_fonts** (6.2.1) - Typography
-- **jiffy** (6.4.3) - Date formatting
+- **skeletonizer** (2.0.1) - Loading state skeleton animations
+- **google_fonts** (6.2.1) - Custom typography (e.g., Nothing You Could Do font)
+- **flutter_svg** (2.1.0) - SVG rendering support
+- **jiffy** (6.4.3) - Date formatting and manipulation
 - **fluttertoast** (9.0.0) - Toast notifications
-- **uuid** (4.5.1) - Unique ID generation
+- **uuid** (4.5.1) - Unique ID generation for journal entries
+- **cupertino_icons** (1.0.8) - iOS-style icons
+
+### Dev Dependencies
+- **flutter_lints** (6.0.0) - Recommended linting rules
+- **custom_lint** (0.8.0) - Custom lint rule framework
+- **riverpod_lint** (3.0.3) - Riverpod-specific linting
 
 ## Environment Setup
 
@@ -142,8 +205,9 @@ feature_name/
 ## UI/UX Guidelines
 
 ### Typography
-- **Primary Font**: AvenirNext (custom font, weights 100-800)
-- Fallback to Google Fonts for additional needs
+- **Google Fonts** are used throughout the app (e.g., Nothing You Could Do for usernames in Settings)
+- Access via `GoogleFonts` package with customizable font weights and sizes
+- Maintain consistent text styles across the app using theme definitions
 
 ### Theme
 - Supports light and dark themes (default: dark mode)
@@ -182,10 +246,20 @@ feature_name/
 
 ### Adding a New Feature
 1. Create feature directory under `lib/features/feature_name/`
-2. Organize into controllers, data, screens, widgets subdirectories
-3. Define Riverpod providers for state management
-4. Integrate with existing navigation in `HomeScreen`
-5. Follow existing patterns from similar features (e.g., `journal/` or `movie/`)
+2. Organize into subdirectories as needed:
+   - `controllers/` for Riverpod notifiers and state logic
+   - `data/` for models, repositories, and data sources
+   - `screens/` for full-screen UI components
+   - `widgets/` for reusable UI components specific to the feature
+3. Define Riverpod providers for state management (create `providers.dart` or define in controller files)
+4. For navigation:
+   - From HomeScreen: Add navigation in `lib/features/home/screens/home.dart`
+   - Within feature: Use `Navigator.push()` or `Navigator.of(context).push()`
+5. Follow existing patterns from similar features:
+   - For data-heavy features: See `movie/` (repository pattern, controllers, data models)
+   - For UI-heavy features: See `journal/` (screens with bottom sheets, selectors)
+   - For simple screens: See `settings/` (single screen, straightforward layout)
+6. If the feature requires shared widgets used across multiple features, add them to `lib/shared_widgets/`
 
 ### Working with TMDB API
 - API client: `lib/core/network/tmdb_dio_client.dart`
@@ -193,9 +267,38 @@ feature_name/
 - Movie data models in `lib/features/movie/data/`
 
 ### Modifying Journal Features
-- Journal state managed by `JournalState` controller in `lib/features/journal/controllers/journal.dart`
-- UI components: emotion selector, thoughts editor, scenes selector, questions bottom sheet
-- Save to Firestore via `FirestoreManager`
+- **Single journal state** managed by `JournalState` in `lib/features/journal/controllers/journal.dart`
+- **List of journals** managed by `JournalsState` in `lib/features/journal/controllers/journals.dart`
+- **Main screens**:
+  - `journaling.dart` - Main journal editor with emotion and scene selection
+  - `journal_content.dart` - View saved journal with all details
+  - `movie_preview.dart` - Movie poster and details preview before journaling
+  - `thoughts.dart` - Dedicated thoughts editor screen
+  - `caption_editor.dart` - Caption editing screen
+- **Key widgets**:
+  - `emotions_selector.dart` & `emotions_selector_bottom_sheet.dart` - Emotion selection UI
+  - `scenes_selector.dart` & `scenes_select_sheet.dart` - Scene selection from movie images
+  - `questions_bottom_sheet.dart` - AI-generated questions display
+  - `poster_preview_modal.dart` - Full-size poster preview modal
+  - `ai_references_accordion.dart` - Expandable AI references section
+  - `journal_content_more_menu.dart` - More options menu for saved journals
+- Save to Firestore via `FirestoreManager.addJournalToCollection(userId, journal)`
+
+### Working with Emotions
+- Emotion definitions in `lib/features/emotion/emotion.dart`
+- **24 emotions** organized into 4 groups based on energy level (high/low) and valence (positive/negative):
+  - **Uplifting** (high energy, positive): Joyful, Funny, Inspired, Mind-blown, Hopeful, Fulfilling
+  - **Intense** (high energy, negative): Shocked, Angry, Terrified, Anxious, Overwhelmed, Disturbed
+  - **Soothing** (low energy, positive): Heartwarming, Touched, Peaceful, Therapeutic, Nostalgic, Cozy
+  - **Quiet** (low energy, negative): Melancholic, Confused, Thought-provoking, Bittersweet, Powerless, Lonely
+- Each emotion has:
+  - `id`: Unique identifier (camelCase string)
+  - `name`: Display name (with proper capitalization)
+  - `color`: Color value (Color object) - FADD9E for positive, FC8885 for negative
+  - `group`: Group name (Uplifting, Intense, Soothing, or Quiet)
+  - `energyLevel`: "high" or "low"
+- Access emotions via `emotionList` map using `EmotionType` enum keys
+- Users can select multiple emotions per journal entry
 
 ### Linting
 - Uses `flutter_lints`, `custom_lint`, and `riverpod_lint`
