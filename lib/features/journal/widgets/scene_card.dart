@@ -64,7 +64,7 @@ class _SceneCardState extends State<SceneCard> {
           child: Image.network(
             'https://image.tmdb.org/t/p/w500${widget.imagePath}',
             width: double.infinity,
-            height: 205,
+            height: 235,
             fit: BoxFit.cover,
           ),
         ),
@@ -120,7 +120,7 @@ class _SceneCardState extends State<SceneCard> {
 
   Widget _buildReadOnlyCard() {
     final caption = widget.caption;
-    final hasCaption = caption != null && caption.isNotEmpty;
+    final hasCaption = caption != null && caption.trim().isNotEmpty;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
@@ -129,7 +129,7 @@ class _SceneCardState extends State<SceneCard> {
           Image.network(
             'https://image.tmdb.org/t/p/w500${widget.imagePath}',
             width: double.infinity,
-            height: 205,
+            height: 235,
             fit: BoxFit.cover,
           ),
           if (hasCaption)
@@ -145,20 +145,6 @@ class _SceneCardState extends State<SceneCard> {
   }
 
   Widget _buildCaptionOverlay(String caption) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.transparent, Colors.black.withAlpha(200)],
-        ),
-      ),
-      padding: EdgeInsets.fromLTRB(12, 24, 12, 8),
-      child: _buildCaptionText(caption),
-    );
-  }
-
-  Widget _buildCaptionText(String caption) {
     const textStyle = TextStyle(
       color: Colors.white,
       fontSize: 13,
@@ -169,69 +155,87 @@ class _SceneCardState extends State<SceneCard> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final horizontalPadding = 16.0;
+        // Account for horizontal padding when measuring text
+        final textWidth =
+            constraints.maxWidth -
+            horizontalPadding * 2; // 12px padding on each side
+
         final textSpan = TextSpan(text: caption, style: textStyle);
         final textPainter = TextPainter(
           text: textSpan,
           maxLines: 2,
           textDirection: TextDirection.ltr,
-        )..layout(maxWidth: constraints.maxWidth);
+        )..layout(maxWidth: textWidth);
 
         final isOverflowing = textPainter.didExceedMaxLines;
 
-        if (!isOverflowing) {
-          return Text(
-            caption,
-            style: textStyle,
-            maxLines: 2,
-          );
-        }
-
-        // Find truncation point - calculate how much text fits with "...more" suffix
-        const moreText = '...more';
-        var truncatedText = caption;
-        var truncatedPainter = TextPainter(
-          text: TextSpan(text: '$truncatedText$moreText', style: textStyle),
-          maxLines: 2,
-          textDirection: TextDirection.ltr,
-        )..layout(maxWidth: constraints.maxWidth);
-
-        while (truncatedPainter.didExceedMaxLines && truncatedText.isNotEmpty) {
-          truncatedText = truncatedText.substring(0, truncatedText.length - 1);
-          truncatedPainter = TextPainter(
-            text: TextSpan(text: '$truncatedText$moreText', style: textStyle),
-            maxLines: 2,
-            textDirection: TextDirection.ltr,
-          )..layout(maxWidth: constraints.maxWidth);
-        }
-
-        // Trim trailing spaces and punctuation for cleaner look
-        truncatedText = truncatedText.trimRight();
-
-        return GestureDetector(
-          onTap: () {
-            // TODO: Expand caption on tap
-          },
-          child: RichText(
-            maxLines: 2,
-            text: TextSpan(
-              style: textStyle,
-              children: [
-                TextSpan(text: truncatedText),
-                TextSpan(
-                  text: '...',
-                  style: textStyle,
-                ),
-                TextSpan(
-                  text: 'more',
-                  style: textStyle.copyWith(
-                    color: Colors.white.withAlpha(128),
-                  ),
-                ),
-              ],
-            ),
+        return Container(
+          color: Color(0xFF151515),
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: 8,
+          ),
+          child: _buildCaptionText(
+            caption: caption,
+            textStyle: textStyle,
+            isOverflowing: isOverflowing,
+            maxWidth: textWidth,
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCaptionText({
+    required String caption,
+    required TextStyle textStyle,
+    required bool isOverflowing,
+    required double maxWidth,
+  }) {
+    if (!isOverflowing) {
+      return Text(caption, style: textStyle, maxLines: 2);
+    }
+
+    // Find truncation point - calculate how much text fits with "...more" suffix
+    const moreText = '...more';
+    var truncatedText = caption;
+    var truncatedPainter = TextPainter(
+      text: TextSpan(text: '$truncatedText$moreText', style: textStyle),
+      maxLines: 2,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: maxWidth);
+
+    while (truncatedPainter.didExceedMaxLines && truncatedText.isNotEmpty) {
+      truncatedText = truncatedText.substring(0, truncatedText.length - 1);
+      truncatedPainter = TextPainter(
+        text: TextSpan(text: '$truncatedText$moreText', style: textStyle),
+        maxLines: 2,
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: maxWidth);
+    }
+
+    // Trim trailing spaces for cleaner look
+    truncatedText = truncatedText.trimRight();
+
+    return GestureDetector(
+      onTap: () {
+        // TODO: Expand caption on tap
+      },
+      child: RichText(
+        maxLines: 2,
+        text: TextSpan(
+          style: textStyle,
+          children: [
+            TextSpan(text: truncatedText),
+            TextSpan(text: '...', style: textStyle),
+            TextSpan(
+              text: 'more',
+              style: textStyle.copyWith(color: Colors.white.withAlpha(128)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

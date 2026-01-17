@@ -147,7 +147,7 @@ class _JournalContentState extends ConsumerState<JournalContent> {
                       : Column(
                         children: [
                           SizedBox(
-                            height: 260,
+                            height: 235,
                             child: PageView.builder(
                               controller: _pageController,
                               onPageChanged: _onPageChanged,
