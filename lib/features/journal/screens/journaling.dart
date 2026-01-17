@@ -40,6 +40,7 @@ class JournalingScreen extends ConsumerStatefulWidget {
 class _JournalingScreenState extends ConsumerState<JournalingScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showTitle = false;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -169,45 +170,61 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                   padding: const EdgeInsets.only(right: 12),
                   child: ElevatedButton(
                     onPressed:
-                        journal.emotions.isEmpty &&
-                                journal.selectedScenes.isEmpty &&
-                                journal.thoughts.isEmpty
+                        _isSaving ||
+                                (journal.emotions.isEmpty &&
+                                    journal.selectedScenes.isEmpty &&
+                                    journal.thoughts.isEmpty)
                             ? null
-                            : () {
-                              ref
-                                  .read(journalControllerProvider.notifier)
-                                  .save()
-                                  .then((value) {
-                                    final savedJournalId =
-                                        ref.read(journalControllerProvider).id;
-                                    if (context.mounted) {
-                                      CustomToast.showSuccess(
-                                        context,
-                                        'Your journal has been saved.',
-                                      );
-                                      Navigator.pushAndRemoveUntil(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => JournalContent(
-                                                journalId: savedJournalId,
-                                              ),
-                                        ),
-                                        (route) => route.isFirst,
-                                      );
-                                    }
-                                    ref
-                                        .read(
-                                          journalControllerProvider.notifier,
-                                        )
-                                        .clear();
-                                    ref
-                                        .read(
-                                          quesgenControllerProvider.notifier,
-                                        )
-                                        .clear();
-                                  });
-                            },
+                            : () async {
+                                setState(() {
+                                  _isSaving = true;
+                                });
+                                try {
+                                  await ref
+                                      .read(journalControllerProvider.notifier)
+                                      .save();
+                                  final savedJournalId =
+                                      ref.read(journalControllerProvider).id;
+                                  if (context.mounted) {
+                                    CustomToast.showSuccess(
+                                      context,
+                                      'Your journal has been saved.',
+                                    );
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => JournalContent(
+                                              journalId: savedJournalId,
+                                            ),
+                                      ),
+                                      (route) => route.isFirst,
+                                    );
+                                  }
+                                  ref
+                                      .read(
+                                        journalControllerProvider.notifier,
+                                      )
+                                      .clear();
+                                  ref
+                                      .read(
+                                        quesgenControllerProvider.notifier,
+                                      )
+                                      .clear();
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    CustomToast.showSuccess(
+                                      context,
+                                      'Failed to save journal. Please try again.',
+                                    );
+                                  }
+                                } finally {
+                                  if (mounted) {
+                                    setState(() {
+                                      _isSaving = false;
+                                    });
+                                  }
+                                }
+                              },
                     style: ButtonStyle(
                       shape: WidgetStateProperty.all(
                         RoundedRectangleBorder(
