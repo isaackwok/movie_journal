@@ -60,7 +60,7 @@ The app follows a feature-based architecture where each feature is self-containe
 - **journal/** - Core journaling features with full workflow from movie selection to saving
   - `controllers/` - JournalState (single journal), JournalsState (list of journals)
   - `screens/` - Journaling (main editor), JournalContent (view saved journal), MoviePreview, ThoughtsEditor, CaptionEditor
-  - `widgets/` - EmotionsSelector, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, QuestionsBottomSheet, ThoughtsEditor, PosterPreviewModal, AiReferencesAccordion, JournalContentMoreMenu
+  - `widgets/` - EmotionsSelectorButton, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, QuestionsBottomSheet, ThoughtsEditor, PosterPreviewModal, AiReferencesAccordion, JournalContentMoreMenu
 
 - **movie/** - Movie data management with repository pattern
   - `controllers/` - MovieDetailController, MovieImagesController, SearchMovieController
@@ -78,7 +78,7 @@ The app follows a feature-based architecture where each feature is self-containe
     - **Uplifting** (high energy, positive): Joyful, Funny, Inspired, Mind-blown, Hopeful, Fulfilling
     - **Intense** (high energy, negative): Shocked, Angry, Terrified, Anxious, Overwhelmed, Disturbed
     - **Soothing** (low energy, positive): Heartwarming, Touched, Peaceful, Therapeutic, Nostalgic, Cozy
-    - **Quiet** (low energy, negative): Melancholic, Confused, Thought-provoking, Bittersweet, Powerless, Lonely
+    - **Quiet** (low energy, negative): Melancholic, Confused, Profound, Bittersweet, Powerless, Lonely
 
 - **quesgen/** - AI question generation service for movie reflection prompts
   - `controller.dart` - Question generation logic
@@ -106,6 +106,8 @@ The app follows a feature-based architecture where each feature is self-containe
 **lib/shared_widgets/**
 - Reusable UI components used across features
 - `confirmation_dialog.dart` - Generic confirmation dialog widget
+- `circled_icon_button.dart` - Circular icon button with border styling, used for back buttons and action buttons across screens
+  - Props: `icon` (required), `onPressed` (required), `iconSize` (default: 16), `iconColor`, `borderColor`, `outerPadding`, `size` (default: 36)
 
 **Root-level managers:**
 - `firebase_manager.dart` - Firebase Authentication wrapper (Apple Sign-In, Google Sign-In)
@@ -276,7 +278,7 @@ feature_name/
   - `thoughts.dart` - Dedicated thoughts editor screen
   - `caption_editor.dart` - Caption editing screen
 - **Key widgets**:
-  - `emotions_selector.dart` & `emotions_selector_bottom_sheet.dart` - Emotion selection UI
+  - `emotions_selector_button.dart` & `emotions_selector_bottom_sheet.dart` - Emotion selection UI
   - `scenes_selector.dart` & `scenes_select_sheet.dart` - Scene selection from movie images
   - `questions_bottom_sheet.dart` - AI-generated questions display
   - `poster_preview_modal.dart` - Full-size poster preview modal
@@ -290,13 +292,13 @@ feature_name/
   - **Uplifting** (high energy, positive): Joyful, Funny, Inspired, Mind-blown, Hopeful, Fulfilling
   - **Intense** (high energy, negative): Shocked, Angry, Terrified, Anxious, Overwhelmed, Disturbed
   - **Soothing** (low energy, positive): Heartwarming, Touched, Peaceful, Therapeutic, Nostalgic, Cozy
-  - **Quiet** (low energy, negative): Melancholic, Confused, Thought-provoking, Bittersweet, Powerless, Lonely
+  - **Quiet** (low energy, negative): Melancholic, Confused, Profound, Bittersweet, Powerless, Lonely
 - Each emotion has:
   - `id`: Unique identifier (camelCase string)
   - `name`: Display name (with proper capitalization)
-  - `color`: Color value (Color object) - FADD9E for positive, FC8885 for negative
   - `group`: Group name (Uplifting, Intense, Soothing, or Quiet)
   - `energyLevel`: "high" or "low"
+- Emotion colors are handled in the UI layer (EmotionsSelectorButton, EmotionsSelectorBottomSheet) rather than the data model
 - Access emotions via `emotionList` map using `EmotionType` enum keys
 - Users can select multiple emotions per journal entry
 
