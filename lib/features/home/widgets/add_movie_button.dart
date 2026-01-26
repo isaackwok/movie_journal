@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:movie_journal/features/search_movie/screens/search_movie.dart';
+import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 
 class AddMovieButton extends StatelessWidget {
   const AddMovieButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const SearchMovieScreen()),
-        );
-      },
-      icon: const Icon(Icons.add, size: 28, color: Colors.white),
-      style: IconButton.styleFrom(
-        minimumSize: const Size(52, 44),
-        maximumSize: const Size(52, 44),
-        backgroundColor: Colors.transparent,
-        shape: const CircleBorder(),
-        side: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1),
+    return SizedBox(
+      height: 48,
+      width: 48,
+      child: CircledIconButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const SearchMovieScreen()),
+          );
+        },
+        icon: Icons.add,
+        iconSize: 28,
       ),
     );
   }
