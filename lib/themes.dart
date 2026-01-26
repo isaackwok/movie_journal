@@ -24,7 +24,7 @@ class Themes {
 
     textSelectionTheme: const TextSelectionThemeData(cursorColor: _darkPrimary),
 
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       surfaceTintColor: Colors.transparent,
       centerTitle: false,
       backgroundColor: _darkSurface,

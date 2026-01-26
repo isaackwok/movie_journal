@@ -6,6 +6,7 @@ class CircledIconButton extends StatelessWidget {
   final double iconSize;
   final Color? iconColor;
   final Color? borderColor;
+  final EdgeInsetsGeometry outerPadding;
 
   const CircledIconButton({
     super.key,
@@ -14,6 +15,7 @@ class CircledIconButton extends StatelessWidget {
     this.iconSize = 16,
     this.iconColor,
     this.borderColor,
+    this.outerPadding = const EdgeInsets.all(0),
   });
 
   @override
@@ -22,15 +24,18 @@ class CircledIconButton extends StatelessWidget {
     final effectiveBorderColor =
         borderColor ?? Theme.of(context).colorScheme.primary;
 
-    return IconButton(
-      onPressed: onPressed,
-      icon: Icon(icon, color: effectiveIconColor, size: iconSize),
-      disabledColor: Colors.white.withAlpha(76),
-      style: IconButton.styleFrom(
-        shape: const CircleBorder(),
-        side: BorderSide(color: effectiveBorderColor),
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
+    return Padding(
+      padding: outerPadding,
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Icon(icon, color: effectiveIconColor, size: iconSize),
+        disabledColor: Colors.white.withAlpha(76),
+        style: IconButton.styleFrom(
+          shape: const CircleBorder(),
+          side: BorderSide(color: effectiveBorderColor),
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+        ),
       ),
     );
   }

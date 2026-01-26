@@ -10,6 +10,7 @@ import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
+import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
 
 class SectionSeperator extends StatelessWidget {
@@ -151,20 +152,12 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              leading: IconButton(
+              leading: CircledIconButton(
                 onPressed: _handleBackButton,
-                icon: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: Colors.white,
-                  size: 16,
-                ),
-                disabledColor: Colors.white.withAlpha(76),
-                style: IconButton.styleFrom(
-                  shape: CircleBorder(),
-                  side: BorderSide(color: Theme.of(context).colorScheme.primary),
-                  alignment: Alignment.center,
-                ),
+                icon: Icons.arrow_back_ios_new,
+                outerPadding: const EdgeInsets.only(left: 16),
               ),
+              leadingWidth: 40 + 16,
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
@@ -176,55 +169,52 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                                     journal.thoughts.isEmpty)
                             ? null
                             : () async {
-                                setState(() {
-                                  _isSaving = true;
-                                });
-                                try {
-                                  await ref
-                                      .read(journalControllerProvider.notifier)
-                                      .save();
-                                  final savedJournalId =
-                                      ref.read(journalControllerProvider).id;
-                                  if (context.mounted) {
-                                    CustomToast.showSuccess(
-                                      context,
-                                      'Your journal has been saved.',
-                                    );
-                                    Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => JournalContent(
-                                              journalId: savedJournalId,
-                                            ),
-                                      ),
-                                      (route) => route.isFirst,
-                                    );
-                                  }
-                                  ref
-                                      .read(
-                                        journalControllerProvider.notifier,
-                                      )
-                                      .clear();
-                                  ref
-                                      .read(
-                                        quesgenControllerProvider.notifier,
-                                      )
-                                      .clear();
-                                } catch (e) {
-                                  if (context.mounted) {
-                                    CustomToast.showSuccess(
-                                      context,
-                                      'Failed to save journal. Please try again.',
-                                    );
-                                  }
-                                } finally {
-                                  if (mounted) {
-                                    setState(() {
-                                      _isSaving = false;
-                                    });
-                                  }
+                              setState(() {
+                                _isSaving = true;
+                              });
+                              try {
+                                await ref
+                                    .read(journalControllerProvider.notifier)
+                                    .save();
+                                final savedJournalId =
+                                    ref.read(journalControllerProvider).id;
+                                if (context.mounted) {
+                                  CustomToast.showSuccess(
+                                    context,
+                                    'Your journal has been saved.',
+                                  );
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => JournalContent(
+                                            journalId: savedJournalId,
+                                          ),
+                                    ),
+                                    (route) => route.isFirst,
+                                  );
                                 }
-                              },
+                                ref
+                                    .read(journalControllerProvider.notifier)
+                                    .clear();
+                                ref
+                                    .read(quesgenControllerProvider.notifier)
+                                    .clear();
+                              } catch (e) {
+                                if (context.mounted) {
+                                  CustomToast.showSuccess(
+                                    context,
+                                    'Failed to save journal. Please try again.',
+                                  );
+                                }
+                              } finally {
+                                if (mounted) {
+                                  setState(() {
+                                    _isSaving = false;
+                                  });
+                                }
+                              }
+                            },
                     style: ButtonStyle(
                       shape: WidgetStateProperty.all(
                         RoundedRectangleBorder(
@@ -242,23 +232,24 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                         ),
                       ),
                       overlayColor: WidgetStateProperty.all(
-                          Theme.of(context).colorScheme.primary),
+                        Theme.of(context).colorScheme.primary,
+                      ),
                       backgroundColor: WidgetStateProperty.all(
                         Colors.transparent,
                       ),
                       side: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.disabled)) {
                           return BorderSide(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withAlpha(76),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withAlpha(76),
                             width: 1,
                           );
                         }
                         return BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
-                            width: 1);
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 1,
+                        );
                       }),
                       foregroundColor: WidgetStateProperty.resolveWith((
                         states,

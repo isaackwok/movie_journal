@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/search_movie/widgets/movie_result_list.dart';
 import 'package:movie_journal/features/search_movie/widgets/movie_search_bar.dart';
+import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 
 class SearchMovieScreen extends ConsumerStatefulWidget {
   const SearchMovieScreen({super.key});
@@ -17,7 +18,7 @@ class _SearchMovieScreenState extends ConsumerState<SearchMovieScreen> {
   void _onScroll() {
     final asyncState = ref.read(searchMovieControllerProvider);
     if (scrollController.position.pixels >=
-            scrollController.position.maxScrollExtent - 200) {
+        scrollController.position.maxScrollExtent - 200) {
       asyncState.whenData((state) {
         if (state.hasMore) {
           ref.read(searchMovieControllerProvider.notifier).loadMore();
@@ -50,16 +51,13 @@ class _SearchMovieScreenState extends ConsumerState<SearchMovieScreen> {
         appBar: AppBar(
           title: const Text('Add Journal'),
           centerTitle: false,
-          leadingWidth: 32,
-          leading: IconButton(
-            iconSize: 32,
-            hoverColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            focusColor: Colors.transparent,
+          leadingWidth: 40 + 16,
+          leading: CircledIconButton(
             onPressed: () {
               Navigator.pop(context);
             },
-            icon: const Icon(Icons.chevron_left),
+            icon: Icons.arrow_back_ios_new,
+            outerPadding: const EdgeInsets.only(left: 16),
           ),
         ),
         body: Stack(

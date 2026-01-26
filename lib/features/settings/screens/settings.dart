@@ -17,12 +17,10 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: CircledIconButton(
-            icon: Icons.arrow_back_ios_new,
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+        leading: CircledIconButton(
+          icon: Icons.arrow_back_ios_new,
+          onPressed: () => Navigator.of(context).pop(),
+          outerPadding: const EdgeInsets.only(left: 16),
         ),
         title: const Text('Settings'),
         titleSpacing: 10,

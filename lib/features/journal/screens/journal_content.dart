@@ -87,12 +87,10 @@ class _JournalContentState extends ConsumerState<JournalContent> {
               ),
               JournalContentMoreMenu(journalId: widget.journalId),
             ],
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: CircledIconButton(
-                icon: Icons.arrow_back_ios_new,
-                onPressed: () => Navigator.pop(context),
-              ),
+            leading: CircledIconButton(
+              icon: Icons.arrow_back_ios_new,
+              onPressed: () => Navigator.pop(context),
+              outerPadding: const EdgeInsets.only(left: 16),
             ),
             leadingWidth: 40 + 16,
           ),
