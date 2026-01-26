@@ -35,6 +35,7 @@ class Themes {
         color: _darkOnSurface,
         fontFamily: 'AvenirNext',
       ),
+      leadingWidth: 40,
     ),
 
     bottomAppBarTheme: const BottomAppBarThemeData(

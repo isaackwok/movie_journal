@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/firebase_manager.dart';
 import 'package:movie_journal/firestore_manager.dart';
+import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -16,12 +17,21 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left, size: 28),
-          onPressed: () => Navigator.of(context).pop(),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: CircledIconButton(
+            icon: Icons.arrow_back_ios_new,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ),
         title: const Text('Settings'),
-        titleSpacing: 0,
+        titleSpacing: 10,
+        titleTextStyle: TextStyle(
+          fontFamily: 'AvenirNext',
+          fontWeight: FontWeight.w700,
+          fontSize: 22,
+        ),
+        leadingWidth: 40 + 16,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

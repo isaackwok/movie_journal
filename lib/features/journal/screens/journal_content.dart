@@ -6,6 +6,7 @@ import 'package:movie_journal/features/journal/widgets/ai_references_accordion.d
 import 'package:movie_journal/features/journal/widgets/emotions_selector_button.dart';
 import 'package:movie_journal/features/journal/widgets/journal_content_more_menu.dart';
 import 'package:movie_journal/features/journal/widgets/scene_card.dart';
+import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 
 class JournalContent extends ConsumerStatefulWidget {
   final String journalId;
@@ -86,22 +87,14 @@ class _JournalContentState extends ConsumerState<JournalContent> {
               ),
               JournalContentMoreMenu(journalId: widget.journalId),
             ],
-            leading: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: Icon(
-                Icons.arrow_back_ios_new,
-                color: Colors.white,
-                size: 16,
-              ),
-              disabledColor: Colors.white.withAlpha(76),
-              style: IconButton.styleFrom(
-                shape: CircleBorder(),
-                side: BorderSide(color: Theme.of(context).colorScheme.primary),
-                alignment: Alignment.center,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: CircledIconButton(
+                icon: Icons.arrow_back_ios_new,
+                onPressed: () => Navigator.pop(context),
               ),
             ),
+            leadingWidth: 40 + 16,
           ),
 
           SliverToBoxAdapter(
