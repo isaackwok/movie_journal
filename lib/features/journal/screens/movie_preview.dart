@@ -276,16 +276,17 @@ class MoviePreviewScreen extends ConsumerWidget {
                 children: [
                   Text(
                     'Error loading movie',
-                    style: TextStyle(
-                      color: Color(0xFFFCA311),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => ref.refresh(movieDetailControllerProvider),
                     child: Text('Retry'),
+                  ),
+                  SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('Go Back'),
                   ),
                 ],
               ),
