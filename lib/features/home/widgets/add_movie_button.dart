@@ -7,18 +7,15 @@ class AddMovieButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      width: 48,
-      child: CircledIconButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const SearchMovieScreen()),
-          );
-        },
-        icon: Icons.add,
-        iconSize: 28,
-      ),
+    return CircledIconButton(
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const SearchMovieScreen()),
+        );
+      },
+      icon: Icons.add,
+      iconSize: 28,
+      size: 48,
     );
   }
 }
