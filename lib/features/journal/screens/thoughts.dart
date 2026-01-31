@@ -6,6 +6,7 @@ import 'package:movie_journal/features/journal/widgets/ai_references_accordion.d
 import 'package:movie_journal/features/journal/widgets/questions_bottom_sheet.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
+import 'package:movie_journal/shared_widgets/action_text_button.dart';
 
 class ThoughtsScreen extends ConsumerStatefulWidget {
   const ThoughtsScreen({super.key});
@@ -124,32 +125,26 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
         ref.watch(journalControllerProvider).selectedRefs;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Thoughts & Feelings'),
         automaticallyImplyLeading: false,
         centerTitle: false,
         titleTextStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+        leadingWidth: 100,
+        leading: ActionTextButton(
+          text: 'Cancel',
+          color: Colors.white,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         actions: [
-          ElevatedButton(
+          ActionTextButton(
+            text: 'Done',
             onPressed: () {
               ref
                   .read(journalControllerProvider.notifier)
                   .setThoughts(thoughtsController.text);
               Navigator.pop(context);
             },
-            style: ElevatedButton.styleFrom(
-              shadowColor: Colors.transparent,
-              surfaceTintColor: Colors.transparent,
-              overlayColor: Colors.transparent,
-              backgroundColor: Colors.transparent,
-              foregroundColor: Theme.of(context).colorScheme.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            child: Text(
-              'Done',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
           ),
         ],
       ),
@@ -221,7 +216,10 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
           ),
           overlayColor: Theme.of(context).colorScheme.primary,
           backgroundColor: Colors.black,
-          side: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1),
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 1,
+          ),
         ),
         onPressed: () => _onReferencesButtonPressed(context),
       ),

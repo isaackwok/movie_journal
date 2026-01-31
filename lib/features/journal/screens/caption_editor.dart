@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/widgets/scene_card.dart';
+import 'package:movie_journal/shared_widgets/action_text_button.dart';
 
 class CaptionEditor extends ConsumerStatefulWidget {
   final int initialSceneIndex;
@@ -86,51 +87,20 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
           backgroundColor: Colors.black,
           elevation: 0,
           automaticallyImplyLeading: false,
-          title: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    backgroundColor: Colors.transparent,
-                  ),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'AvenirNext',
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: _saveAllCaptions,
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    backgroundColor: Colors.transparent,
-                  ),
-                  child: Text(
-                    'Done',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'AvenirNext',
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          leadingWidth: 100,
+          leading: ActionTextButton(
+            text: 'Cancel',
+            color: Colors.white,
+            onPressed: () {
+              Navigator.pop(context);
+            },
           ),
-          titleSpacing: 0,
+          actions: [
+            ActionTextButton(
+              text: 'Done',
+              onPressed: _saveAllCaptions,
+            ),
+          ],
         ),
         body: Column(
           children: [

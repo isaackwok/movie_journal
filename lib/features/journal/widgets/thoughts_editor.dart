@@ -40,8 +40,11 @@ class SelectedQuestionItem extends StatelessWidget {
           ),
           IconButton(
             onPressed: onRemove,
-            icon: Icon(size: 24, Icons.close,
-                color: Theme.of(context).colorScheme.primary),
+            icon: Icon(
+              size: 24,
+              Icons.close,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ],
       ),
@@ -77,7 +80,7 @@ class ThoughtsEditor extends ConsumerWidget {
             'Write down your thoughts and feelings.',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               fontFamily: 'AvenirNext',
             ),
           ),

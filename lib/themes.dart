@@ -50,8 +50,7 @@ class Themes {
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        backgroundColor: _darkPrimary,
-        foregroundColor: _darkOnPrimary,
+        foregroundColor: _darkPrimary,
         textStyle: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 14,

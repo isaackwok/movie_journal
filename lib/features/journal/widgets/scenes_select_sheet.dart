@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/movie/data/models/movie_image.dart';
+import 'package:movie_journal/shared_widgets/action_text_button.dart';
 
 class SceneButton extends StatelessWidget {
   const SceneButton({
@@ -199,47 +200,22 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
         titleTextStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
         automaticallyImplyLeading: false,
         leadingWidth: 100,
-        leading: ElevatedButton(
+        leading: ActionTextButton(
+          text: 'Cancel',
+          color: Colors.white,
           onPressed: () {
             Navigator.pop(context);
           },
-          style: ElevatedButton.styleFrom(
-            shadowColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            overlayColor: Colors.transparent,
-            backgroundColor: Colors.transparent,
-            foregroundColor: Theme.of(context).colorScheme.primary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          child: Text(
-            'Cancel',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          ),
         ),
         actions: [
-          ElevatedButton(
+          ActionTextButton(
+            text: 'Done',
             onPressed: () {
               ref
                   .read(journalControllerProvider.notifier)
                   .setSelectedScenes(_localSelectedScenes);
               Navigator.pop(context);
             },
-            style: ElevatedButton.styleFrom(
-              shadowColor: Colors.transparent,
-              surfaceTintColor: Colors.transparent,
-              overlayColor: Colors.transparent,
-              backgroundColor: Colors.transparent,
-              foregroundColor: Theme.of(context).colorScheme.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            child: Text(
-              'Done',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
           ),
         ],
       ),
