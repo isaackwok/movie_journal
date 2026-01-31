@@ -83,21 +83,33 @@ class SceneButton extends StatelessWidget {
   }
 }
 
-class ScenesSelectSheet extends ConsumerWidget {
+class ScenesSelectSheet extends ConsumerStatefulWidget {
   const ScenesSelectSheet({super.key});
 
+  @override
+  ConsumerState<ScenesSelectSheet> createState() => _ScenesSelectSheetState();
+}
+
+class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
   static const int _maxSceneLimit = 10;
+  late List<SceneItem> _localSelectedScenes;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    _localSelectedScenes = List.from(
+      ref.read(journalControllerProvider).selectedScenes,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final movieImagesAsync = ref.watch(movieImagesControllerProvider);
     final backdrops =
         movieImagesAsync.hasValue
             ? movieImagesAsync.value!.backdrops
             : <MovieImage>[];
-    final journal = ref.watch(journalControllerProvider);
-    final selectedScenes = journal.selectedScenes;
-    final isAtMaxLimit = selectedScenes.length >= _maxSceneLimit;
+    final isAtMaxLimit = _localSelectedScenes.length >= _maxSceneLimit;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -112,7 +124,7 @@ class ScenesSelectSheet extends ConsumerWidget {
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: '${selectedScenes.length} selected',
+                      text: '${_localSelectedScenes.length} selected',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -145,8 +157,12 @@ class ScenesSelectSheet extends ConsumerWidget {
                 itemCount: backdrops.length,
                 itemBuilder: (context, index) {
                   final backdrop = backdrops[index];
-                  final isSelected = selectedScenes.any((scene) => scene.path == backdrop.filePath);
-                  final selectedIndex = selectedScenes.indexWhere((scene) => scene.path == backdrop.filePath);
+                  final isSelected = _localSelectedScenes.any(
+                    (scene) => scene.path == backdrop.filePath,
+                  );
+                  final selectedIndex = _localSelectedScenes.indexWhere(
+                    (scene) => scene.path == backdrop.filePath,
+                  );
 
                   return SceneButton(
                     index: selectedIndex,
@@ -154,18 +170,20 @@ class ScenesSelectSheet extends ConsumerWidget {
                         'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
                     isSelected: isSelected,
                     onTap: () {
-                      if (isSelected) {
-                        ref
-                            .read(journalControllerProvider.notifier)
-                            .removeScene(backdrop.filePath);
-                      } else {
-                        if (selectedScenes.length >= _maxSceneLimit) {
-                          return;
+                      setState(() {
+                        if (isSelected) {
+                          _localSelectedScenes.removeWhere(
+                            (scene) => scene.path == backdrop.filePath,
+                          );
+                        } else {
+                          if (_localSelectedScenes.length >= _maxSceneLimit) {
+                            return;
+                          }
+                          _localSelectedScenes.add(
+                            SceneItem(path: backdrop.filePath),
+                          );
                         }
-                        ref
-                            .read(journalControllerProvider.notifier)
-                            .addScene(backdrop.filePath);
-                      }
+                      });
                     },
                   );
                 },
@@ -177,12 +195,35 @@ class ScenesSelectSheet extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
         title: Column(children: [Text('Scenes')]),
-        centerTitle: false,
+        centerTitle: true,
         titleTextStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
         automaticallyImplyLeading: false,
+        leadingWidth: 100,
+        leading: ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          style: ElevatedButton.styleFrom(
+            shadowColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            overlayColor: Colors.transparent,
+            backgroundColor: Colors.transparent,
+            foregroundColor: Theme.of(context).colorScheme.primary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          child: Text(
+            'Cancel',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          ),
+        ),
         actions: [
           ElevatedButton(
             onPressed: () {
+              ref
+                  .read(journalControllerProvider.notifier)
+                  .setSelectedScenes(_localSelectedScenes);
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
