@@ -116,7 +116,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
 
                     return SingleChildScrollView(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: SceneCard(
                           imagePath: scene.path,
                           controller: controller,
