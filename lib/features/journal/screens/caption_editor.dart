@@ -138,7 +138,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0),
               child: SizedBox(
-                height: 260,
+                height: 295,
                 child: PageView.builder(
                   controller: _pageController,
                   onPageChanged: _onPageChanged,
@@ -161,7 +161,6 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
                 ),
               ),
             ),
-            SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: SizedBox(

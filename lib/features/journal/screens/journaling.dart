@@ -20,7 +20,7 @@ class SectionSeperator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 36),
-      child: Container(height: 0.1, color: Colors.white.withAlpha(76)),
+      child: Container(height: 0.5, color: Colors.white.withAlpha(76)),
     );
   }
 }
