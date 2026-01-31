@@ -195,17 +195,26 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
       ),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        title: Column(children: [Text('Scenes')]),
-        centerTitle: true,
-        titleTextStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
         automaticallyImplyLeading: false,
-        leadingWidth: 100,
-        leading: ActionTextButton(
-          text: 'Cancel',
-          color: Colors.white,
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            ActionTextButton(
+              text: 'Cancel',
+              color: Colors.white,
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            Expanded(
+              child: Center(
+                child: Text(
+                  'Scenes',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ),
+          ],
         ),
         actions: [
           ActionTextButton(

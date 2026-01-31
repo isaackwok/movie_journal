@@ -87,8 +87,8 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
           backgroundColor: Colors.black,
           elevation: 0,
           automaticallyImplyLeading: false,
-          leadingWidth: 100,
-          leading: ActionTextButton(
+          titleSpacing: 0,
+          title: ActionTextButton(
             text: 'Cancel',
             color: Colors.white,
             onPressed: () {
@@ -96,10 +96,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
             },
           ),
           actions: [
-            ActionTextButton(
-              text: 'Done',
-              onPressed: _saveAllCaptions,
-            ),
+            ActionTextButton(text: 'Done', onPressed: _saveAllCaptions),
           ],
         ),
         body: Column(

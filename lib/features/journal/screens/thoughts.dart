@@ -126,15 +126,26 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        centerTitle: false,
-        titleTextStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-        leadingWidth: 100,
-        leading: ActionTextButton(
-          text: 'Cancel',
-          color: Colors.white,
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        titleSpacing: 0,
+        centerTitle: true,
+        title: Row(
+          children: [
+            ActionTextButton(
+              text: 'Cancel',
+              color: Colors.white,
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            Expanded(
+              child: Center(
+                child: Text(
+                  'Thoughts',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ),
+          ],
         ),
         actions: [
           ActionTextButton(
