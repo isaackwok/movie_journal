@@ -58,7 +58,7 @@ The app follows a feature-based architecture where each feature is self-containe
   - `widgets/` - JournalCard, JournalsList, EmptyPlaceholder, AddMovieButton
 
 - **journal/** - Core journaling features with full workflow from movie selection to saving
-  - `controllers/` - JournalState (single journal), JournalsState (list of journals)
+  - `controllers/` - JournalState (single journal), JournalsState (list of journals), JournalMode enum + JournalModeNotifier (create/edit mode)
   - `screens/` - Journaling (main editor), JournalContent (view saved journal), MoviePreview, ThoughtsEditor, CaptionEditor
   - `widgets/` - EmotionsSelectorButton, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, ReviewItem, ReviewsBottomSheet, ThoughtsEditor, PosterPreviewModal, AiReferencesAccordion, JournalContentMoreMenu
 
@@ -122,7 +122,8 @@ The app follows a feature-based architecture where each feature is self-containe
 Uses **Riverpod** for state management:
 - Providers are typically defined in feature-specific files (e.g., `movie_providers.dart`)
 - Controllers use Riverpod notifiers for complex state logic
-- Follow patterns: `Provider` for computed values, `StateProvider` for simple state, `FutureProvider` for async operations, `NotifierProvider` for complex state
+- Follow patterns: `Provider` for computed values, `NotifierProvider` for simple and complex state, `FutureProvider`/`AsyncNotifierProvider` for async operations
+- Note: Riverpod 3.x removed `StateProvider` — use a `Notifier` with a `set()` method instead (see `JournalModeNotifier` for pattern)
 
 ### Data Flow
 
@@ -136,7 +137,14 @@ Uses **Riverpod** for state management:
    - Optionally fetch AI-curated reviews (ReviewsBottomSheet via `quesgen_dio_client.dart`)
    - Add caption (CaptionEditor) → Save to Firestore (via `FirestoreManager`) with userId
 
-3. **Journal Viewing**:
+3. **Journal Editing**:
+   - JournalContent → More menu → Edit → loads journal into `JournalController`, fetches movie images/details, navigates to `JournalingScreen(editJournalId: id)`
+   - `JournalMode` provider (`journalModeProvider`) tracks create vs edit mode — any widget can read it without prop threading
+   - In edit mode: ThoughtsScreen hides Reviews FAB and "Add" card, review taps are no-ops, date shows `createdAt`
+   - Save calls `update()` (Firestore `.update()`, preserves `createdAt`) → `popUntil(isFirst)` back to home
+   - Navigation: Home → JournalContent → [Edit] → JournalingScreen → [Save] → popUntil Home
+
+4. **Journal Viewing**:
    - HomeScreen displays JournalsList → Fetch from Firestore by userId
    - Select journal → JournalContent screen → View emotions, thoughts, scenes, reviews
 
@@ -239,7 +247,9 @@ feature_name/
 - `FirestoreManager` handles journal CRUD operations
 - Journals stored in `journals` collection with `userId` field
 - Query journals by user: `getJournalsCollection(userId)`
-- Add journals: `addJournalToCollection(userId, journal)`
+- Add journals: `addJournal(userId, journal)`
+- Update journals: `updateJournal(journalId, journal)` — uses Firestore `.update()`, fails if doc doesn't exist
+- Delete journals: `deleteJournal(journalId)`
 
 ### Initialization
 - Firebase initialized in `main.dart` before app runs
@@ -273,7 +283,7 @@ feature_name/
 - **Single journal state** managed by `JournalState` in `lib/features/journal/controllers/journal.dart`
 - **List of journals** managed by `JournalsState` in `lib/features/journal/controllers/journals.dart`
 - **Main screens**:
-  - `journaling.dart` - Main journal editor with emotion and scene selection
+  - `journaling.dart` - Main journal editor with emotion and scene selection. Supports both create and edit modes via optional `editJournalId` prop (null = create, non-null = edit). Sets `journalModeProvider` on init.
   - `journal_content.dart` - View saved journal with all details
   - `movie_preview.dart` - Movie poster and details preview before journaling
   - `thoughts.dart` - Dedicated thoughts editor screen with horizontal selected reviews section at the top (scrollable cards + "Add" button) and text input below
@@ -281,12 +291,14 @@ feature_name/
 - **Key widgets**:
   - `emotions_selector_button.dart` & `emotions_selector_bottom_sheet.dart` - Emotion selection UI
   - `scenes_selector.dart` & `scenes_select_sheet.dart` - Scene selection from movie images
-  - `review_item.dart` - Reusable review card with source icon (Letterboxd/Reddit) and optional action button. Props: `review` (required), `onPress` (required), `showAction` (default: true), `isSelected` (default: false), `transparent` (default: false). When `transparent: true`, background is transparent with a subtle white border (used in accordion and horizontal scroll contexts). Four visual states: no action button (`showAction: false`), add button (`showAction: true`), selected checkmark (`showAction: true, isSelected: true`), transparent variant (`transparent: true`)
+  - `review_item.dart` - Reusable review card with source icon (Letterboxd/Reddit) and optional action button. Props: `review` (required), `onPress` (optional), `showAction` (default: true), `isSelected` (default: false), `transparent` (default: false). When `transparent: true`, background is transparent with a subtle white border (used in accordion and horizontal scroll contexts). Four visual states: no action button (`showAction: false`), add button (`showAction: true`), selected checkmark (`showAction: true, isSelected: true`), transparent variant (`transparent: true`)
   - `reviews_bottom_sheet.dart` - Scrollable bottom sheet listing AI-curated reviews with add/selected actions
   - `poster_preview_modal.dart` - Full-size poster preview modal
   - `ai_references_accordion.dart` - Expandable AI references/reviews section using `ReviewItem` with `transparent: true` and `showAction: false`
-  - `journal_content_more_menu.dart` - More options menu for saved journals
-- Save to Firestore via `FirestoreManager.addJournalToCollection(userId, journal)`
+  - `journal_content_more_menu.dart` - More options menu for saved journals (edit and delete actions)
+- **Create flow**: Save to Firestore via `JournalController.save()` → navigates to `JournalContent`
+- **Edit flow**: Load via `JournalController.loadJournal()` → edit in `JournalingScreen(editJournalId: id)` → `JournalController.update()` → popUntil home
+- **Mode management**: `journalModeProvider` (`JournalMode.create` / `JournalMode.edit`) — set in `JournalingScreen.initState`, reset in `_cleanupState()`. Widgets like `ThoughtsScreen` read it to conditionally hide edit-inappropriate UI (FAB, Add card)
 
 ### Working with Emotions
 - Emotion definitions in `lib/features/emotion/emotion.dart`
