@@ -98,6 +98,7 @@ class HomeScreen extends ConsumerWidget {
       data: (journalsState) {
         final journals = journalsState.journals;
         return Scaffold(
+          key: const PageStorageKey('home'),
           backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
             toolbarHeight: 76,
@@ -178,8 +179,8 @@ class HomeScreen extends ConsumerWidget {
             ),
             centerTitle: false,
           ),
-          body: Padding(
-            padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 40),
+          body: SingleChildScrollView(
+            padding: EdgeInsets.only(left: 20, right: 20),
             child:
                 journals.isEmpty
                     ? const EmptyPlaceholder()

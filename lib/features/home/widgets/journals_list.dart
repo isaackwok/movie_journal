@@ -32,48 +32,48 @@ class JournalsList extends ConsumerWidget {
         grouppedJournals.entries.toList()
           ..sort((a, b) => b.key.compareTo(a.key));
 
-    return SingleChildScrollView(
-      child: Column(
-        children:
-            sortedEntries.map((entry) {
-              entry.value.sort(
-                (a, b) => b.updatedAt.dateTime.compareTo(a.updatedAt.dateTime),
-              );
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(height: 20),
-                  Text(
-                    Jiffy.parse(
-                      entry.key,
-                      pattern: 'yyyy-MM',
-                    ).format(pattern: 'MMM yyyy'),
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  GridView.builder(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 16,
-                      childAspectRatio:
-                          0.59, // Width:Height ratio (adjust based on your content)
-                    ),
-                    itemCount: entry.value.length,
-                    itemBuilder: (context, index) {
-                      return JournalCard(journal: entry.value[index]);
-                    },
-                  ),
-                ],
-              );
-            }).toList(),
-      ),
+    return Column(
+      children: [
+        ...sortedEntries.map((entry) {
+          entry.value.sort(
+            (a, b) => b.updatedAt.dateTime.compareTo(a.updatedAt.dateTime),
+          );
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 20),
+              Text(
+                Jiffy.parse(
+                  entry.key,
+                  pattern: 'yyyy-MM',
+                ).format(pattern: 'MMM yyyy'),
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(height: 16),
+              GridView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 16,
+                  childAspectRatio:
+                      0.59, // Width:Height ratio (adjust based on your content)
+                ),
+                itemCount: entry.value.length,
+                itemBuilder: (context, index) {
+                  return JournalCard(journal: entry.value[index]);
+                },
+              ),
+            ],
+          );
+        }),
+        const SizedBox(height: 32),
+      ],
     );
   }
 }
