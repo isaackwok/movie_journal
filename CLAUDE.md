@@ -148,7 +148,7 @@ Uses **Riverpod** for state management:
    - HomeScreen displays JournalsList → Fetch from Firestore by userId
    - Select journal → JournalContent screen → View emotions, thoughts, scenes, reviews
 
-4. **Authentication**:
+5. **Authentication**:
    - LoginScreen → Apple/Google Sign-In → Firebase Auth → Store user session
    - CreateUserScreen for new users → Set username → Store in Firestore
    - Journals synced by userId field in Firestore documents
@@ -175,6 +175,7 @@ Uses **Riverpod** for state management:
 - **flutter_lints** (6.0.0) - Recommended linting rules
 - **custom_lint** (0.8.0) - Custom lint rule framework
 - **riverpod_lint** (3.0.3) - Riverpod-specific linting
+- **mocktail** (1.0.4) - Lightweight mocking (no codegen)
 
 ## Environment Setup
 
@@ -254,6 +255,51 @@ feature_name/
 ### Initialization
 - Firebase initialized in `main.dart` before app runs
 - Must call `Firebase.initializeApp()` with platform-specific options
+
+## Testing
+
+### Test Structure
+Tests mirror the `lib/features/` structure under `test/features/`:
+```
+test/
+├── helpers/
+│   ├── test_journal.dart          # makeJournal() factory with sensible defaults
+│   └── test_movie.dart            # makeBriefMovieJson() factory for TMDB JSON fixtures
+├── features/
+│   ├── journal/controllers/
+│   │   └── journal_test.dart      # JournalState model, SceneItem, JournalController (28 tests)
+│   ├── movie/
+│   │   ├── data/models/
+│   │   │   ├── brief_movie_test.dart   # BriefMovie.fromJson parsing (5 tests)
+│   │   │   └── movie_image_test.dart   # MovieImage.fromJson parsing (1 test)
+│   │   ├── data/data_sources/
+│   │   │   └── movie_api_test.dart     # MovieListResponse.fromJson (2 tests)
+│   │   └── controllers/
+│   │       └── search_movie_controller_test.dart  # movieIntegrityChecker, state logic (5 tests)
+│   ├── emotion/
+│   │   └── emotion_test.dart      # Emotion data integrity (6 tests)
+│   └── quesgen/
+│       └── review_test.dart       # Review model serialization + equality (5 tests)
+```
+
+### Test Approach
+- **Pure model tests**: Serialization, deserialization, backward compatibility, equality
+- **Controller state tests**: Use `ProviderContainer` to test Riverpod notifiers without Flutter widgets
+- **Data integrity tests**: Validate emotion list structure (24 emotions, 4 groups, energy levels)
+- No Firebase or API mocking — tests cover models and state mutations only
+
+### Test Helpers
+- `test/helpers/test_journal.dart` — `makeJournal()` factory creates a `JournalState` with defaults (tmdbId: 550, movieTitle: 'Fight Club'). Override any field for specific tests.
+- `test/helpers/test_movie.dart` — `makeBriefMovieJson()` factory creates a TMDB-style JSON map. Override any field for specific tests.
+
+### Writing New Tests
+- Place tests in `test/features/<feature>/` mirroring the source structure
+- Use test helpers to avoid repeating boilerplate constructors
+- For Riverpod controller tests: create a `ProviderContainer` in `setUp()`, dispose in `tearDown()`
+- For model tests: no special setup needed, just import the model
+
+### Known Test Findings
+- `SceneItem.copyWith(caption: null)` does not clear an existing caption — `??` operator preserves the old value. Clearing a caption after one was set requires a different approach than passing empty string to `updateSceneCaption()`.
 
 ## Common Development Workflows
 
