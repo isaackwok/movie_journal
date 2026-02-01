@@ -109,22 +109,26 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
     );
   }
 
-  Widget _buildSelectedReviewsSection(List<Review> references) {
+  Widget _buildSelectedReviewsSection(
+    List<Review> references, {
+    required bool isEditMode,
+  }) {
     final cardWidth = MediaQuery.of(context).size.width - 64;
+    final itemCount = isEditMode ? references.length : references.length + 1;
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: references.length + 1,
+      itemCount: itemCount,
       separatorBuilder: (_, _) => const SizedBox(width: 12),
       itemBuilder: (context, index) {
-        if (index == references.length) {
+        if (!isEditMode && index == references.length) {
           return _buildAddCard();
         }
         return SizedBox(
           width: cardWidth,
           child: ReviewItem(
             review: references[index],
-            onPress: _openReviewsBottomSheet,
+            onPress: isEditMode ? () {} : _openReviewsBottomSheet,
             showAction: false,
           ),
         );
@@ -164,6 +168,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
   Widget build(BuildContext context) {
     final selectedReferences =
         ref.watch(journalControllerProvider).selectedRefs;
+    final isEditMode = ref.watch(journalModeProvider) == JournalMode.edit;
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -210,7 +215,10 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
                 padding: const EdgeInsets.only(top: 8),
                 child: SizedBox(
                   height: 175,
-                  child: _buildSelectedReviewsSection(selectedReferences),
+                  child: _buildSelectedReviewsSection(
+                    selectedReferences,
+                    isEditMode: isEditMode,
+                  ),
                 ),
               ),
             Padding(
@@ -246,7 +254,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
           ],
         ),
       ),
-      floatingActionButton: const ReviewsFloatingButton(),
+      floatingActionButton: isEditMode ? null : const ReviewsFloatingButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }

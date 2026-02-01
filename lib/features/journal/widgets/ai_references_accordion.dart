@@ -6,12 +6,10 @@ class AiReferencesAccordion extends StatefulWidget {
   const AiReferencesAccordion({
     super.key,
     required this.references,
-    required this.onRemove,
     this.defaultExpanded = false,
   });
 
   final List<Review> references;
-  final Function(int index) onRemove;
   final bool defaultExpanded;
   @override
   State<AiReferencesAccordion> createState() => _AiReferencesAccordionState();
@@ -107,11 +105,9 @@ class _AiReferencesAccordionState extends State<AiReferencesAccordion>
                 spacing: 12,
                 children:
                     widget.references.asMap().entries.map((entry) {
-                      final index = entry.key;
                       final review = entry.value;
                       return ReviewItem(
                         review: review,
-                        onPress: () => widget.onRemove(index),
                         showAction: false,
                         transparent: true,
                       );

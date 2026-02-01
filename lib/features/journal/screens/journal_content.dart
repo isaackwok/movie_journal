@@ -209,7 +209,6 @@ class _JournalContentState extends ConsumerState<JournalContent> {
                             ? const SizedBox.shrink()
                             : AiReferencesAccordion(
                               references: journal.selectedRefs,
-                              onRemove: (index) {},
                             ),
                   ),
                 ],

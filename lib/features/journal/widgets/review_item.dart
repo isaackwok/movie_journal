@@ -7,14 +7,14 @@ class ReviewItem extends StatelessWidget {
   const ReviewItem({
     super.key,
     required this.review,
-    required this.onPress,
+    this.onPress,
     this.showAction = true,
     this.isSelected = false,
     this.transparent = false,
   });
 
   final Review review;
-  final VoidCallback onPress;
+  final VoidCallback? onPress;
   final bool showAction;
   final bool isSelected;
   final bool transparent;

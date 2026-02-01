@@ -28,10 +28,12 @@ class SectionSeperator extends StatelessWidget {
 class JournalingScreen extends ConsumerStatefulWidget {
   final String movieTitle;
   final String moviePosterUrl;
+  final String? editJournalId;
   const JournalingScreen({
     super.key,
     required this.movieTitle,
     required this.moviePosterUrl,
+    this.editJournalId,
   });
 
   @override
@@ -43,11 +45,17 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
   bool _showTitle = false;
   bool _isSaving = false;
 
+  bool get _isEditMode => widget.editJournalId != null;
+
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     CustomToast.init(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(journalModeProvider.notifier).set(
+          _isEditMode ? JournalMode.edit : JournalMode.create);
+    });
   }
 
   @override
@@ -75,11 +83,16 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
         journal.thoughts.isNotEmpty;
   }
 
+  void _cleanupState() {
+    ref.read(journalControllerProvider.notifier).clear();
+    ref.read(quesgenControllerProvider.notifier).clear();
+    ref.read(journalModeProvider.notifier).set(JournalMode.create);
+  }
+
   void _handleBackButton() async {
     if (!_hasUnsavedChanges()) {
       Navigator.pop(context);
-      ref.read(journalControllerProvider.notifier).clear();
-      ref.read(quesgenControllerProvider.notifier).clear();
+      _cleanupState();
       return;
     }
 
@@ -90,8 +103,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
 
     if (shouldDiscard == true && mounted) {
       Navigator.pop(context);
-      ref.read(journalControllerProvider.notifier).clear();
-      ref.read(quesgenControllerProvider.notifier).clear();
+      _cleanupState();
     }
   }
 
@@ -106,13 +118,10 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
         if (didPop) return;
 
         final navigator = Navigator.of(context);
-        final journalNotifier = ref.read(journalControllerProvider.notifier);
-        final quesgenNotifier = ref.read(quesgenControllerProvider.notifier);
 
         if (!_hasUnsavedChanges()) {
           navigator.pop();
-          journalNotifier.clear();
-          quesgenNotifier.clear();
+          _cleanupState();
           return;
         }
 
@@ -123,8 +132,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
 
         if (shouldDiscard == true) {
           navigator.pop();
-          journalNotifier.clear();
-          quesgenNotifier.clear();
+          _cleanupState();
         }
       },
       child: Scaffold(
@@ -173,33 +181,43 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                                 _isSaving = true;
                               });
                               try {
-                                await ref
-                                    .read(journalControllerProvider.notifier)
-                                    .save();
-                                final savedJournalId =
-                                    ref.read(journalControllerProvider).id;
-                                if (context.mounted) {
-                                  CustomToast.showSuccess(
-                                    context,
-                                    'Your journal has been saved.',
-                                  );
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => JournalContent(
-                                            journalId: savedJournalId,
-                                          ),
-                                    ),
-                                    (route) => route.isFirst,
-                                  );
+                                if (_isEditMode) {
+                                  await ref
+                                      .read(journalControllerProvider.notifier)
+                                      .update();
+                                  if (context.mounted) {
+                                    CustomToast.showSuccess(
+                                      context,
+                                      'Your journal has been updated.',
+                                    );
+                                    Navigator.of(context).popUntil(
+                                      (route) => route.isFirst,
+                                    );
+                                  }
+                                } else {
+                                  await ref
+                                      .read(journalControllerProvider.notifier)
+                                      .save();
+                                  final savedJournalId =
+                                      ref.read(journalControllerProvider).id;
+                                  if (context.mounted) {
+                                    CustomToast.showSuccess(
+                                      context,
+                                      'Your journal has been saved.',
+                                    );
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => JournalContent(
+                                              journalId: savedJournalId,
+                                            ),
+                                      ),
+                                      (route) => route.isFirst,
+                                    );
+                                  }
                                 }
-                                ref
-                                    .read(journalControllerProvider.notifier)
-                                    .clear();
-                                ref
-                                    .read(quesgenControllerProvider.notifier)
-                                    .clear();
+                                _cleanupState();
                               } catch (e) {
                                 if (context.mounted) {
                                   CustomToast.showSuccess(
@@ -285,7 +303,9 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                             ),
                           ),
                           Text(
-                            Jiffy.now().format(pattern: 'MMM do yyyy'),
+                            _isEditMode
+                                ? journal.createdAt.format(pattern: 'MMM do yyyy')
+                                : Jiffy.now().format(pattern: 'MMM do yyyy'),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,

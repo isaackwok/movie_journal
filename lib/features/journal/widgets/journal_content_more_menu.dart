@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
+import 'package:movie_journal/features/journal/screens/journaling.dart';
+import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
 
@@ -39,7 +42,7 @@ class JournalContentMoreMenu extends ConsumerWidget {
   void onSelected(BuildContext context, WidgetRef ref, MoreOptionsItem item) async {
     switch (item) {
       case MoreOptionsItem.edit:
-        // Handle edit action
+        _editJournal(context, ref);
         break;
       case MoreOptionsItem.delete:
         // Handle delete action
@@ -53,6 +56,35 @@ class JournalContentMoreMenu extends ConsumerWidget {
         }
         break;
     }
+  }
+
+  void _editJournal(BuildContext context, WidgetRef ref) {
+    final journalsAsync = ref.read(journalsControllerProvider);
+    final journals = journalsAsync.value?.journals ?? [];
+    final journal = journals.where((j) => j.id == journalId).firstOrNull;
+    if (journal == null) return;
+
+    // Load journal state into the controller
+    ref.read(journalControllerProvider.notifier).loadJournal(journal);
+
+    // Fetch movie images and details needed by ScenesSelector
+    ref
+        .read(movieImagesControllerProvider.notifier)
+        .getMovieImages(id: journal.tmdbId);
+    ref
+        .read(movieDetailControllerProvider.notifier)
+        .fetchMovieDetails(journal.tmdbId);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => JournalingScreen(
+          movieTitle: journal.movieTitle,
+          moviePosterUrl: journal.moviePoster,
+          editJournalId: journal.id,
+        ),
+      ),
+    );
   }
 
   Future<void> _deleteJournal(BuildContext context, WidgetRef ref) async {

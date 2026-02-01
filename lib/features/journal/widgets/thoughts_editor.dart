@@ -109,11 +109,6 @@ class ThoughtsEditor extends ConsumerWidget {
               ? AiReferencesAccordion(
                 defaultExpanded: true,
                 references: selectedRefs,
-                onRemove: (index) {
-                  ref
-                      .read(journalControllerProvider.notifier)
-                      .removeSelectedReview(selectedRefs[index]);
-                },
               )
               : SizedBox.shrink(),
           SizedBox(height: 200),

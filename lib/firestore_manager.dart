@@ -119,6 +119,12 @@ class FirestoreManager {
     });
   }
 
+  /// Update an existing journal in Firestore
+  Future<void> updateJournal(String journalId, JournalState journal) async {
+    final journalData = journal.toMap();
+    await _db.collection('journals').doc(journalId).update(journalData);
+  }
+
   /// Delete a journal from Firestore
   ///
   /// Parameters:

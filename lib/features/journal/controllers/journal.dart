@@ -306,6 +306,29 @@ class JournalController extends Notifier<JournalState> {
     return this;
   }
 
+  JournalController loadJournal(JournalState journal) {
+    state = journal.copyWith();
+    return this;
+  }
+
+  Future<JournalController> update() async {
+    final now = Jiffy.now();
+    state = state.copyWith(updatedAt: now);
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception('User not logged in');
+    }
+
+    final firestoreManager = FirestoreManager();
+    await firestoreManager.updateJournal(state.id, state);
+
+    final journalsController = ref.read(journalsControllerProvider.notifier);
+    await journalsController.refreshJournals();
+
+    return this;
+  }
+
   Future<JournalController> save() async {
     // Set creation and update times
     final now = Jiffy.now();
@@ -334,3 +357,17 @@ class JournalController extends Notifier<JournalState> {
 
 final journalControllerProvider =
     NotifierProvider<JournalController, JournalState>(JournalController.new);
+
+enum JournalMode { create, edit }
+
+class JournalModeNotifier extends Notifier<JournalMode> {
+  @override
+  JournalMode build() => JournalMode.create;
+
+  void set(JournalMode mode) {
+    state = mode;
+  }
+}
+
+final journalModeProvider =
+    NotifierProvider<JournalModeNotifier, JournalMode>(JournalModeNotifier.new);
