@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_journal/features/quesgen/review.dart';
 
 class AiReferencesAccordion extends StatefulWidget {
   const AiReferencesAccordion({
@@ -9,7 +10,7 @@ class AiReferencesAccordion extends StatefulWidget {
     this.defaultExpanded = false,
   });
 
-  final List<String> references;
+  final List<Review> references;
   final Function(int index) onRemove;
   final bool defaultExpanded;
   @override
@@ -104,9 +105,9 @@ class _AiReferencesAccordionState extends State<AiReferencesAccordion>
                 children:
                     widget.references.asMap().entries.map((entry) {
                       final index = entry.key;
-                      final reference = entry.value;
+                      final review = entry.value;
                       return _ReferenceCard(
-                        reference: reference,
+                        review: review,
                         onRemove: () => widget.onRemove(index),
                       );
                     }).toList(),
@@ -120,18 +121,13 @@ class _AiReferencesAccordionState extends State<AiReferencesAccordion>
 }
 
 class _ReferenceCard extends StatelessWidget {
-  const _ReferenceCard({required this.reference, required this.onRemove});
+  const _ReferenceCard({required this.review, required this.onRemove});
 
-  final String reference;
+  final Review review;
   final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
-    // Parse the reference to extract title and content
-    final lines = reference.split('\n');
-    final title = lines.first;
-    final content = lines.length > 1 ? lines.sublist(1).join('\n').trim() : '';
-
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -146,7 +142,7 @@ class _ReferenceCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  title,
+                  review.text,
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: Colors.white,
@@ -171,18 +167,22 @@ class _ReferenceCard extends StatelessWidget {
               ),
             ],
           ),
-          if (content.isNotEmpty) ...[
-            SizedBox(height: 12),
-            Text(
-              content,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Colors.white.withValues(alpha: 0.8),
-                height: 1.4,
+          SizedBox(height: 8),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.white.withAlpha(20),
+            ),
+            child: Text(
+              review.source,
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withAlpha(153),
               ),
             ),
-          ],
+          ),
         ],
       ),
     );

@@ -4,15 +4,16 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/thoughts.dart';
 import 'package:movie_journal/features/journal/widgets/ai_references_accordion.dart';
+import 'package:movie_journal/features/quesgen/review.dart';
 
-class SelectedQuestionItem extends StatelessWidget {
-  const SelectedQuestionItem({
+class SelectedReviewItem extends StatelessWidget {
+  const SelectedReviewItem({
     super.key,
-    required this.question,
+    required this.review,
     required this.onRemove,
   });
 
-  final String question;
+  final Review review;
   final VoidCallback onRemove;
 
   @override
@@ -30,7 +31,7 @@ class SelectedQuestionItem extends StatelessWidget {
         children: [
           Flexible(
             child: Text(
-              question,
+              review.text,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
@@ -111,7 +112,7 @@ class ThoughtsEditor extends ConsumerWidget {
                 onRemove: (index) {
                   ref
                       .read(journalControllerProvider.notifier)
-                      .removeSelectedQuestion(selectedRefs[index]);
+                      .removeSelectedReview(selectedRefs[index]);
                 },
               )
               : SizedBox.shrink(),

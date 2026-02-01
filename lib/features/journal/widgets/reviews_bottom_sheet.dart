@@ -3,16 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
+import 'package:movie_journal/features/quesgen/review.dart';
 
-class QuestionItem extends StatelessWidget {
-  const QuestionItem({
+class ReviewItem extends StatelessWidget {
+  const ReviewItem({
     super.key,
-    required this.question,
+    required this.review,
     required this.isSelected,
     required this.onSelect,
   });
 
-  final String question;
+  final Review review;
   final bool isSelected;
   final VoidCallback onSelect;
 
@@ -32,13 +33,34 @@ class QuestionItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Flexible(
-              child: Text(
-                question,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.white,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 6,
+                children: [
+                  Text(
+                    review.text,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.white.withAlpha(20),
+                    ),
+                    child: Text(
+                      review.source,
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withAlpha(153),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             InkWell(
@@ -59,13 +81,13 @@ class QuestionItem extends StatelessWidget {
   }
 }
 
-class QuestionsBottomSheet extends ConsumerWidget {
-  const QuestionsBottomSheet({super.key});
+class ReviewsBottomSheet extends ConsumerWidget {
+  const ReviewsBottomSheet({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final quesgenState = ref.watch(quesgenControllerProvider);
-    final questions = quesgenState.questions;
+    final reviews = quesgenState.reviews;
     final isLoading = quesgenState.isLoading;
     final journal = ref.watch(journalControllerProvider);
     final selectedRefs = journal.selectedRefs;
@@ -128,20 +150,20 @@ class QuestionsBottomSheet extends ConsumerWidget {
                             ),
                           ),
                         ]
-                        : questions.isNotEmpty
-                        ? questions.map(
-                          (question) => QuestionItem(
-                            question: question,
-                            isSelected: selectedRefs.contains(question),
+                        : reviews.isNotEmpty
+                        ? reviews.map(
+                          (review) => ReviewItem(
+                            review: review,
+                            isSelected: selectedRefs.contains(review),
                             onSelect: () {
-                              if (selectedRefs.contains(question)) {
+                              if (selectedRefs.contains(review)) {
                                 ref
                                     .read(journalControllerProvider.notifier)
-                                    .removeSelectedQuestion(question);
+                                    .removeSelectedReview(review);
                               } else {
                                 ref
                                     .read(journalControllerProvider.notifier)
-                                    .addSelectedQuestion(question);
+                                    .addSelectedReview(review);
                               }
                               Navigator.pop(context);
                             },
@@ -149,7 +171,7 @@ class QuestionsBottomSheet extends ConsumerWidget {
                         )
                         : [
                           Text(
-                            'No questions generated',
+                            'No reviews generated',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -168,42 +190,6 @@ class QuestionsBottomSheet extends ConsumerWidget {
                   ),
                 ),
                 SizedBox(height: 16),
-                // ElevatedButton.icon(
-                //   icon: Icon(Icons.swap_horiz),
-                //   onPressed:
-                //       isLoading
-                //           ? null
-                //           : () {
-                //             final movie =
-                //                 ref.read(movieDetailControllerProvider).movie;
-                //             if (movie != null) {
-                //               ref
-                //                   .read(quesgenControllerProvider.notifier)
-                //                   .generateQuestions(movieId: movie.id);
-                //             }
-                //           },
-                //   style: ElevatedButton.styleFrom(
-                //     disabledBackgroundColor: Colors.transparent,
-                //     iconSize: 20,
-                //     shape: RoundedRectangleBorder(
-                //       borderRadius: BorderRadius.circular(16),
-                //     ),
-                //     foregroundColor: Colors.white,
-                //     iconColor: Colors.white,
-                //     overlayColor: Colors.white,
-                //     backgroundColor: Colors.transparent,
-                //     surfaceTintColor: Colors.transparent,
-                //     shadowColor: Colors.transparent,
-                //     textStyle: TextStyle(
-                //       fontSize: 14,
-                //       fontWeight: FontWeight.w500,
-                //       color: Colors.white,
-                //       fontFamily: 'AvenirNext',
-                //     ),
-                //   ),
-                //   label: Text('Regenerate'),
-                // ),
-                // SizedBox(height: 16),
               ],
             ),
           ),

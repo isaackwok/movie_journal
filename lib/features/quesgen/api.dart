@@ -1,47 +1,15 @@
 import 'package:movie_journal/core/network/quesgen_dio_client.dart';
+import 'package:movie_journal/features/quesgen/review.dart';
 
-///  name: string;
-///  year: string;
-///  overview?: string;
-///  genres?: string[];
-///  runtime?: number;
-///  voteAverage?: number;
-///  productionCompanies?: string[];
-///  numOfQuestions?: number;
-///  language?: string;
-///  searchPrompt?: string;
-///  questionPrompt?: string;
 class QuesgenAPI {
-  Future<List<String>> generateQuestions({
+  Future<List<Review>> generateReviews({
     required int movieId,
-    // String? name,
-    // String? year,
-    // String? overview,
-    // List<String>? genres,
-    // int? runtime,
-    // double? voteAverage,
-    // List<String>? productionCompanies,
-    // int? numOfQuestions,
-    // String? language,
-    // String? searchPrompt,
-    // String? questionPrompt,
   }) async {
-    final response = await quesgenDioClient.post(
+    final response = await quesgenDioClient.get(
       '/generate/$movieId',
-      // data: {
-      //   'name': name,
-      //   'year': year,
-      //   'overview': overview,
-      //   'genres': genres,
-      //   'runtime': runtime,
-      //   'voteAverage': voteAverage,
-      //   'productionCompanies': productionCompanies,
-      //   'numOfQuestions': numOfQuestions,
-      //   'language': language,
-      //   'searchPrompt': searchPrompt,
-      //   'questionPrompt': questionPrompt,
-      // },
     );
-    return response.data['questions'].cast<String>();
+    return (response.data['reviews'] as List<dynamic>)
+        .map((item) => Review.fromMap(item as Map<String, dynamic>))
+        .toList();
   }
 }
