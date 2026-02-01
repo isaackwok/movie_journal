@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
-import 'package:movie_journal/firebase_manager.dart';
 import 'package:movie_journal/shared_preferences_manager.dart';
 
 class CreateUserScreen extends StatefulWidget {

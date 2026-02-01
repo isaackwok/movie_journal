@@ -204,14 +204,12 @@ class _SettingsItem extends StatelessWidget {
   final String title;
   final Color? titleColor;
   final VoidCallback onTap;
-  final bool isFirst;
   final bool isLast;
 
   const _SettingsItem({
     required this.title,
     this.titleColor,
     required this.onTap,
-    this.isFirst = false,
     this.isLast = false,
   });
 
@@ -219,16 +217,7 @@ class _SettingsItem extends StatelessWidget {
   Widget build(BuildContext context) {
     // Determine border radius based on position
     BorderRadius? borderRadius;
-    if (isFirst && isLast) {
-      // Single item - all corners rounded
-      borderRadius = BorderRadius.circular(12);
-    } else if (isFirst) {
-      // First item - only top corners
-      borderRadius = const BorderRadius.only(
-        topLeft: Radius.circular(12),
-        topRight: Radius.circular(12),
-      );
-    } else if (isLast) {
+    if (isLast) {
       // Last item - only bottom corners
       borderRadius = const BorderRadius.only(
         bottomLeft: Radius.circular(12),

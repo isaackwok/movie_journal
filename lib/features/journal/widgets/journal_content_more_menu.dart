@@ -51,7 +51,7 @@ class JournalContentMoreMenu extends ConsumerWidget {
           builder: (context) => const _DeleteJournalDialog(),
         );
 
-        if (shouldDelete == true) {
+        if (shouldDelete == true && context.mounted) {
           await _deleteJournal(context, ref);
         }
         break;
@@ -95,14 +95,15 @@ class JournalContentMoreMenu extends ConsumerWidget {
       // Delete journal using controller (handles both Firestore and local state)
       await ref.read(journalsControllerProvider.notifier).removeJournal(journalId);
 
+      if (!context.mounted) return;
+
       // Show success toast
       CustomToast.showSuccess(context, 'Journal deleted successfully');
 
       // Navigate back to home screen
-      if (context.mounted) {
-        Navigator.of(context).pop();
-      }
+      Navigator.of(context).pop();
     } catch (e) {
+      if (!context.mounted) return;
       // Show error toast
       CustomToast.init(context);
       CustomToast.showError('Failed to delete journal');

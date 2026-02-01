@@ -135,7 +135,7 @@ class HomeScreen extends ConsumerWidget {
                                 ),
                               ),
                           error:
-                              (_, __) => Text(
+                              (_, _) => Text(
                                 'User',
                                 style: GoogleFonts.nothingYouCouldDo(
                                   fontSize: 28,

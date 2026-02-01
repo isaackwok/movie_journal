@@ -298,7 +298,7 @@ class _PosterPreviewModalState extends ConsumerState<PosterPreviewModal> {
                                   vertical: 12,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                 ),
                                 child: Text(
                                   movieAsync.value!.overview,
@@ -448,7 +448,7 @@ class NoisePainter extends CustomPainter {
       final noiseValue = random.nextDouble();
 
       // Vary the opacity based on noise value
-      paint.color = Colors.white.withOpacity(opacity * noiseValue * intensity);
+      paint.color = Colors.white.withValues(alpha: opacity * noiseValue * intensity);
 
       // Draw tiny circles for grain effect
       canvas.drawCircle(Offset(x, y), 0.5, paint);

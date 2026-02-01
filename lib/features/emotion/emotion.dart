@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 class Emotion {
   final String id;
   final String name;
