@@ -366,3 +366,25 @@ test/
 - Uses `flutter_lints`, `custom_lint`, and `riverpod_lint`
 - Run `flutter analyze` to check for issues
 - Lint configuration in `analysis_options.yaml`
+
+## Claude Code Configuration
+
+### Directory Structure
+```
+.claude/
+├── settings.local.json              # Local permissions and hook config (gitignored)
+├── hooks/
+│   └── pre-commit-test.sh           # Runs flutter test before git commits
+└── skills/
+    └── journal-data-access/
+        ├── SKILL.md                 # Riverpod patterns for journal CRUD
+        └── references/
+            └── journal-state-model.md  # JournalState fields and Firestore schema
+```
+
+### Hooks
+- **pre-commit-test.sh** — A `PreToolUse` hook on the `Bash` tool that intercepts `git commit` commands. Runs `flutter test` before allowing the commit. If tests fail, the commit is blocked with test output shown as the reason. Non-commit Bash commands pass through unaffected.
+- Hook is registered in `settings.local.json` under the `hooks.PreToolUse` key (gitignored, local to each developer)
+
+### Skills
+- **journal-data-access** — Documents the Riverpod provider architecture for journal data. Covers the three core providers (`journalControllerProvider`, `journalsControllerProvider`, `journalModeProvider`), `ref.watch` vs `ref.read` patterns, CRUD operations, create vs edit mode, and AsyncValue handling. Reference file includes full JournalState fields and Firestore document schema.
