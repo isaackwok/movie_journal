@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
-import 'package:movie_journal/features/journal/widgets/ai_references_accordion.dart';
+import 'package:movie_journal/features/quesgen/review.dart';
+import 'package:movie_journal/features/journal/widgets/review_item.dart';
+import 'package:movie_journal/features/journal/widgets/reviews_bottom_sheet.dart';
 import 'package:movie_journal/features/journal/widgets/reviews_floating_button.dart';
 import 'package:movie_journal/shared_widgets/action_text_button.dart';
 
@@ -97,6 +99,67 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
     textPainter.dispose();
   }
 
+  void _openReviewsBottomSheet() {
+    showModalBottomSheet(
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      backgroundColor: const Color(0xFF171717),
+      builder: (context) => const Wrap(children: [ReviewsBottomSheet()]),
+    );
+  }
+
+  Widget _buildSelectedReviewsSection(List<Review> references) {
+    final cardWidth = MediaQuery.of(context).size.width - 64;
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: references.length + 1,
+      separatorBuilder: (_, _) => const SizedBox(width: 12),
+      itemBuilder: (context, index) {
+        if (index == references.length) {
+          return _buildAddCard();
+        }
+        return SizedBox(
+          width: cardWidth,
+          child: ReviewItem(
+            review: references[index],
+            onPress: _openReviewsBottomSheet,
+            showAction: false,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAddCard() {
+    return GestureDetector(
+      onTap: _openReviewsBottomSheet,
+      child: Container(
+        width: 100,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Color(0xFF202020),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add, color: Colors.white, size: 24),
+            const SizedBox(height: 4),
+            Text(
+              'Add',
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedReferences =
@@ -137,15 +200,22 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: SingleChildScrollView(
-          controller: scrollController,
-          child: Column(
-            spacing: 8,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
+      body: SingleChildScrollView(
+        controller: scrollController,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (selectedReferences.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: SizedBox(
+                  height: 175,
+                  child: _buildSelectedReviewsSection(selectedReferences),
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
                 key: textFieldKey,
                 controller: thoughtsController,
                 autofocus: true,
@@ -172,19 +242,8 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
                   fillColor: Colors.transparent,
                 ),
               ),
-              selectedReferences.isNotEmpty
-                  ? AiReferencesAccordion(
-                    defaultExpanded: true,
-                    references: selectedReferences,
-                    onRemove: (index) {
-                      ref
-                          .read(journalControllerProvider.notifier)
-                          .removeSelectedReview(selectedReferences[index]);
-                    },
-                  )
-                  : SizedBox.shrink(),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       floatingActionButton: const ReviewsFloatingButton(),

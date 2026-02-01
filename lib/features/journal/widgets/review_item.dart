@@ -37,11 +37,14 @@ class ReviewItem extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           spacing: 8,
           children: [
             Padding(
               padding: EdgeInsets.only(top: 4),
               child: Text(
+                maxLines: 6,
+                overflow: TextOverflow.ellipsis,
                 review.text,
                 style: GoogleFonts.inter(
                   fontSize: 14,
