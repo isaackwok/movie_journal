@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_journal/features/journal/widgets/review_item.dart';
 import 'package:movie_journal/features/quesgen/review.dart';
 
 class AiReferencesAccordion extends StatefulWidget {
@@ -70,12 +70,15 @@ class _AiReferencesAccordionState extends State<AiReferencesAccordion>
               padding: EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(Icons.menu_book,
-                      color: Theme.of(context).colorScheme.primary, size: 24),
+                  Icon(
+                    Icons.menu_book,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 24,
+                  ),
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'References',
+                      'Reviews',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -106,80 +109,13 @@ class _AiReferencesAccordionState extends State<AiReferencesAccordion>
                     widget.references.asMap().entries.map((entry) {
                       final index = entry.key;
                       final review = entry.value;
-                      return _ReferenceCard(
+                      return ReviewItem(
                         review: review,
-                        onRemove: () => widget.onRemove(index),
+                        onPress: () => widget.onRemove(index),
+                        showAction: false,
+                        transparent: true,
                       );
                     }).toList(),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ReferenceCard extends StatelessWidget {
-  const _ReferenceCard({required this.review, required this.onRemove});
-
-  final Review review;
-  final VoidCallback onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Color(0xFF404040), width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  review.text,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.white,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-              SizedBox(width: 8),
-              GestureDetector(
-                onTap: onRemove,
-                child: Container(
-                  padding: EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Icon(
-                    Icons.bookmark,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 24,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 8),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.white.withAlpha(20),
-            ),
-            child: Text(
-              review.source,
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: Colors.white.withAlpha(153),
               ),
             ),
           ),

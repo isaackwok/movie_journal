@@ -10,12 +10,14 @@ class ReviewItem extends StatelessWidget {
     required this.onPress,
     this.showAction = true,
     this.isSelected = false,
+    this.transparent = false,
   });
 
   final Review review;
   final VoidCallback onPress;
   final bool showAction;
   final bool isSelected;
+  final bool transparent;
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +27,13 @@ class ReviewItem extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 12),
         decoration: BoxDecoration(
-          color: Color(0xFF202020),
+          color: transparent ? Colors.transparent : Color(0xFF202020),
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color:
+                transparent ? Colors.white.withAlpha(76) : Colors.transparent,
+            width: 1,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
