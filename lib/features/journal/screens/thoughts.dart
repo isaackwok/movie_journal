@@ -210,14 +210,35 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
         ),
       ),
       floatingActionButton: ElevatedButton.icon(
-        icon: Icon(Icons.menu_book, color: Colors.white),
+        icon: SizedBox(
+          width: 44,
+          child: Stack(
+            children: [
+              Image.asset(
+                'assets/images/reddit_icon.png',
+                width: 24,
+                height: 24,
+                filterQuality: FilterQuality.high,
+              ),
+              Positioned(
+                left: 20,
+                child: Image.asset(
+                  'assets/images/letterboxd_icon.png',
+                  width: 24,
+                  height: 24,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+            ],
+          ),
+        ),
         label: Text(
           'Reviews',
           style: TextStyle(color: Colors.white, fontFamily: 'AvenirNext'),
         ),
         style: ElevatedButton.styleFrom(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(999),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           textStyle: const TextStyle(
