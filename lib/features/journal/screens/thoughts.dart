@@ -212,7 +212,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
       floatingActionButton: ElevatedButton.icon(
         icon: Icon(Icons.menu_book, color: Colors.white),
         label: Text(
-          'AI References',
+          'Reviews',
           style: TextStyle(color: Colors.white, fontFamily: 'AvenirNext'),
         ),
         style: ElevatedButton.styleFrom(

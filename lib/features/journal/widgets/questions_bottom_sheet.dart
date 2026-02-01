@@ -96,7 +96,7 @@ class QuestionsBottomSheet extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  'AI References',
+                  'Movie Reviews',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w500,
