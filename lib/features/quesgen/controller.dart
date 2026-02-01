@@ -1,26 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/quesgen/api.dart';
+import 'package:movie_journal/features/quesgen/review.dart';
 
 final quesgenApiProvider = Provider((_) => QuesgenAPI());
 
 class QuesgenState {
-  final List<String> questions;
+  final List<Review> reviews;
   final bool isLoading;
   final bool isError;
 
   QuesgenState({
-    required this.questions,
+    required this.reviews,
     required this.isLoading,
     required this.isError,
   });
 
   QuesgenState copyWith({
-    List<String>? questions,
+    List<Review>? reviews,
     bool? isLoading,
     bool? isError,
   }) {
     return QuesgenState(
-      questions: questions ?? this.questions,
+      reviews: reviews ?? this.reviews,
       isLoading: isLoading ?? this.isLoading,
       isError: isError ?? this.isError,
     );
@@ -30,48 +31,26 @@ class QuesgenState {
 class QuesgenController extends Notifier<QuesgenState> {
   @override
   QuesgenState build() {
-    return QuesgenState(questions: [], isLoading: false, isError: false);
+    return QuesgenState(reviews: [], isLoading: false, isError: false);
   }
 
-  Future<void> generateQuestions({
+  Future<void> generateReviews({
     required int movieId,
-    // String? name,
-    // String? year,
-    // String? overview,
-    // List<String>? genres,
-    // int? runtime,
-    // double? voteAverage,
-    // List<String>? productionCompanies,
-    // int? numOfQuestions,
-    // String? language,
-    // String? searchPrompt,
-    // String? questionPrompt,
   }) async {
     state = state.copyWith(isLoading: true);
     try {
-      final newQuestions = await ref
+      final newReviews = await ref
           .read(quesgenApiProvider)
-          .generateQuestions(
+          .generateReviews(
             movieId: movieId,
-            // name: name,
-            // year: year,
-            // overview: overview,
-            // genres: genres,
-            // runtime: runtime,
-            // voteAverage: voteAverage,
-            // productionCompanies: productionCompanies,
-            // numOfQuestions: numOfQuestions ?? 6,
-            // language: language,
-            // searchPrompt: searchPrompt,
-            // questionPrompt: questionPrompt,
           );
-      state = state.copyWith(questions: newQuestions, isLoading: false);
+      state = state.copyWith(reviews: newReviews, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, isError: true);
     }
   }
 
   void clear() {
-    state = state.copyWith(questions: [], isLoading: false, isError: false);
+    state = state.copyWith(reviews: [], isLoading: false, isError: false);
   }
 }

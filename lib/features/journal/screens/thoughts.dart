@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/widgets/ai_references_accordion.dart';
-import 'package:movie_journal/features/journal/widgets/questions_bottom_sheet.dart';
+import 'package:movie_journal/features/journal/widgets/reviews_bottom_sheet.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
 import 'package:movie_journal/shared_widgets/action_text_button.dart';
@@ -103,10 +103,10 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
     final movieAsync = ref.read(movieDetailControllerProvider);
     final movie = movieAsync.hasValue ? movieAsync.value : null;
     final quesgenState = ref.read(quesgenControllerProvider);
-    if (movie != null && quesgenState.questions.isEmpty) {
+    if (movie != null && quesgenState.reviews.isEmpty) {
       ref
           .read(quesgenControllerProvider.notifier)
-          .generateQuestions(movieId: movie.id);
+          .generateReviews(movieId: movie.id);
     }
     if (context.mounted) {
       showModalBottomSheet(
@@ -114,7 +114,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
         isScrollControlled: true,
         context: context,
         backgroundColor: Color(0xFF171717),
-        builder: (context) => Wrap(children: [QuestionsBottomSheet()]),
+        builder: (context) => Wrap(children: [ReviewsBottomSheet()]),
       );
     }
   }
@@ -201,7 +201,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
                     onRemove: (index) {
                       ref
                           .read(journalControllerProvider.notifier)
-                          .removeSelectedQuestion(selectedReferences[index]);
+                          .removeSelectedReview(selectedReferences[index]);
                     },
                   )
                   : SizedBox.shrink(),
@@ -212,7 +212,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
       floatingActionButton: ElevatedButton.icon(
         icon: Icon(Icons.menu_book, color: Colors.white),
         label: Text(
-          'AI References',
+          'Reviews',
           style: TextStyle(color: Colors.white, fontFamily: 'AvenirNext'),
         ),
         style: ElevatedButton.styleFrom(

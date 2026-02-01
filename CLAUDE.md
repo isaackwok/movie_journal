@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Flutter movie journal application that allows users to search for movies, view movie details, and create journal entries with emotions, thoughts, and AI-generated questions about watched movies. The app integrates with The Movie Database (TMDB) API and uses Firebase for authentication and data storage.
+This is a Flutter movie journal application that allows users to search for movies, view movie details, and create journal entries with emotions, thoughts, and AI-curated reviews about watched movies. The app integrates with The Movie Database (TMDB) API and uses Firebase for authentication and data storage.
 
 ## Development Commands
 
@@ -60,7 +60,7 @@ The app follows a feature-based architecture where each feature is self-containe
 - **journal/** - Core journaling features with full workflow from movie selection to saving
   - `controllers/` - JournalState (single journal), JournalsState (list of journals)
   - `screens/` - Journaling (main editor), JournalContent (view saved journal), MoviePreview, ThoughtsEditor, CaptionEditor
-  - `widgets/` - EmotionsSelectorButton, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, QuestionsBottomSheet, ThoughtsEditor, PosterPreviewModal, AiReferencesAccordion, JournalContentMoreMenu
+  - `widgets/` - EmotionsSelectorButton, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, ReviewsBottomSheet, ThoughtsEditor, PosterPreviewModal, AiReferencesAccordion, JournalContentMoreMenu
 
 - **movie/** - Movie data management with repository pattern
   - `controllers/` - MovieDetailController, MovieImagesController, SearchMovieController
@@ -80,10 +80,11 @@ The app follows a feature-based architecture where each feature is self-containe
     - **Soothing** (low energy, positive): Heartwarming, Touched, Peaceful, Therapeutic, Nostalgic, Cozy
     - **Quiet** (low energy, negative): Melancholic, Confused, Profound, Bittersweet, Powerless, Lonely
 
-- **quesgen/** - AI question generation service for movie reflection prompts
-  - `controller.dart` - Question generation logic
+- **quesgen/** - AI review fetching service for movie reviews from external sources
+  - `review.dart` - Review data model with `text` and `source` fields (sources: "letterboxd", "reddit")
+  - `controller.dart` - Review generation logic (QuesgenController, QuesgenState)
   - `provider.dart` - Riverpod provider
-  - `api.dart` - API integration for AI-generated questions
+  - `api.dart` - API integration (GET `/generate/{movieId}`) returning `{ reviews: [{ text, source }] }`
 
 - **login/** - Authentication screens and user creation flows
   - `screens/` - LoginScreen, CreateUserScreen
@@ -99,7 +100,7 @@ The app follows a feature-based architecture where each feature is self-containe
 **lib/core/**
 - `network/` - Dio HTTP clients for external APIs
   - `tmdb_dio_client.dart` - The Movie Database API client
-  - `quesgen_dio_client.dart` - AI question generation API client
+  - `quesgen_dio_client.dart` - AI review generation API client
 - `utils/` - Shared utility functions
   - `color_utils.dart` - Color manipulation utilities
 
@@ -132,12 +133,12 @@ Uses **Riverpod** for state management:
 2. **Journal Creation**:
    - Select movie → MoviePreview → Start journaling → Journaling screen
    - Select emotions (EmotionsSelectorBottomSheet) → Select scenes (ScenesSelectSheet) → Write thoughts (ThoughtsEditor)
-   - Optionally generate AI questions (QuestionsBottomSheet via `quesgen_dio_client.dart`)
+   - Optionally fetch AI-curated reviews (ReviewsBottomSheet via `quesgen_dio_client.dart`)
    - Add caption (CaptionEditor) → Save to Firestore (via `FirestoreManager`) with userId
 
 3. **Journal Viewing**:
    - HomeScreen displays JournalsList → Fetch from Firestore by userId
-   - Select journal → JournalContent screen → View emotions, thoughts, scenes, questions
+   - Select journal → JournalContent screen → View emotions, thoughts, scenes, reviews
 
 4. **Authentication**:
    - LoginScreen → Apple/Google Sign-In → Firebase Auth → Store user session
@@ -171,7 +172,7 @@ Uses **Riverpod** for state management:
 
 The app requires a `.env` file in the root directory with:
 - TMDB API key
-- Question generation API endpoint and key
+- Review generation API endpoint and key
 - Other environment-specific configuration
 
 Firebase configuration is in `lib/firebase_options.dart` (auto-generated).
@@ -280,9 +281,9 @@ feature_name/
 - **Key widgets**:
   - `emotions_selector_button.dart` & `emotions_selector_bottom_sheet.dart` - Emotion selection UI
   - `scenes_selector.dart` & `scenes_select_sheet.dart` - Scene selection from movie images
-  - `questions_bottom_sheet.dart` - AI-generated questions display
+  - `reviews_bottom_sheet.dart` - AI-curated reviews display with source badges
   - `poster_preview_modal.dart` - Full-size poster preview modal
-  - `ai_references_accordion.dart` - Expandable AI references section
+  - `ai_references_accordion.dart` - Expandable AI references/reviews section
   - `journal_content_more_menu.dart` - More options menu for saved journals
 - Save to Firestore via `FirestoreManager.addJournalToCollection(userId, journal)`
 

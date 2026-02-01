@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
+import 'package:movie_journal/features/quesgen/review.dart';
 import 'package:movie_journal/firestore_manager.dart';
 import 'package:uuid/uuid.dart';
 
@@ -50,7 +51,7 @@ class JournalState {
   String moviePoster = '';
   List<Emotion> emotions = [];
   List<SceneItem> selectedScenes = [];
-  List<String> selectedRefs = [];
+  List<Review> selectedRefs = [];
   String thoughts = '';
   late Jiffy createdAt;
   late Jiffy updatedAt;
@@ -62,12 +63,13 @@ class JournalState {
     this.moviePoster = '',
     this.emotions = const [],
     this.selectedScenes = const [],
-    this.selectedRefs = const [],
+    List<Review>? selectedRefs,
     this.thoughts = '',
     Jiffy? createdAt,
     Jiffy? updatedAt,
   }) {
     this.id = id ?? Uuid().v4();
+    this.selectedRefs = selectedRefs ?? [];
     this.createdAt = createdAt ?? Jiffy.now();
     this.updatedAt = updatedAt ?? this.createdAt;
   }
@@ -79,7 +81,7 @@ class JournalState {
     String? moviePoster,
     List<Emotion>? emotions,
     List<SceneItem>? selectedScenes,
-    List<String>? selectedRefs,
+    List<Review>? selectedRefs,
     String? thoughts,
     Jiffy? createdAt,
     Jiffy? updatedAt,
@@ -105,7 +107,7 @@ class JournalState {
       'moviePoster': moviePoster,
       'emotions': emotions.map((e) => e.id).toList(),
       'selectedScenes': selectedScenes.map((scene) => scene.toMap()).toList(),
-      'selectedRefs': selectedRefs,
+      'selectedRefs': selectedRefs.map((r) => r.toMap()).toList(),
       'thoughts': thoughts,
       'createdAt': createdAt.toString(),
       'updatedAt': updatedAt.toString(),
@@ -120,7 +122,7 @@ class JournalState {
       'moviePoster': moviePoster,
       'emotions': emotions.map((e) => e.id).toList(),
       'selectedScenes': selectedScenes.map((scene) => scene.toMap()).toList(),
-      'selectedRefs': selectedRefs,
+      'selectedRefs': selectedRefs.map((r) => r.toMap()).toList(),
       'thoughts': thoughts,
       'createdAt': createdAt.toString(),
       'updatedAt': updatedAt.toString(),
@@ -130,6 +132,22 @@ class JournalState {
   static JournalState fromJson(String json) {
     // Decode a given json string and return a JournalState object
     final map = jsonDecode(json);
+
+    // Parse selectedRefs with backward compatibility
+    List<Review> parseSelectedRefs(dynamic refsData) {
+      if (refsData == null) return [];
+
+      final refsList = refsData as List<dynamic>;
+      return refsList.map((item) {
+        if (item is String) {
+          // Backward compatibility: old format was just strings
+          return Review.fromString(item);
+        } else if (item is Map<String, dynamic>) {
+          return Review.fromMap(item);
+        }
+        return Review.fromString(item.toString());
+      }).toList();
+    }
 
     // Parse selectedScenes with backward compatibility
     List<SceneItem> parseSelectedScenes(dynamic scenesData) {
@@ -165,7 +183,7 @@ class JournalState {
             return emotionEntry.value;
           }).toList(),
       selectedScenes: parseSelectedScenes(map['selectedScenes']),
-      selectedRefs: List<String>.from(map['selectedRefs'] ?? []),
+      selectedRefs: parseSelectedRefs(map['selectedRefs']),
       thoughts: map['thoughts'] ?? '',
       createdAt:
           map['createdAt'] != null
@@ -219,8 +237,8 @@ class JournalController extends Notifier<JournalState> {
     return this;
   }
 
-  JournalController setselectedRefs(List<String> questions) {
-    state = state.copyWith(selectedRefs: questions);
+  JournalController setSelectedReviews(List<Review> reviews) {
+    state = state.copyWith(selectedRefs: reviews);
     return this;
   }
 
@@ -236,14 +254,14 @@ class JournalController extends Notifier<JournalState> {
     return this;
   }
 
-  JournalController addSelectedQuestion(String question) {
-    state = state.copyWith(selectedRefs: [...state.selectedRefs, question]);
+  JournalController addSelectedReview(Review review) {
+    state = state.copyWith(selectedRefs: [...state.selectedRefs, review]);
     return this;
   }
 
-  JournalController removeSelectedQuestion(String question) {
+  JournalController removeSelectedReview(Review review) {
     state = state.copyWith(
-      selectedRefs: state.selectedRefs.where((e) => e != question).toList(),
+      selectedRefs: state.selectedRefs.where((e) => e != review).toList(),
     );
     return this;
   }
