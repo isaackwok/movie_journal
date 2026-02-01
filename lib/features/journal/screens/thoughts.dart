@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/widgets/ai_references_accordion.dart';
-import 'package:movie_journal/features/journal/widgets/reviews_bottom_sheet.dart';
-import 'package:movie_journal/features/movie/movie_providers.dart';
-import 'package:movie_journal/features/quesgen/provider.dart';
+import 'package:movie_journal/features/journal/widgets/reviews_floating_button.dart';
 import 'package:movie_journal/shared_widgets/action_text_button.dart';
 
 class ThoughtsScreen extends ConsumerStatefulWidget {
@@ -99,26 +97,6 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
     textPainter.dispose();
   }
 
-  void _onReferencesButtonPressed(BuildContext context) {
-    final movieAsync = ref.read(movieDetailControllerProvider);
-    final movie = movieAsync.hasValue ? movieAsync.value : null;
-    final quesgenState = ref.read(quesgenControllerProvider);
-    if (movie != null && quesgenState.reviews.isEmpty) {
-      ref
-          .read(quesgenControllerProvider.notifier)
-          .generateReviews(movieId: movie.id);
-    }
-    if (context.mounted) {
-      showModalBottomSheet(
-        useSafeArea: true,
-        isScrollControlled: true,
-        context: context,
-        backgroundColor: Color(0xFF171717),
-        builder: (context) => Wrap(children: [ReviewsBottomSheet()]),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final selectedReferences =
@@ -209,52 +187,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
           ),
         ),
       ),
-      floatingActionButton: ElevatedButton.icon(
-        icon: SizedBox(
-          width: 44,
-          child: Stack(
-            children: [
-              Image.asset(
-                'assets/images/reddit_icon.png',
-                width: 24,
-                height: 24,
-                filterQuality: FilterQuality.high,
-              ),
-              Positioned(
-                left: 20,
-                child: Image.asset(
-                  'assets/images/letterboxd_icon.png',
-                  width: 24,
-                  height: 24,
-                  filterQuality: FilterQuality.high,
-                ),
-              ),
-            ],
-          ),
-        ),
-        label: Text(
-          'Reviews',
-          style: TextStyle(color: Colors.white, fontFamily: 'AvenirNext'),
-        ),
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(999),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-          ),
-          overlayColor: Theme.of(context).colorScheme.primary,
-          backgroundColor: Colors.black,
-          side: BorderSide(
-            color: Theme.of(context).colorScheme.primary,
-            width: 1,
-          ),
-        ),
-        onPressed: () => _onReferencesButtonPressed(context),
-      ),
+      floatingActionButton: const ReviewsFloatingButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
