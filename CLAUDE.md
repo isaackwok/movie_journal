@@ -276,15 +276,15 @@ feature_name/
   - `journaling.dart` - Main journal editor with emotion and scene selection
   - `journal_content.dart` - View saved journal with all details
   - `movie_preview.dart` - Movie poster and details preview before journaling
-  - `thoughts.dart` - Dedicated thoughts editor screen
+  - `thoughts.dart` - Dedicated thoughts editor screen with horizontal selected reviews section at the top (scrollable cards + "Add" button) and text input below
   - `caption_editor.dart` - Caption editing screen
 - **Key widgets**:
   - `emotions_selector_button.dart` & `emotions_selector_bottom_sheet.dart` - Emotion selection UI
   - `scenes_selector.dart` & `scenes_select_sheet.dart` - Scene selection from movie images
-  - `review_item.dart` - Reusable review card with source icon (Letterboxd/Reddit) and optional action button. Props: `review` (required), `onPress` (required), `showAction` (default: true), `isSelected` (default: false). Three states: no action button (`showAction: false`), add button (`showAction: true`), selected checkmark (`showAction: true, isSelected: true`)
+  - `review_item.dart` - Reusable review card with source icon (Letterboxd/Reddit) and optional action button. Props: `review` (required), `onPress` (required), `showAction` (default: true), `isSelected` (default: false), `transparent` (default: false). When `transparent: true`, background is transparent with a subtle white border (used in accordion and horizontal scroll contexts). Four visual states: no action button (`showAction: false`), add button (`showAction: true`), selected checkmark (`showAction: true, isSelected: true`), transparent variant (`transparent: true`)
   - `reviews_bottom_sheet.dart` - Scrollable bottom sheet listing AI-curated reviews with add/selected actions
   - `poster_preview_modal.dart` - Full-size poster preview modal
-  - `ai_references_accordion.dart` - Expandable AI references/reviews section
+  - `ai_references_accordion.dart` - Expandable AI references/reviews section using `ReviewItem` with `transparent: true` and `showAction: false`
   - `journal_content_more_menu.dart` - More options menu for saved journals
 - Save to Firestore via `FirestoreManager.addJournalToCollection(userId, journal)`
 
