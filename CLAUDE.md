@@ -382,7 +382,8 @@ test/
 .claude/
 ├── settings.local.json              # Local permissions and hook config (gitignored)
 ├── hooks/
-│   └── pre-commit-test.sh           # Runs flutter test before git commits
+│   ├── pre-commit-test.sh           # Runs flutter test before git commits
+│   └── stop-update-claude-md.sh     # Reminds to update CLAUDE.md after code changes
 └── skills/
     └── journal-data-access/
         ├── SKILL.md                 # Riverpod patterns for journal CRUD
@@ -392,7 +393,8 @@ test/
 
 ### Hooks
 - **pre-commit-test.sh** — A `PreToolUse` hook on the `Bash` tool that intercepts `git commit` commands. Runs `flutter test` before allowing the commit. If tests fail, the commit is blocked with test output shown as the reason. Non-commit Bash commands pass through unaffected.
-- Hook is registered in `settings.local.json` under the `hooks.PreToolUse` key (gitignored, local to each developer)
+- **stop-update-claude-md.sh** — A `Stop` hook that fires when Claude is about to finish responding. Checks if any `.dart`, `.yaml`, or `.json` files were modified (staged, unstaged, or untracked) without a corresponding CLAUDE.md update. If code changed but CLAUDE.md didn't, the hook blocks stopping (exit 2) and lists the changed files, prompting Claude to update CLAUDE.md before finishing. Excludes `.claude/` config files from the check. Once CLAUDE.md is also modified, the hook passes (exit 0) and Claude stops normally.
+- Hooks are registered in `settings.local.json` under the `hooks.PreToolUse` and `hooks.Stop` keys (gitignored, local to each developer)
 
 ### Skills
 - **journal-data-access** — Documents the Riverpod provider architecture for journal data. Covers the three core providers (`journalControllerProvider`, `journalsControllerProvider`, `journalModeProvider`), `ref.watch` vs `ref.read` patterns, CRUD operations, create vs edit mode, and AsyncValue handling. Reference file includes full JournalState fields and Firestore document schema.
