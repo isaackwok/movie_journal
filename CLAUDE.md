@@ -86,6 +86,10 @@ The app follows a feature-based architecture where each feature is self-containe
   - `provider.dart` - Riverpod provider
   - `api.dart` - API integration (GET `/generate/{movieId}`) returning `{ reviews: [{ text, source }] }`
 
+- **share/** - Share ticket feature for saving/sharing movie ticket images
+  - `screens/` - ShareTicketScreen (ticket preview with save-to-gallery)
+  - `widgets/` - FlippableTicket (3D flip animation), TicketFront (poster side), TicketBack (details side), FilmStripClipper (perforation CustomClipper)
+
 - **login/** - Authentication screens and user creation flows
   - `screens/` - LoginScreen, CreateUserScreen
 
@@ -136,6 +140,7 @@ Uses **Riverpod** for state management:
    - Select emotions (EmotionsSelectorBottomSheet) → Select scenes (ScenesSelectSheet) → Write thoughts (ThoughtsEditor)
    - Optionally fetch AI-curated reviews (ReviewsBottomSheet via `quesgen_dio_client.dart`)
    - Add caption (CaptionEditor) → Save to Firestore (via `FirestoreManager`) with userId → JournalCompleteScreen (animated success screen with journal card preview, "Share Ticket" and "View Journal" buttons)
+   - Optional: "Share Ticket" → ShareTicketScreen → flippable movie ticket (poster front / details back with film strip perforations) → "Save Image" captures ticket as PNG via `RepaintBoundary` → saves to gallery via `gal` package
 
 3. **Journal Editing**:
    - JournalContent → More menu → Edit → loads journal into `JournalController`, fetches movie images/details, navigates to `JournalingScreen(editJournalId: id)`
@@ -170,6 +175,7 @@ Uses **Riverpod** for state management:
 - **fluttertoast** (9.0.0) - Toast notifications
 - **uuid** (4.5.1) - Unique ID generation for journal entries
 - **cupertino_icons** (1.0.8) - iOS-style icons
+- **gal** (2.3.0) - Save images/videos to device gallery (used by share ticket feature)
 
 ### Dev Dependencies
 - **flutter_lints** (6.0.0) - Recommended linting rules
@@ -341,7 +347,7 @@ test/
   - `movie_preview.dart` - Movie poster and details preview before journaling
   - `thoughts.dart` - Dedicated thoughts editor screen with horizontal selected reviews section at the top (scrollable cards + "Add" button) and text input below
   - `caption_editor.dart` - Caption editing screen
-  - `journal_complete.dart` - Post-save success screen shown after creating a journal. Displays animated checkmark, "You've saved a journal" message, reuses `JournalCard` from `home/widgets/` (wrapped in `IgnorePointer`), "Share Ticket" button (TODO), and "View Journal" button. Uses staggered animations (`SingleTickerProviderStateMixin` with `Interval` curves) for a cascading reveal effect. Accepts a `JournalState` prop captured before state cleanup.
+  - `journal_complete.dart` - Post-save success screen shown after creating a journal. Displays animated checkmark, "You've saved a journal" message, reuses `JournalCard` from `home/widgets/` (wrapped in `IgnorePointer`), "Share Ticket" button (navigates to `ShareTicketScreen`), and "View Journal" button. Uses staggered animations (`SingleTickerProviderStateMixin` with `Interval` curves) for a cascading reveal effect. Accepts a `JournalState` prop captured before state cleanup.
 - **Key widgets**:
   - `emotions_selector_button.dart` & `emotions_selector_bottom_sheet.dart` - Emotion selection UI
   - `scenes_selector.dart` & `scenes_select_sheet.dart` - Scene selection from movie images
@@ -353,6 +359,18 @@ test/
 - **Create flow**: Save to Firestore via `JournalController.save()` → captures `JournalState` → navigates to `JournalCompleteScreen` (pushAndRemoveUntil, keeps Home) → "View Journal" does `pushReplacement` to `JournalContent` → back returns to Home
 - **Edit flow**: Load via `JournalController.loadJournal()` → edit in `JournalingScreen(editJournalId: id)` → `JournalController.update()` → popUntil home
 - **Mode management**: `journalModeProvider` (`JournalMode.create` / `JournalMode.edit`) — set in `JournalingScreen.initState`, reset in `_cleanupState()`. Widgets like `ThoughtsScreen` read it to conditionally hide edit-inappropriate UI (FAB, Add card)
+
+### Working with Share Ticket
+- Feature lives under `lib/features/share/` with `screens/` and `widgets/` subdirectories
+- **ShareTicketScreen** (`ConsumerStatefulWidget`) accepts a `JournalState` prop, reads movie details from `movieDetailControllerProvider` and images from `movieImagesControllerProvider`
+- **FlippableTicket** wraps front/back widgets with 3D `Matrix4.rotationY` flip animation (600ms, tap to toggle)
+- **TicketFront**: poster image with gradient overlay and title (`GoogleFonts.inriaSerif`)
+- **TicketBack**: cream background with movie details, emotions, date band, B&W scene image
+- **FilmStripClipper**: `CustomClipper<Path>` using `PathFillType.evenOdd` for film perforation holes
+- **Save to gallery**: `RepaintBoundary` → `toImage()` → PNG bytes → `Gal.putImageBytes()` → `CustomToast.showSuccess`
+- **Data extraction**: director from `movie.credits.crew` (job == 'Director'), cast from top 3 `movie.credits.cast`, scene fallback to `movieImages.backdrops.first`
+- **Ticket number**: `journalsControllerProvider.value.journals.length` (total journal count)
+- iOS requires `NSPhotoLibraryAddUsageDescription` in `Info.plist` for gallery save permission
 
 ### Working with Emotions
 - Emotion definitions in `lib/features/emotion/emotion.dart`

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/home/widgets/journal_card.dart';
@@ -34,8 +35,10 @@ void main() {
     });
 
     Widget buildSubject() {
-      return MaterialApp(
-        home: JournalCompleteScreen(journal: journal),
+      return ProviderScope(
+        child: MaterialApp(
+          home: JournalCompleteScreen(journal: journal),
+        ),
       );
     }
 

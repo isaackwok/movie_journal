@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/home/widgets/journal_card.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_content.dart';
+import 'package:movie_journal/features/share/screens/share_ticket_screen.dart';
 
 class JournalCompleteScreen extends StatefulWidget {
   final JournalState journal;
@@ -152,7 +153,13 @@ class _JournalCompleteScreenState extends State<JournalCompleteScreen>
                 opacity: _buttonsFade,
                 child: ElevatedButton(
                   onPressed: () {
-                    // TODO: Implement share ticket
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ShareTicketScreen(journal: widget.journal),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
