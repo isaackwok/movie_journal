@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
-import 'package:movie_journal/features/journal/screens/journal_content.dart';
+import 'package:movie_journal/features/journal/screens/journal_complete.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector_button.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
 import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
@@ -198,19 +198,15 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                                   await ref
                                       .read(journalControllerProvider.notifier)
                                       .save();
-                                  final savedJournalId =
-                                      ref.read(journalControllerProvider).id;
+                                  final savedJournal =
+                                      ref.read(journalControllerProvider);
                                   if (context.mounted) {
-                                    CustomToast.showSuccess(
-                                      context,
-                                      'Your journal has been saved.',
-                                    );
                                     Navigator.pushAndRemoveUntil(
                                       context,
                                       MaterialPageRoute(
                                         builder:
-                                            (context) => JournalContent(
-                                              journalId: savedJournalId,
+                                            (context) => JournalCompleteScreen(
+                                              journal: savedJournal,
                                             ),
                                       ),
                                       (route) => route.isFirst,

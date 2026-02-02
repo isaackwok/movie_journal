@@ -59,7 +59,7 @@ The app follows a feature-based architecture where each feature is self-containe
 
 - **journal/** - Core journaling features with full workflow from movie selection to saving
   - `controllers/` - JournalState (single journal), JournalsState (list of journals), JournalMode enum + JournalModeNotifier (create/edit mode)
-  - `screens/` - Journaling (main editor), JournalContent (view saved journal), MoviePreview, ThoughtsEditor, CaptionEditor
+  - `screens/` - Journaling (main editor), JournalComplete (post-save success screen), JournalContent (view saved journal), MoviePreview, ThoughtsEditor, CaptionEditor
   - `widgets/` - EmotionsSelectorButton, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, ReviewItem, ReviewsBottomSheet, ThoughtsEditor, PosterPreviewModal, AiReferencesAccordion, JournalContentMoreMenu
 
 - **movie/** - Movie data management with repository pattern
@@ -135,7 +135,7 @@ Uses **Riverpod** for state management:
    - Select movie → MoviePreview → Start journaling → Journaling screen
    - Select emotions (EmotionsSelectorBottomSheet) → Select scenes (ScenesSelectSheet) → Write thoughts (ThoughtsEditor)
    - Optionally fetch AI-curated reviews (ReviewsBottomSheet via `quesgen_dio_client.dart`)
-   - Add caption (CaptionEditor) → Save to Firestore (via `FirestoreManager`) with userId
+   - Add caption (CaptionEditor) → Save to Firestore (via `FirestoreManager`) with userId → JournalCompleteScreen (animated success screen with journal card preview, "Share Ticket" and "View Journal" buttons)
 
 3. **Journal Editing**:
    - JournalContent → More menu → Edit → loads journal into `JournalController`, fetches movie images/details, navigates to `JournalingScreen(editJournalId: id)`
@@ -264,10 +264,14 @@ Tests mirror the `lib/features/` structure under `test/features/`:
 test/
 ├── helpers/
 │   ├── test_journal.dart          # makeJournal() factory with sensible defaults
-│   └── test_movie.dart            # makeBriefMovieJson() factory for TMDB JSON fixtures
+│   ├── test_movie.dart            # makeBriefMovieJson() factory for TMDB JSON fixtures
+│   └── fake_http_client.dart      # FakeHttpOverrides for widget tests with Image.network
 ├── features/
-│   ├── journal/controllers/
-│   │   └── journal_test.dart      # JournalState model, SceneItem, JournalController (28 tests)
+│   ├── journal/
+│   │   ├── controllers/
+│   │   │   └── journal_test.dart      # JournalState model, SceneItem, JournalController (28 tests)
+│   │   └── screens/
+│   │       └── journal_complete_test.dart  # JournalCompleteScreen widget tests (10 tests)
 │   ├── movie/
 │   │   ├── data/models/
 │   │   │   ├── brief_movie_test.dart   # BriefMovie.fromJson parsing (5 tests)
@@ -285,18 +289,21 @@ test/
 ### Test Approach
 - **Pure model tests**: Serialization, deserialization, backward compatibility, equality
 - **Controller state tests**: Use `ProviderContainer` to test Riverpod notifiers without Flutter widgets
+- **Widget tests**: Use `testWidgets` with `MaterialApp` wrapper; require `FakeHttpOverrides` for `Image.network` and `GoogleFonts.config.allowRuntimeFetching = false`
 - **Data integrity tests**: Validate emotion list structure (24 emotions, 4 groups, energy levels)
-- No Firebase or API mocking — tests cover models and state mutations only
+- No Firebase or API mocking — tests cover models, state mutations, and widget rendering only
 
 ### Test Helpers
 - `test/helpers/test_journal.dart` — `makeJournal()` factory creates a `JournalState` with defaults (tmdbId: 550, movieTitle: 'Fight Club'). Override any field for specific tests.
 - `test/helpers/test_movie.dart` — `makeBriefMovieJson()` factory creates a TMDB-style JSON map. Override any field for specific tests.
+- `test/helpers/fake_http_client.dart` — `FakeHttpOverrides` that returns a transparent 1x1 PNG for any HTTP GET. Use in `setUpAll` for widget tests that render `Image.network` widgets (e.g., `JournalCard`). Set `HttpOverrides.global = FakeHttpOverrides()` and reset to `null` in `tearDownAll`.
 
 ### Writing New Tests
 - Place tests in `test/features/<feature>/` mirroring the source structure
 - Use test helpers to avoid repeating boilerplate constructors
 - For Riverpod controller tests: create a `ProviderContainer` in `setUp()`, dispose in `tearDown()`
 - For model tests: no special setup needed, just import the model
+- For widget tests: wrap in `MaterialApp`, use `FakeHttpOverrides` for network images, disable `GoogleFonts.config.allowRuntimeFetching`. Use `pumpAndSettle()` after `pumpWidget()` when testing animated widgets. When testing `IgnorePointer`, use `find.byWidgetPredicate((w) => w is IgnorePointer && w.ignoring)` to filter out Flutter's internal `IgnorePointer` widgets.
 
 ### Known Test Findings
 - `SceneItem.copyWith(caption: null)` does not clear an existing caption — `??` operator preserves the old value. Clearing a caption after one was set requires a different approach than passing empty string to `updateSceneCaption()`.
@@ -334,6 +341,7 @@ test/
   - `movie_preview.dart` - Movie poster and details preview before journaling
   - `thoughts.dart` - Dedicated thoughts editor screen with horizontal selected reviews section at the top (scrollable cards + "Add" button) and text input below
   - `caption_editor.dart` - Caption editing screen
+  - `journal_complete.dart` - Post-save success screen shown after creating a journal. Displays animated checkmark, "You've saved a journal" message, reuses `JournalCard` from `home/widgets/` (wrapped in `IgnorePointer`), "Share Ticket" button (TODO), and "View Journal" button. Uses staggered animations (`SingleTickerProviderStateMixin` with `Interval` curves) for a cascading reveal effect. Accepts a `JournalState` prop captured before state cleanup.
 - **Key widgets**:
   - `emotions_selector_button.dart` & `emotions_selector_bottom_sheet.dart` - Emotion selection UI
   - `scenes_selector.dart` & `scenes_select_sheet.dart` - Scene selection from movie images
@@ -342,7 +350,7 @@ test/
   - `poster_preview_modal.dart` - Full-size poster preview modal
   - `ai_references_accordion.dart` - Expandable AI references/reviews section using `ReviewItem` with `transparent: true` and `showAction: false`
   - `journal_content_more_menu.dart` - More options menu for saved journals (edit and delete actions)
-- **Create flow**: Save to Firestore via `JournalController.save()` → navigates to `JournalContent`
+- **Create flow**: Save to Firestore via `JournalController.save()` → captures `JournalState` → navigates to `JournalCompleteScreen` (pushAndRemoveUntil, keeps Home) → "View Journal" does `pushReplacement` to `JournalContent` → back returns to Home
 - **Edit flow**: Load via `JournalController.loadJournal()` → edit in `JournalingScreen(editJournalId: id)` → `JournalController.update()` → popUntil home
 - **Mode management**: `journalModeProvider` (`JournalMode.create` / `JournalMode.edit`) — set in `JournalingScreen.initState`, reset in `_cleanupState()`. Widgets like `ThoughtsScreen` read it to conditionally hide edit-inappropriate UI (FAB, Add card)
 
