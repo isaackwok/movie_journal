@@ -20,7 +20,7 @@ class JournalsList extends ConsumerWidget {
     // sort & group by month & year
     final grouppedJournals = <String, List<JournalState>>{};
     for (var journal in journals) {
-      final month = journal.updatedAt.format(pattern: 'yyyy-MM');
+      final month = journal.createdAt.format(pattern: 'yyyy-MM');
       if (!grouppedJournals.containsKey(month)) {
         grouppedJournals[month] = [];
       }
@@ -36,7 +36,7 @@ class JournalsList extends ConsumerWidget {
       children: [
         ...sortedEntries.map((entry) {
           entry.value.sort(
-            (a, b) => b.updatedAt.dateTime.compareTo(a.updatedAt.dateTime),
+            (a, b) => b.createdAt.dateTime.compareTo(a.createdAt.dateTime),
           );
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
