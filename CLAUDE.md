@@ -176,6 +176,7 @@ Uses **Riverpod** for state management:
 - **uuid** (4.5.1) - Unique ID generation for journal entries
 - **cupertino_icons** (1.0.8) - iOS-style icons
 - **gal** (2.3.0) - Save images/videos to device gallery (used by share ticket feature)
+- **share_plus** (12.0.1) - Native share sheet for sharing files/text (used by share ticket feature)
 
 ### Dev Dependencies
 - **flutter_lints** (6.0.0) - Recommended linting rules
@@ -374,7 +375,8 @@ test/
 - **Save to gallery**: `RepaintBoundary` → `toImage()` → PNG bytes → `Gal.putImageBytes()` (saves to Camera Roll, no custom album) → `CustomToast.showSuccess`
 - **Data extraction**: director from `movie.credits.crew` (job == 'Director'), cast from top 3 `movie.credits.cast`, scene fallback to `movieImages.backdrops.first`
 - **Ticket number**: `journalsControllerProvider.value.journals.length` (total journal count)
-- **Share bottom sheet**: App bar "Share" button opens `showModalBottomSheet` with drag indicator, "Copy text to post on Social" section (hidden when `thoughts` is empty) displaying `journal.thoughts` (maxLines: 10, ellipsis overflow), a "Copy Text" button using `Clipboard.setData()` + `CustomToast.showSuccess`, and an empty "Share Option" section placeholder for future social media integrations
+- **Share bottom sheet**: App bar "Share" button opens `showModalBottomSheet` with drag indicator, "Copy text to post on Social" section (hidden when `thoughts` is empty) displaying `journal.thoughts` (maxLines: 10, ellipsis overflow), a "Copy Text" button using `Clipboard.setData()` + `CustomToast.showSuccess`, and a "Share Option" section with three buttons in a Row: Instagram Story (icon placeholder + "Story" label, onTap TODO), Threads (icon placeholder + "Threads" label, onTap TODO), and Others (three-dot `Icons.more_horiz` icon, no label, opens native share sheet via `SharePlus.instance.share()` with the current ticket side as PNG)
+- **Native share**: `_shareImageNatively()` captures current ticket side via `RepaintBoundary.toImage()`, writes PNG to `Directory.systemTemp`, and shares via `SharePlus.instance.share(ShareParams(files: [...]))`
 - iOS requires `NSPhotoLibraryAddUsageDescription` in `Info.plist` for gallery save permission
 
 ### Working with Emotions

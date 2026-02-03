@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gal/gal.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
@@ -50,7 +52,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
+      builder: (sheetContext) {
         return Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
           child: Column(
@@ -115,7 +117,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                         onTap: () {
                           Clipboard.setData(ClipboardData(text: thoughts));
                           CustomToast.showSuccess(
-                            context,
+                            sheetContext,
                             'Copied to clipboard',
                           );
                         },
@@ -153,12 +155,151 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  // Instagram Story
+                  GestureDetector(
+                    onTap: () {}, // TODO: implement Instagram Story sharing
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.transparent,
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Center(
+                            child: Image.asset(
+                              'assets/images/instagram_logo.png',
+                              width: 48,
+                              height: 48,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Story',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontFamily: 'AvenirNext',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  // Threads
+                  GestureDetector(
+                    onTap: () {}, // TODO: implement Threads sharing
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.transparent,
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Center(
+                            child: Image.asset(
+                              'assets/images/threads_logo.png',
+                              width: 48,
+                              height: 48,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Threads',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontFamily: 'AvenirNext',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  // Others
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(sheetContext).pop();
+                      _shareImageNatively();
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.transparent,
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.more_horiz,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Others',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontFamily: 'AvenirNext',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         );
       },
     );
+  }
+
+  Future<void> _shareImageNatively() async {
+    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
+
+    try {
+      final boundary =
+          _repaintKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
+      if (boundary == null) return;
+
+      final image = await boundary.toImage(pixelRatio: pixelRatio);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) return;
+
+      final bytes = byteData.buffer.asUint8List();
+      final tempDir = Directory.systemTemp;
+      final file = File('${tempDir.path}/movie_ticket_share.png');
+      await file.writeAsBytes(bytes);
+
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+    } catch (e) {
+      debugPrint('Share error: $e');
+    }
   }
 
   Future<void> _saveImage() async {
