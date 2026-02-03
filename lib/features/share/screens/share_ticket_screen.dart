@@ -26,6 +26,19 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
   final _repaintKey = GlobalKey();
   bool _saving = false;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(movieDetailControllerProvider.notifier)
+          .fetchMovieDetails(widget.journal.tmdbId);
+      ref
+          .read(movieImagesControllerProvider.notifier)
+          .getMovieImages(id: widget.journal.tmdbId);
+    });
+  }
+
   Future<void> _saveImage() async {
     if (_saving) return;
     setState(() => _saving = true);
@@ -116,16 +129,8 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
         leading: Padding(
           padding: const EdgeInsets.only(left: 16),
           child: CircledIconButton(
-            icon: Icons.arrow_back,
+            icon: Icons.arrow_back_ios_new,
             onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
-        title: const Text(
-          'Share on Social',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            fontFamily: 'AvenirNext',
           ),
         ),
         centerTitle: true,
@@ -209,7 +214,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.download_rounded,
+                    Icons.download,
                     color: _saving ? Colors.white38 : Colors.white,
                     size: 28,
                   ),

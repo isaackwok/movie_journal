@@ -32,14 +32,6 @@ class TicketBack extends StatelessWidget {
   static const _darkText = Color(0xFF450302);
   static const _borderColor = Color(0xFF450302);
 
-  // Desaturation matrix with slight warm tint
-  static const _grayscaleMatrix = ColorFilter.matrix(<double>[
-    0.2126, 0.7152, 0.0722, 0, 10, // red
-    0.2126, 0.7152, 0.0722, 0, 0, // green
-    0.2126, 0.7152, 0.0722, 0, 0, // blue
-    0, 0, 0, 1, 0, // alpha
-  ]);
-
   @override
   Widget build(BuildContext context) {
     return ClipPath(
@@ -171,8 +163,8 @@ class TicketBack extends StatelessWidget {
                                   ? '--'
                                   : emotions.map((e) => e.name).join(', '),
                               style: GoogleFonts.inriaSans(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
                                 color: _darkText,
                               ),
                               maxLines: 1,
@@ -276,6 +268,8 @@ class TicketBack extends StatelessWidget {
                 ),
               ),
             ),
+
+            const SizedBox(height: 14),
           ],
         ),
       ),

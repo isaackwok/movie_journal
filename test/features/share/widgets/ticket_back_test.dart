@@ -222,15 +222,19 @@ void main() {
         );
       });
 
-      testWidgets('image has grayscale ColorFiltered', (tester) async {
+      testWidgets('image has grayscale ColorFiltered via saturation blend',
+          (tester) async {
         await tester.pumpWidget(buildSubject(scenePath: '/scene.jpg'));
         await tester.pumpAndSettle();
-        expect(
+        final colorFiltered = tester.widget<ColorFiltered>(
           find.ancestor(
             of: find.byType(Image),
             matching: find.byType(ColorFiltered),
           ),
-          findsOneWidget,
+        );
+        expect(
+          colorFiltered.colorFilter,
+          const ColorFilter.mode(Colors.grey, BlendMode.saturation),
         );
       });
     });
