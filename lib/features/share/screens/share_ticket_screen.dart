@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:appinio_social_share/appinio_social_share.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gal/gal.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
@@ -26,6 +28,8 @@ class ShareTicketScreen extends ConsumerStatefulWidget {
 }
 
 class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
+  static const _facebookAppId = '1453372696513556';
+
   final _repaintKey = GlobalKey();
   bool _saving = false;
 
@@ -48,17 +52,23 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (sheetContext) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        return ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(sheetContext).size.height * 0.7,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
               Center(
                 child: Container(
                   width: 36,
@@ -160,7 +170,10 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                 children: [
                   // Instagram Story
                   GestureDetector(
-                    onTap: () {}, // TODO: implement Instagram Story sharing
+                    onTap: () {
+                      Navigator.of(sheetContext).pop();
+                      _shareToInstagramStory();
+                    },
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -197,7 +210,10 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                   const SizedBox(width: 24),
                   // Threads
                   GestureDetector(
-                    onTap: () {}, // TODO: implement Threads sharing
+                    onTap: () {
+                      Navigator.of(sheetContext).pop();
+                      _shareToThreads();
+                    },
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -273,9 +289,86 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
               ),
             ],
           ),
+        ),
+          ),
         );
       },
     );
+  }
+
+  Future<void> _shareToInstagramStory() async {
+    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
+    CustomToast.init(context);
+
+    try {
+      final boundary =
+          _repaintKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
+      if (boundary == null) return;
+
+      final image = await boundary.toImage(pixelRatio: pixelRatio);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) return;
+
+      final bytes = byteData.buffer.asUint8List();
+      final tempDir = Directory.systemTemp;
+      final file = File('${tempDir.path}/movie_ticket_story.png');
+      await file.writeAsBytes(bytes);
+
+      final socialShare = AppinioSocialShare();
+      if (Platform.isIOS) {
+        await socialShare.iOS.shareToInstagramStory(
+          _facebookAppId,
+          stickerImage: file.path,
+        );
+      } else if (Platform.isAndroid) {
+        await socialShare.android.shareToInstagramStory(
+          _facebookAppId,
+          stickerImage: file.path,
+        );
+      }
+    } catch (e) {
+      debugPrint('Instagram Story share error: $e');
+      if (mounted) {
+        CustomToast.showError('Could not open Instagram. Is it installed?');
+      }
+    }
+  }
+
+  Future<void> _shareToThreads() async {
+    CustomToast.init(context);
+
+    try {
+      final text = _composeThreadsText();
+      final uri = Uri.parse(
+        'https://www.threads.net/intent/post?text=${Uri.encodeComponent(text)}',
+      );
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          CustomToast.showError('Could not open Threads. Is it installed?');
+        }
+      }
+    } catch (e) {
+      debugPrint('Threads share error: $e');
+      if (mounted) {
+        CustomToast.showError('Could not open Threads');
+      }
+    }
+  }
+
+  /// Compose the text to share on Threads.
+  /// TODO: Implement your preferred text format (~5-10 lines).
+  String _composeThreadsText() {
+    final journal = widget.journal;
+    // Available data:
+    //   journal.movieTitle  — e.g. "Fight Club"
+    //   journal.thoughts    — the user's written thoughts
+    //   journal.emotions    — List<Emotion> selected by user
+    //   journal.createdAt   — DateTime when journal was created
+    return journal.thoughts;
   }
 
   Future<void> _shareImageNatively() async {

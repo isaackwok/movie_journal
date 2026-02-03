@@ -177,6 +177,8 @@ Uses **Riverpod** for state management:
 - **cupertino_icons** (1.0.8) - iOS-style icons
 - **gal** (2.3.0) - Save images/videos to device gallery (used by share ticket feature)
 - **share_plus** (12.0.1) - Native share sheet for sharing files/text (used by share ticket feature)
+- **appinio_social_share** (0.3.2) - Instagram Story sticker sharing via pasteboard/intent (requires Facebook App ID)
+- **url_launcher** (6.3.1) - Opens URLs externally (used for Threads Web Intent sharing)
 
 ### Dev Dependencies
 - **flutter_lints** (6.0.0) - Recommended linting rules
@@ -375,8 +377,11 @@ test/
 - **Save to gallery**: `RepaintBoundary` → `toImage()` → PNG bytes → `Gal.putImageBytes()` (saves to Camera Roll, no custom album) → `CustomToast.showSuccess`
 - **Data extraction**: director from `movie.credits.crew` (job == 'Director'), cast from top 3 `movie.credits.cast`, scene fallback to `movieImages.backdrops.first`
 - **Ticket number**: `journalsControllerProvider.value.journals.length` (total journal count)
-- **Share bottom sheet**: App bar "Share" button opens `showModalBottomSheet` with drag indicator, "Copy text to post on Social" section (hidden when `thoughts` is empty) displaying `journal.thoughts` (maxLines: 10, ellipsis overflow), a "Copy Text" button using `Clipboard.setData()` + `CustomToast.showSuccess`, and a "Share Option" section with three buttons in a Row: Instagram Story (icon placeholder + "Story" label, onTap TODO), Threads (icon placeholder + "Threads" label, onTap TODO), and Others (three-dot `Icons.more_horiz` icon, no label, opens native share sheet via `SharePlus.instance.share()` with the current ticket side as PNG)
+- **Share bottom sheet**: App bar "Share" button opens `showModalBottomSheet` with drag indicator, "Copy text to post on Social" section (hidden when `thoughts` is empty) displaying `journal.thoughts` (maxLines: 10, ellipsis overflow), a "Copy Text" button using `Clipboard.setData()` + `CustomToast.showSuccess`, and a "Share Option" section with three buttons in a Row: Instagram Story, Threads, and Others
+- **Instagram Story sharing**: `_shareToInstagramStory()` captures ticket via `RepaintBoundary.toImage()`, writes PNG to temp file, calls `AppinioSocialShare().shareToInstagramStory(appId, stickerImage: path)`. Requires Facebook App ID (stored as `_facebookAppId` constant). Shows toast if Instagram not installed.
+- **Threads sharing**: `_shareToThreads()` composes text via `_composeThreadsText()`, opens `https://www.threads.net/intent/post?text={encoded}` via `url_launcher` with `LaunchMode.externalApplication`. Shows toast if Threads not installed.
 - **Native share**: `_shareImageNatively()` captures current ticket side via `RepaintBoundary.toImage()`, writes PNG to `Directory.systemTemp`, and shares via `SharePlus.instance.share(ShareParams(files: [...]))`
+- **Platform config**: iOS `Info.plist` has `LSApplicationQueriesSchemes` for `instagram-stories` and `threads`, plus Facebook App ID in `CFBundleURLSchemes`. Android `AndroidManifest.xml` has `<queries>` for Instagram story intent and Threads URL, plus `FileProvider` config with `filepaths.xml`.
 - iOS requires `NSPhotoLibraryAddUsageDescription` in `Info.plist` for gallery save permission
 
 ### Working with Emotions
