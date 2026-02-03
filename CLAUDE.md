@@ -374,7 +374,7 @@ test/
 - **Save to gallery**: `RepaintBoundary` → `toImage()` → PNG bytes → `Gal.putImageBytes()` (saves to Camera Roll, no custom album) → `CustomToast.showSuccess`
 - **Data extraction**: director from `movie.credits.crew` (job == 'Director'), cast from top 3 `movie.credits.cast`, scene fallback to `movieImages.backdrops.first`
 - **Ticket number**: `journalsControllerProvider.value.journals.length` (total journal count)
-- **Share bottom sheet**: App bar "Share" button opens `showModalBottomSheet` with "Copy text to post on Social" section (hidden when `thoughts` is empty) displaying `journal.thoughts` (maxLines: 10, ellipsis overflow), a "Copy Text" button using `Clipboard.setData()` + `CustomToast.showSuccess`, and an empty "Share Option" section placeholder for future social media integrations
+- **Share bottom sheet**: App bar "Share" button opens `showModalBottomSheet` with drag indicator, "Copy text to post on Social" section (hidden when `thoughts` is empty) displaying `journal.thoughts` (maxLines: 10, ellipsis overflow), a "Copy Text" button using `Clipboard.setData()` + `CustomToast.showSuccess`, and an empty "Share Option" section placeholder for future social media integrations
 - iOS requires `NSPhotoLibraryAddUsageDescription` in `Info.plist` for gallery save permission
 
 ### Working with Emotions

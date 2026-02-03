@@ -52,11 +52,22 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
       ),
       builder: (context) {
         return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
               if (thoughts.isNotEmpty) ...[
                 const Text(
                   'Copy text to post on Social',
@@ -71,8 +82,12 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      width: 1,
+                    ),
                   ),
                   child: Column(
                     children: [
@@ -89,12 +104,20 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: Divider(
+                          height: 1,
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
+                      ),
                       GestureDetector(
                         onTap: () {
                           Clipboard.setData(ClipboardData(text: thoughts));
                           CustomToast.showSuccess(
-                              context, 'Copied to clipboard');
+                            context,
+                            'Copied to clipboard',
+                          );
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -111,6 +134,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 color: Colors.white.withValues(alpha: 0.7),
+                                fontFamily: 'AvenirNext',
                               ),
                             ),
                           ],
