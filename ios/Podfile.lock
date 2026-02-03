@@ -1266,6 +1266,9 @@ PODS:
   - Flutter (1.0.0)
   - fluttertoast (0.0.2):
     - Flutter
+  - gal (1.0.0):
+    - Flutter
+    - FlutterMacOS
   - google_sign_in_ios (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -1421,6 +1424,7 @@ DEPENDENCIES:
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - Flutter (from `Flutter`)
   - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
+  - gal (from `.symlinks/plugins/gal/darwin`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -1463,6 +1467,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   fluttertoast:
     :path: ".symlinks/plugins/fluttertoast/ios"
+  gal:
+    :path: ".symlinks/plugins/gal/darwin"
   google_sign_in_ios:
     :path: ".symlinks/plugins/google_sign_in_ios/darwin"
   path_provider_foundation:
@@ -1490,6 +1496,7 @@ SPEC CHECKSUMS:
   FirebaseSharedSwift: 93426a1de92f19e1199fac5295a4f8df16458daa
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   fluttertoast: 2c67e14dce98bbdb200df9e1acf610d7a6264ea1
+  gal: baecd024ebfd13c441269ca7404792a7152fde89
   google_sign_in_ios: 00dfa94252eb10278b64828c81bcb7158a81a53a
   GoogleSignIn: c7f09cfbc85a1abf69187be091997c317cc33b77
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1

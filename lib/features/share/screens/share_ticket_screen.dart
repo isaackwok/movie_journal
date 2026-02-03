@@ -29,29 +29,39 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
   Future<void> _saveImage() async {
     if (_saving) return;
     setState(() => _saving = true);
+    CustomToast.init(context);
+
+    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
 
     try {
-      final boundary = _repaintKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
+      // Request gallery permission
+      final hasAccess = await Gal.hasAccess();
+      if (!hasAccess) {
+        final granted = await Gal.requestAccess();
+        if (!granted) {
+          if (mounted) {
+            CustomToast.showError('Photo library access denied');
+          }
+          return;
+        }
+      }
+
+      final boundary =
+          _repaintKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) return;
 
-      final image = await boundary.toImage(
-        pixelRatio: MediaQuery.of(context).devicePixelRatio,
-      );
-      final byteData = await image.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
+      final image = await boundary.toImage(pixelRatio: pixelRatio);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData == null) return;
 
-      await Gal.putImageBytes(
-        byteData.buffer.asUint8List(),
-        album: 'Movie Journal',
-      );
+      await Gal.putImageBytes(byteData.buffer.asUint8List());
 
       if (mounted) {
         CustomToast.showSuccess(context, 'Image saved to camera roll');
       }
     } catch (e) {
+      debugPrint('Save image error: $e');
       if (mounted) {
         CustomToast.showError('Failed to save image');
       }
@@ -79,9 +89,9 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
             ?.name ??
         'Unknown';
     final cast =
-        movie?.credits.cast.take(3).map((c) => c.name).join(', ') ?? '';
-    final releaseDate = movie?.releaseDate ?? '';
-    final year = movie?.year ?? '';
+        movie?.credits.cast.take(3).map((c) => c.name).join(', ') ?? '--';
+    final releaseDate = movie?.releaseDate.split('-').join('. ') ?? '--';
+    final year = movie?.year ?? '--';
 
     // Scene path: journal's first scene, or fallback to movie images
     final scenePath =
@@ -121,26 +131,38 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
         centerTitle: true,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: TextButton(
+            padding: const EdgeInsets.only(right: 12),
+            child: ElevatedButton(
               onPressed: () {
                 // Share action placeholder for future implementation
               },
-              style: TextButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+              style: ButtonStyle(
+                shape: WidgetStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                padding: WidgetStateProperty.all(
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
-                textStyle: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'AvenirNext',
+                textStyle: WidgetStateProperty.all(
+                  const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
                 ),
+                overlayColor: WidgetStateProperty.all(
+                  Theme.of(context).colorScheme.primary,
+                ),
+                backgroundColor: WidgetStateProperty.all(Colors.transparent),
+                side: WidgetStateProperty.all(
+                  BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 1,
+                  ),
+                ),
+                foregroundColor: WidgetStateProperty.all(Colors.white),
               ),
               child: const Text('Share'),
             ),
@@ -159,9 +181,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                   child: RepaintBoundary(
                     key: _repaintKey,
                     child: FlippableTicket(
-                      front: TicketFront(
-                        posterPath: journal.moviePoster,
-                      ),
+                      front: TicketFront(posterPath: journal.moviePoster),
                       back: TicketBack(
                         movieTitle: journal.movieTitle,
                         year: year,

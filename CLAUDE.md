@@ -288,8 +288,12 @@ test/
 │   │       └── search_movie_controller_test.dart  # movieIntegrityChecker, state logic (5 tests)
 │   ├── emotion/
 │   │   └── emotion_test.dart      # Emotion data integrity (6 tests)
-│   └── quesgen/
-│       └── review_test.dart       # Review model serialization + equality (5 tests)
+│   ├── quesgen/
+│   │   └── review_test.dart       # Review model serialization + equality (5 tests)
+│   └── share/
+│       └── widgets/
+│           ├── film_strip_clipper_test.dart  # CustomClipper geometry: corner holes, edge perforations, evenOdd fill (23 tests)
+│           └── ticket_back_test.dart         # TicketBack widget: header, title, details, emotions, date/time, scene, layout (22 tests)
 ```
 
 ### Test Approach
@@ -364,10 +368,10 @@ test/
 - Feature lives under `lib/features/share/` with `screens/` and `widgets/` subdirectories
 - **ShareTicketScreen** (`ConsumerStatefulWidget`) accepts a `JournalState` prop, reads movie details from `movieDetailControllerProvider` and images from `movieImagesControllerProvider`
 - **FlippableTicket** wraps front/back widgets with 3D `Matrix4.rotationY` flip animation (600ms, tap to toggle)
-- **TicketFront**: poster image with gradient overlay and title (`GoogleFonts.inriaSerif`)
+- **TicketFront**: poster-only image filling the clipped ticket shape
 - **TicketBack**: cream background with movie details, emotions, date band, B&W scene image
 - **FilmStripClipper**: `CustomClipper<Path>` using `PathFillType.evenOdd` for film perforation holes
-- **Save to gallery**: `RepaintBoundary` → `toImage()` → PNG bytes → `Gal.putImageBytes()` → `CustomToast.showSuccess`
+- **Save to gallery**: `RepaintBoundary` → `toImage()` → PNG bytes → `Gal.putImageBytes()` (saves to Camera Roll, no custom album) → `CustomToast.showSuccess`
 - **Data extraction**: director from `movie.credits.crew` (job == 'Director'), cast from top 3 `movie.credits.cast`, scene fallback to `movieImages.backdrops.first`
 - **Ticket number**: `journalsControllerProvider.value.journals.length` (total journal count)
 - iOS requires `NSPhotoLibraryAddUsageDescription` in `Info.plist` for gallery save permission

@@ -4,11 +4,13 @@ class FilmStripClipper extends CustomClipper<Path> {
   final double holeRadius;
   final double holeSpacing;
   final double cornerRadius;
+  final double cornerHoleRadius;
 
   FilmStripClipper({
     this.holeRadius = 8,
     this.holeSpacing = 28,
-    this.cornerRadius = 16,
+    this.cornerRadius = 0,
+    this.cornerHoleRadius = 16,
   });
 
   @override
@@ -23,6 +25,23 @@ class FilmStripClipper extends CustomClipper<Path> {
       ),
     );
 
+    // Corner holes (quarter-circle notches at each corner)
+    path.addOval(
+      Rect.fromCircle(center: Offset.zero, radius: cornerHoleRadius),
+    );
+    path.addOval(
+      Rect.fromCircle(center: Offset(size.width, 0), radius: cornerHoleRadius),
+    );
+    path.addOval(
+      Rect.fromCircle(center: Offset(0, size.height), radius: cornerHoleRadius),
+    );
+    path.addOval(
+      Rect.fromCircle(
+        center: Offset(size.width, size.height),
+        radius: cornerHoleRadius,
+      ),
+    );
+
     // Perforation holes along top and bottom edges
     final holeCount = ((size.width - holeSpacing) / holeSpacing).floor();
     final startX = (size.width - (holeCount - 1) * holeSpacing) / 2;
@@ -30,9 +49,7 @@ class FilmStripClipper extends CustomClipper<Path> {
     for (int i = 0; i < holeCount; i++) {
       final x = startX + i * holeSpacing;
       // Top edge holes
-      path.addOval(
-        Rect.fromCircle(center: Offset(x, 0), radius: holeRadius),
-      );
+      path.addOval(Rect.fromCircle(center: Offset(x, 0), radius: holeRadius));
       // Bottom edge holes
       path.addOval(
         Rect.fromCircle(center: Offset(x, size.height), radius: holeRadius),
@@ -47,5 +64,6 @@ class FilmStripClipper extends CustomClipper<Path> {
   bool shouldReclip(FilmStripClipper oldClipper) =>
       holeRadius != oldClipper.holeRadius ||
       holeSpacing != oldClipper.holeSpacing ||
-      cornerRadius != oldClipper.cornerRadius;
+      cornerRadius != oldClipper.cornerRadius ||
+      cornerHoleRadius != oldClipper.cornerHoleRadius;
 }
