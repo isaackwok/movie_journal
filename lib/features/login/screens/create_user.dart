@@ -198,7 +198,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'user name',
+                  'Username',
                   style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ),
