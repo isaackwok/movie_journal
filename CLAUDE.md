@@ -54,7 +54,7 @@ flutter pub outdated
 The app follows a feature-based architecture where each feature is self-contained in `lib/features/`:
 
 - **home/** - Main dashboard displaying journal entries list, empty state placeholders, and add movie button
-  - `screens/` - HomeScreen with navigation
+  - `screens/` - HomeScreen with navigation. Empty state renders `EmptyPlaceholder` outside `SingleChildScrollView` (needs bounded height for `LayoutBuilder`); non-empty state wraps `JournalsList` in `SingleChildScrollView`.
   - `widgets/` - JournalCard, JournalsList, EmptyPlaceholder, AddMovieButton
 
 - **journal/** - Core journaling features with full workflow from movie selection to saving
@@ -94,7 +94,7 @@ The app follows a feature-based architecture where each feature is self-containe
   - `screens/` - LoginScreen, CreateUserScreen
 
 - **settings/** - User settings and account management
-  - `screens/` - SettingsScreen (displays username, sign out, delete account options)
+  - `screens/` - SettingsScreen (displays username, sign out, delete account options). Logout and delete flows invalidate journal/username providers to prevent stale data on re-login.
 
 - **toast/** - Toast notification utilities
   - `custom_toast.dart` - Custom toast implementation using fluttertoast
@@ -157,6 +157,7 @@ Uses **Riverpod** for state management:
    - LoginScreen → Apple/Google Sign-In → Firebase Auth → Store user session
    - CreateUserScreen for new users → Set username → Store in Firestore
    - Journals synced by userId field in Firestore documents
+   - **Logout/Delete**: SettingsScreen invalidates `journalsControllerProvider` and `currentUsernameProvider` via `ref.invalidate()` before navigating to HomeScreen, ensuring stale data from the previous user is discarded
 
 ## Key Dependencies
 

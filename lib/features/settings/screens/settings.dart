@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/firebase_manager.dart';
 import 'package:movie_journal/firestore_manager.dart';
+import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
 
@@ -103,7 +104,7 @@ class _AccountSection extends ConsumerWidget {
           // Logout option
           _SettingsItem(
             title: 'Logout',
-            onTap: () => _showLogoutConfirmation(context),
+            onTap: () => _showLogoutConfirmation(context, ref),
           ),
 
           Divider(height: 1, color: Colors.white.withValues(alpha: 0.1)),
@@ -120,7 +121,7 @@ class _AccountSection extends ConsumerWidget {
     );
   }
 
-  void _showLogoutConfirmation(BuildContext context) {
+  void _showLogoutConfirmation(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder:
@@ -138,7 +139,8 @@ class _AccountSection extends ConsumerWidget {
             onCancel: () => Navigator.of(context).pop(),
             onConfirm: () async {
               await FirebaseManager.signOut();
-              // Navigate back to home screen after deletion
+              ref.invalidate(journalsControllerProvider);
+              ref.invalidate(currentUsernameProvider);
               if (context.mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -161,13 +163,13 @@ class _AccountSection extends ConsumerWidget {
             onCancel: () => Navigator.of(context).pop(),
             onConfirm: () async {
               Navigator.of(context).pop();
-              await _deleteAccount(context);
+              await _deleteAccount(context, ref);
             },
           ),
     );
   }
 
-  Future<void> _deleteAccount(BuildContext context) async {
+  Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
     try {
       final firebaseManager = FirebaseManager();
       final userId = firebaseManager.currentUser?.uid;
@@ -180,7 +182,9 @@ class _AccountSection extends ConsumerWidget {
       // Delete Firebase Auth account
       await firebaseManager.deleteAccount();
 
-      // Navigate back to home screen after deletion
+      ref.invalidate(journalsControllerProvider);
+      ref.invalidate(currentUsernameProvider);
+
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const HomeScreen()),
