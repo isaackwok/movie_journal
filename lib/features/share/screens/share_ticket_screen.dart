@@ -448,6 +448,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
     final asyncJournals = ref.watch(journalsControllerProvider);
 
     final journal = widget.journal;
+    final isLoading = asyncMovie.isLoading || asyncImages.isLoading;
 
     // Extract movie details
     final movie = asyncMovie.hasValue ? asyncMovie.value : null;
@@ -494,7 +495,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: ElevatedButton(
-              onPressed: _showShareBottomSheet,
+              onPressed: isLoading ? null : _showShareBottomSheet,
               style: ButtonStyle(
                 shape: WidgetStateProperty.all(
                   RoundedRectangleBorder(
@@ -517,77 +518,85 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                 backgroundColor: WidgetStateProperty.all(Colors.transparent),
                 side: WidgetStateProperty.all(
                   BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: isLoading
+                        ? Colors.white24
+                        : Theme.of(context).colorScheme.primary,
                     width: 1,
                   ),
                 ),
-                foregroundColor: WidgetStateProperty.all(Colors.white),
+                foregroundColor: WidgetStateProperty.all(
+                  isLoading ? Colors.white38 : Colors.white,
+                ),
               ),
               child: const Text('Share'),
             ),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Flippable ticket
-          Expanded(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: AspectRatio(
-                  aspectRatio: 2 / 3,
-                  child: RepaintBoundary(
-                    key: _repaintKey,
-                    child: FlippableTicket(
-                      front: TicketFront(posterPath: journal.moviePoster),
-                      back: TicketBack(
-                        movieTitle: journal.movieTitle,
-                        year: year,
-                        releaseDate: releaseDate,
-                        director: director,
-                        cast: cast,
-                        emotions: journal.emotions,
-                        scenePath: scenePath,
-                        createdAt: journal.createdAt,
-                        ticketNumber: ticketNumber,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                // Flippable ticket
+                Expanded(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: AspectRatio(
+                        aspectRatio: 2 / 3,
+                        child: RepaintBoundary(
+                          key: _repaintKey,
+                          child: FlippableTicket(
+                            front: TicketFront(
+                              posterPath: journal.moviePoster,
+                            ),
+                            back: TicketBack(
+                              movieTitle: journal.movieTitle,
+                              year: year,
+                              releaseDate: releaseDate,
+                              director: director,
+                              cast: cast,
+                              emotions: journal.emotions,
+                              scenePath: scenePath,
+                              createdAt: journal.createdAt,
+                              ticketNumber: ticketNumber,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          ),
 
-          // Save Image button
-          Padding(
-            padding: const EdgeInsets.only(bottom: 48),
-            child: GestureDetector(
-              onTap: _saving ? null : _saveImage,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.download,
-                    color: _saving ? Colors.white38 : Colors.white,
-                    size: 28,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Save Image',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: 'AvenirNext',
-                      color: _saving ? Colors.white38 : Colors.white,
+                // Save Image button
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 48),
+                  child: GestureDetector(
+                    onTap: _saving ? null : _saveImage,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.download,
+                          color: _saving ? Colors.white38 : Colors.white,
+                          size: 28,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Save Image',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'AvenirNext',
+                            color: _saving ? Colors.white38 : Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }
