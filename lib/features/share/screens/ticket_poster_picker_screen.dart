@@ -21,7 +21,7 @@ class _TicketPosterPickerScreenState
   static const _languageTabs = [
     ('Original Language', null),
     ('English', 'en'),
-    ('繁體中文', 'zh'),
+    ('繁體中文', 'zh-TW'),
     ('日本語', 'ja'),
   ];
 
