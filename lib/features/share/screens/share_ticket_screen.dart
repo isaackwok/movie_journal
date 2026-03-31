@@ -544,9 +544,24 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                     child: Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: AspectRatio(
-                          aspectRatio: 2 / 3,
-                          child: RepaintBoundary(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Tap to Flip label
+                            Text(
+                              'Tap to Flip',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'AvenirNext',
+                                color: Colors.white.withAlpha(153),
+                              ),
+                            ),
+                            const SizedBox(height: 30),
+                            Flexible(
+                              child: AspectRatio(
+                                aspectRatio: 2 / 3,
+                                child: RepaintBoundary(
                             key: _repaintKey,
                             child: FlippableTicket(
                               front: TicketFront(
@@ -565,6 +580,11 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                               ),
                             ),
                           ),
+                        ),
+                            ),
+                            // Counterbalance text + gap so ticket stays centered
+                            const SizedBox(height: 30 + 20),
+                          ],
                         ),
                       ),
                     ),

@@ -371,6 +371,7 @@ test/
 ### Working with Share Ticket
 - Feature lives under `lib/features/share/` with `screens/` and `widgets/` subdirectories
 - **ShareTicketScreen** (`ConsumerStatefulWidget`) accepts a `JournalState` prop, reads movie details from `movieDetailControllerProvider` and images from `movieImagesControllerProvider`. Shows a centered `CircularProgressIndicator` while either provider is loading (`isLoading`), hiding the ticket and save button and disabling the share button. Once both APIs complete, renders the ticket and enables all actions.
+- **"Tap to Flip" label** displayed above the ticket (Avenir Next demi-bold, 16px, white)
 - **FlippableTicket** wraps front/back widgets with 3D `Matrix4.rotationY` flip animation (600ms, tap to toggle)
 - **TicketFront**: poster-only image filling the clipped ticket shape
 - **TicketBack**: cream background with movie details, emotions, date band, B&W scene image
