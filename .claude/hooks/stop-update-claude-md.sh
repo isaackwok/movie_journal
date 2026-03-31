@@ -28,9 +28,9 @@ claude_md_changed=$(
 )
 
 if [[ -n "$code_changes" && -z "$claude_md_changed" ]]; then
-  echo "Code files were modified but CLAUDE.md has not been updated."
-  echo "Please update CLAUDE.md to reflect these changes:"
-  echo "$code_changes" | sed 's/^/  /'
+  echo "Code files were modified but CLAUDE.md has not been updated." >&2
+  echo "Please update CLAUDE.md to reflect these changes:" >&2
+  echo "$code_changes" | sed 's/^/  /' >&2
   exit 2
 fi
 

@@ -48,17 +48,17 @@ done <<< "$source_changes"
 
 # Only block when existing tests weren't updated alongside their source
 if [[ ${#stale_tests[@]} -gt 0 ]]; then
-  echo "Source files changed but their existing tests were not updated:"
-  printf '%s\n' "${stale_tests[@]}"
+  echo "Source files changed but their existing tests were not updated:" >&2
+  printf '%s\n' "${stale_tests[@]}" >&2
 
   if [[ ${#missing_tests[@]} -gt 0 ]]; then
-    echo ""
-    echo "These source files have no test file yet (consider adding tests):"
-    printf '%s\n' "${missing_tests[@]}"
+    echo "" >&2
+    echo "These source files have no test file yet (consider adding tests):" >&2
+    printf '%s\n' "${missing_tests[@]}" >&2
   fi
 
-  echo ""
-  echo "Please add, remove, or adjust the corresponding unit tests."
+  echo "" >&2
+  echo "Please add, remove, or adjust the corresponding unit tests." >&2
   exit 2
 fi
 

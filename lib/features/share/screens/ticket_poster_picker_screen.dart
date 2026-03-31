@@ -25,9 +25,14 @@ class _TicketPosterPickerScreenState
     ('日本語', 'ja'),
   ];
 
+  final List<GlobalKey> _tabKeys = List.generate(
+    _languageTabs.length,
+    (_) => GlobalKey(),
+  );
+
   int _selectedTabIndex = 0;
   String? _selectedPosterPath;
-  bool _loading = false;
+  bool _loading = true;
 
   /// Cache of fetched posters per language code.
   final Map<String, List<MovieImage>> _posterCache = {};
@@ -106,6 +111,19 @@ class _TicketPosterPickerScreenState
       _selectedPosterPath = null;
     });
     _fetchPostersForTab(index);
+
+    // Animate the selected tab into the viewport
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final keyContext = _tabKeys[index].currentContext;
+      if (keyContext != null) {
+        Scrollable.ensureVisible(
+          keyContext,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: 0.5,
+        );
+      }
+    });
   }
 
   void _onPosterSelected(String path) {
@@ -155,19 +173,41 @@ class _TicketPosterPickerScreenState
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
-            child: TextButton(
+            child: ElevatedButton(
               onPressed: _selectedPosterPath != null ? _onNext : null,
-              child: Text(
-                'Next',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'AvenirNext',
-                  color: _selectedPosterPath != null
-                      ? Colors.white
-                      : Colors.white38,
+              style: ButtonStyle(
+                shape: WidgetStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                padding: WidgetStateProperty.all(
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                textStyle: WidgetStateProperty.all(
+                  const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+                overlayColor: WidgetStateProperty.all(
+                  Theme.of(context).colorScheme.primary,
+                ),
+                backgroundColor: WidgetStateProperty.all(Colors.transparent),
+                side: WidgetStateProperty.all(
+                  BorderSide(
+                    color: _selectedPosterPath != null
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.white24,
+                    width: 1,
+                  ),
+                ),
+                foregroundColor: WidgetStateProperty.all(
+                  _selectedPosterPath != null ? Colors.white : Colors.white38,
                 ),
               ),
+              child: const Text('Next'),
             ),
           ),
         ],
@@ -185,6 +225,7 @@ class _TicketPosterPickerScreenState
               itemBuilder: (context, index) {
                 final isSelected = index == _selectedTabIndex;
                 return GestureDetector(
+                  key: _tabKeys[index],
                   onTap: () => _onTabSelected(index),
                   child: Center(
                     child: Container(
@@ -249,36 +290,43 @@ class _TicketPosterPickerScreenState
                               poster.filePath == _selectedPosterPath;
                           return GestureDetector(
                             onTap: () => _onPosterSelected(poster.filePath),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                border: isSelected
-                                    ? Border.all(
-                                        color: Colors.white,
-                                        width: 3,
-                                      )
-                                    : null,
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                  isSelected ? 9 : 12,
-                                ),
-                                child: Image.network(
-                                  'https://image.tmdb.org/t/p/w500${poster.filePath}',
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Container(
-                                    color: const Color(0xFF2C2C2E),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.movie,
-                                        color: Colors.white54,
-                                        size: 48,
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.network(
+                                      'https://image.tmdb.org/t/p/w500${poster.filePath}',
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Container(
+                                        color: const Color(0xFF2C2C2E),
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.movie,
+                                            color: Colors.white54,
+                                            size: 48,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
+                                if (isSelected)
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           );
                         },
