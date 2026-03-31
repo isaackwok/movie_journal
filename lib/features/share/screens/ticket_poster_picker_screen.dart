@@ -108,7 +108,6 @@ class _TicketPosterPickerScreenState
     if (index == _selectedTabIndex) return;
     setState(() {
       _selectedTabIndex = index;
-      _selectedPosterPath = null;
     });
     _fetchPostersForTab(index);
 
