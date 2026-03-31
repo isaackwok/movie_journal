@@ -30,6 +30,8 @@ class _TicketPosterPickerScreenState
     (_) => GlobalKey(),
   );
 
+  late final PageController _pageController;
+
   int _selectedTabIndex = 0;
   String? _selectedPosterPath;
   bool _loading = true;
@@ -42,9 +44,25 @@ class _TicketPosterPickerScreenState
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
+    _pageController.addListener(_onPageScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initAndFetch();
     });
+  }
+
+  @override
+  void dispose() {
+    _pageController.removeListener(_onPageScroll);
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onPageScroll() {
+    final page = _pageController.page?.round() ?? 0;
+    if (page != _selectedTabIndex) {
+      _onTabSelected(page);
+    }
   }
 
   Future<void> _initAndFetch() async {
@@ -111,6 +129,15 @@ class _TicketPosterPickerScreenState
     });
     _fetchPostersForTab(index);
 
+    // Sync PageView with tab selection
+    if (_pageController.hasClients && _pageController.page?.round() != index) {
+      _pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+
     // Animate the selected tab into the viewport
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final keyContext = _tabKeys[index].currentContext;
@@ -143,9 +170,6 @@ class _TicketPosterPickerScreenState
 
   @override
   Widget build(BuildContext context) {
-    final langCode = _languageCodeForTab(_selectedTabIndex);
-    final posters = _posterCache[langCode] ?? [];
-
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -233,12 +257,14 @@ class _TicketPosterPickerScreenState
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: isSelected ? Colors.white : Colors.transparent,
+                        color: isSelected
+                            ? Colors.white.withAlpha(179) // 70%
+                            : Colors.white.withAlpha(38), // 15%
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isSelected
-                              ? Colors.white
-                              : Colors.white.withAlpha(77),
+                              ? Colors.white.withAlpha(230) // 90%
+                              : Colors.transparent,
                         ),
                       ),
                       child: Text(
@@ -258,78 +284,93 @@ class _TicketPosterPickerScreenState
           ),
           const SizedBox(height: 16),
 
-          // Poster grid
+          // Poster grid pages
           Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : posters.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No posters available',
-                          style: TextStyle(
-                            color: Colors.white.withAlpha(128),
-                            fontSize: 14,
-                            fontFamily: 'AvenirNext',
-                          ),
-                        ),
-                      )
-                    : GridView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 2 / 3,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
-                        itemCount: posters.length,
-                        itemBuilder: (context, index) {
-                          final poster = posters[index];
-                          final isSelected =
-                              poster.filePath == _selectedPosterPath;
-                          return GestureDetector(
-                            onTap: () => _onPosterSelected(poster.filePath),
-                            child: Stack(
-                              children: [
-                                Positioned.fill(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      'https://image.tmdb.org/t/p/w500${poster.filePath}',
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              Container(
-                                        color: const Color(0xFF2C2C2E),
-                                        child: const Center(
-                                          child: Icon(
-                                            Icons.movie,
-                                            color: Colors.white54,
-                                            size: 48,
-                                          ),
-                                        ),
-                                      ),
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: _languageTabs.length,
+              itemBuilder: (context, pageIndex) {
+                final langCode = _languageCodeForTab(pageIndex);
+                final pagePosters = _posterCache[langCode] ?? [];
+                final isCurrentPage = pageIndex == _selectedTabIndex;
+                final isPageLoading = isCurrentPage && _loading;
+
+                if (isPageLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (pagePosters.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No posters available',
+                      style: TextStyle(
+                        color: Colors.white.withAlpha(128),
+                        fontSize: 14,
+                        fontFamily: 'AvenirNext',
+                      ),
+                    ),
+                  );
+                }
+
+                return GridView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 2 / 3,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  itemCount: pagePosters.length,
+                  itemBuilder: (context, index) {
+                    final poster = pagePosters[index];
+                    final isSelected =
+                        poster.filePath == _selectedPosterPath;
+                    return GestureDetector(
+                      onTap: () => _onPosterSelected(poster.filePath),
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                'https://image.tmdb.org/t/p/w500${poster.filePath}',
+                                fit: BoxFit.cover,
+                                errorBuilder:
+                                    (context, error, stackTrace) =>
+                                        Container(
+                                  color: const Color(0xFF2C2C2E),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.movie,
+                                      color: Colors.white54,
+                                      size: 48,
                                     ),
                                   ),
                                 ),
-                                if (isSelected)
-                                  Positioned.fill(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Colors.white,
-                                          width: 3,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
+                              ),
                             ),
-                          );
-                        },
+                          ),
+                          if (isSelected)
+                            Positioned.fill(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius:
+                                      BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
