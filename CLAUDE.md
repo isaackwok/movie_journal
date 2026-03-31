@@ -382,8 +382,9 @@ test/
 - **Instagram Story sharing**: `_shareToInstagramStory()` captures ticket via `RepaintBoundary.toImage()`, writes PNG to temp file, calls `AppinioSocialShare().shareToInstagramStory(appId, stickerImage: path)`. Requires Facebook App ID (stored as `_facebookAppId` constant). Shows toast if Instagram not installed.
 - **Threads sharing**: `_shareToThreads()` composes text via `_composeThreadsText()`, opens `https://www.threads.net/intent/post?text={encoded}` via `url_launcher` with `LaunchMode.externalApplication`. Shows toast if Threads not installed.
 - **Native share**: `_shareImageNatively()` captures current ticket side via `RepaintBoundary.toImage()`, writes PNG to `Directory.systemTemp`, and shares via `SharePlus.instance.share(ShareParams(files: [...]))`
-- **Platform config**: iOS `Info.plist` has `LSApplicationQueriesSchemes` for `instagram-stories` and `threads`, plus Facebook App ID in `CFBundleURLSchemes`. Android `AndroidManifest.xml` has `<queries>` for Instagram story intent and Threads URL, plus `FileProvider` config with `filepaths.xml`.
+- **Platform config**: iOS `Info.plist` has `LSApplicationQueriesSchemes` for `instagram-stories` and `threads`, plus Facebook App ID in `CFBundleURLSchemes`, and `UIApplicationSceneManifest` for Flutter scene lifecycle. Android `AndroidManifest.xml` has `<queries>` for Instagram story intent and Threads URL, plus `FileProvider` config with `filepaths.xml`.
 - iOS requires `NSPhotoLibraryAddUsageDescription` in `Info.plist` for gallery save permission
+- **iOS engine lifecycle**: `AppDelegate.swift` uses `FlutterImplicitEngineDelegate` protocol — plugin registration happens in `didInitializeImplicitFlutterEngine` instead of `application:didFinishLaunchingWithOptions`
 
 ### Working with Emotions
 - Emotion definitions in `lib/features/emotion/emotion.dart`

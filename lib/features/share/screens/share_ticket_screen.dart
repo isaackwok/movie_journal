@@ -69,83 +69,216 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              if (thoughts.isNotEmpty) ...[
-                const Text(
-                  'Copy text to post on Social',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      width: 1,
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        child: Text(
-                          thoughts,
-                          maxLines: 10,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14,
-                            height: 1.5,
-                            color: Colors.white.withValues(alpha: 0.7),
-                          ),
-                        ),
+                  const SizedBox(height: 20),
+                  if (thoughts.isNotEmpty) ...[
+                    const Text(
+                      'Copy text to post on Social',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        child: Divider(
-                          height: 1,
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
                           color: Colors.white.withValues(alpha: 0.1),
+                          width: 1,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: thoughts));
-                          CustomToast.showSuccess(
-                            sheetContext,
-                            'Copied to clipboard',
-                          );
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.copy,
-                              size: 16,
-                              color: Colors.white.withValues(alpha: 0.7),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Copy Text',
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: Text(
+                              thoughts,
+                              maxLines: 10,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                                height: 1.5,
                                 color: Colors.white.withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            child: Divider(
+                              height: 1,
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: thoughts));
+                              CustomToast.showSuccess(
+                                sheetContext,
+                                'Copied to clipboard',
+                              );
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.copy,
+                                  size: 16,
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Copy Text',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white.withValues(alpha: 0.7),
+                                    fontFamily: 'AvenirNext',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                  const Text(
+                    'Share Option',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      // Instagram Story
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          _shareToInstagramStory();
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.transparent,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              child: Center(
+                                child: Image.asset(
+                                  'assets/images/instagram_logo.png',
+                                  width: 48,
+                                  height: 48,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Story',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontFamily: 'AvenirNext',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      // Threads
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          _shareToThreads();
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.transparent,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              child: Center(
+                                child: Image.asset(
+                                  'assets/images/threads_logo.png',
+                                  width: 48,
+                                  height: 48,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Threads',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontFamily: 'AvenirNext',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      // Others
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          _shareImageNatively();
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.transparent,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.more_horiz,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Others',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
                                 fontFamily: 'AvenirNext',
                               ),
                             ),
@@ -154,142 +287,9 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 24),
-              ],
-              const Text(
-                'Share Option',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  // Instagram Story
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      _shareToInstagramStory();
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.transparent,
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Center(
-                            child: Image.asset(
-                              'assets/images/instagram_logo.png',
-                              width: 48,
-                              height: 48,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Story',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontFamily: 'AvenirNext',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  // Threads
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      _shareToThreads();
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.transparent,
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Center(
-                            child: Image.asset(
-                              'assets/images/threads_logo.png',
-                              width: 48,
-                              height: 48,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Threads',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontFamily: 'AvenirNext',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  // Others
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      _shareImageNatively();
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.transparent,
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.more_horiz,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Others',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontFamily: 'AvenirNext',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
-            ],
-          ),
-        ),
+            ),
           ),
         );
       },
@@ -518,9 +518,10 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                 backgroundColor: WidgetStateProperty.all(Colors.transparent),
                 side: WidgetStateProperty.all(
                   BorderSide(
-                    color: isLoading
-                        ? Colors.white24
-                        : Theme.of(context).colorScheme.primary,
+                    color:
+                        isLoading
+                            ? Colors.white24
+                            : Theme.of(context).colorScheme.primary,
                     width: 1,
                   ),
                 ),
@@ -533,70 +534,71 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // Flippable ticket
-                Expanded(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: AspectRatio(
-                        aspectRatio: 2 / 3,
-                        child: RepaintBoundary(
-                          key: _repaintKey,
-                          child: FlippableTicket(
-                            front: TicketFront(
-                              posterPath: journal.moviePoster,
-                            ),
-                            back: TicketBack(
-                              movieTitle: journal.movieTitle,
-                              year: year,
-                              releaseDate: releaseDate,
-                              director: director,
-                              cast: cast,
-                              emotions: journal.emotions,
-                              scenePath: scenePath,
-                              createdAt: journal.createdAt,
-                              ticketNumber: ticketNumber,
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                children: [
+                  // Flippable ticket
+                  Expanded(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: AspectRatio(
+                          aspectRatio: 2 / 3,
+                          child: RepaintBoundary(
+                            key: _repaintKey,
+                            child: FlippableTicket(
+                              front: TicketFront(
+                                posterPath: journal.moviePoster,
+                              ),
+                              back: TicketBack(
+                                movieTitle: journal.movieTitle,
+                                year: year,
+                                releaseDate: releaseDate,
+                                director: director,
+                                cast: cast,
+                                emotions: journal.emotions,
+                                scenePath: scenePath,
+                                createdAt: journal.createdAt,
+                                ticketNumber: ticketNumber,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
 
-                // Save Image button
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 48),
-                  child: GestureDetector(
-                    onTap: _saving ? null : _saveImage,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.download,
-                          color: _saving ? Colors.white38 : Colors.white,
-                          size: 28,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Save Image',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: 'AvenirNext',
+                  // Save Image button
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 48),
+                    child: GestureDetector(
+                      onTap: _saving ? null : _saveImage,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.download,
                             color: _saving ? Colors.white38 : Colors.white,
+                            size: 28,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 4),
+                          Text(
+                            'Save Image',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: 'AvenirNext',
+                              color: _saving ? Colors.white38 : Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
     );
   }
 }
