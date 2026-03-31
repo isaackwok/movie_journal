@@ -6,7 +6,7 @@ import 'package:movie_journal/features/journal/widgets/ai_references_accordion.d
 import 'package:movie_journal/features/journal/widgets/emotions_selector_button.dart';
 import 'package:movie_journal/features/journal/widgets/journal_content_more_menu.dart';
 import 'package:movie_journal/features/journal/widgets/scene_card.dart';
-import 'package:movie_journal/features/share/screens/share_ticket_screen.dart';
+import 'package:movie_journal/features/share/screens/ticket_poster_picker_screen.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 
 class JournalContent extends ConsumerStatefulWidget {
@@ -86,7 +86,7 @@ class _JournalContentState extends ConsumerState<JournalContent> {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => ShareTicketScreen(journal: journal),
+                      builder: (_) => TicketPosterPickerScreen(journal: journal),
                     ),
                   );
                 },

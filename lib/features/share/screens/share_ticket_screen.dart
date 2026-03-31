@@ -20,8 +20,9 @@ import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 
 class ShareTicketScreen extends ConsumerStatefulWidget {
   final JournalState journal;
+  final String? posterPath;
 
-  const ShareTicketScreen({super.key, required this.journal});
+  const ShareTicketScreen({super.key, required this.journal, this.posterPath});
 
   @override
   ConsumerState<ShareTicketScreen> createState() => _ShareTicketScreenState();
@@ -565,7 +566,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                             key: _repaintKey,
                             child: FlippableTicket(
                               front: TicketFront(
-                                posterPath: journal.moviePoster,
+                                posterPath: widget.posterPath ?? journal.moviePoster,
                               ),
                               back: TicketBack(
                                 movieTitle: journal.movieTitle,
