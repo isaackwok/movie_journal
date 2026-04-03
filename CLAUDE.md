@@ -157,7 +157,7 @@ Uses **Riverpod** for state management:
    - LoginScreen → Apple/Google Sign-In → Firebase Auth → Store user session
    - CreateUserScreen for new users → Set username → Store in Firestore
    - Journals synced by userId field in Firestore documents
-   - **Logout/Delete**: SettingsScreen invalidates `journalsControllerProvider` and `currentUsernameProvider` via `ref.invalidate()` before navigating to HomeScreen, ensuring stale data from the previous user is discarded
+   - **Logout/Delete**: SettingsScreen invalidates `journalsControllerProvider` and `currentUsernameProvider` via `ref.invalidate()` before navigating to HomeScreen via `pushAndRemoveUntil`, ensuring stale data from the previous user is discarded. Both flows use `pushAndRemoveUntil` to clear the entire navigation stack (including any open dialogs) — avoid popping dialogs before calling the delete/logout handler, as `showDialog`'s `builder: (context)` shadows the outer `BuildContext` and popping unmounts the dialog context
 
 ## Key Dependencies
 

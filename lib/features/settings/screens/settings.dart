@@ -162,7 +162,6 @@ class _AccountSection extends ConsumerWidget {
             confirmText: 'Delete',
             onCancel: () => Navigator.of(context).pop(),
             onConfirm: () async {
-              Navigator.of(context).pop();
               await _deleteAccount(context, ref);
             },
           ),
