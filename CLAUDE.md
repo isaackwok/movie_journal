@@ -277,14 +277,23 @@ test/
 │   ├── test_movie.dart            # makeBriefMovieJson() factory for TMDB JSON fixtures
 │   └── fake_http_client.dart      # FakeHttpOverrides for widget tests with Image.network
 ├── features/
+│   ├── home/
+│   │   └── widgets/
+│   │       └── journal_card_test.dart     # JournalCard widget: poster, title, date, styling (7 tests)
 │   ├── journal/
 │   │   ├── controllers/
-│   │   │   └── journal_test.dart      # JournalState model, SceneItem, JournalController (28 tests)
-│   │   └── screens/
-│   │       └── journal_complete_test.dart  # JournalCompleteScreen widget tests (10 tests)
+│   │   │   ├── journal_test.dart      # JournalState model, SceneItem, JournalController (28 tests)
+│   │   │   └── journals_test.dart     # JournalsState copyWith (4 tests)
+│   │   ├── screens/
+│   │   │   └── journal_complete_test.dart  # JournalCompleteScreen widget tests (10 tests)
+│   │   └── widgets/
+│   │       ├── emotions_selector_bottom_sheet_test.dart  # Multi-select, max limit, selection/deselection, Done/cancel (18 tests)
+│   │       ├── emotions_selector_button_test.dart  # Energy gradients, text formatting, readonly mode (13 tests)
+│   │       └── review_item_test.dart  # ReviewItem: 4 visual states, interaction, transparent variant (13 tests)
 │   ├── movie/
 │   │   ├── data/models/
 │   │   │   ├── brief_movie_test.dart   # BriefMovie.fromJson parsing (5 tests)
+│   │   │   ├── detailed_movie_test.dart # DetailedMovie + nested types fromJson (25 tests)
 │   │   │   └── movie_image_test.dart   # MovieImage.fromJson parsing (1 test)
 │   │   ├── data/data_sources/
 │   │   │   └── movie_api_test.dart     # MovieListResponse.fromJson (2 tests)
@@ -297,7 +306,9 @@ test/
 │   └── share/
 │       └── widgets/
 │           ├── film_strip_clipper_test.dart  # CustomClipper geometry: corner holes, edge perforations, evenOdd fill (23 tests)
-│           └── ticket_back_test.dart         # TicketBack widget: header, title, details, emotions, date/time, scene, layout (22 tests)
+│           ├── flippable_ticket_test.dart     # FlippableTicket: tap to flip, front/back switching, animation midpoint (7 tests)
+│           ├── ticket_back_test.dart         # TicketBack widget: header, title, details, emotions, date/time, scene, layout (22 tests)
+│           └── ticket_front_test.dart        # TicketFront widget: ClipPath, TMDB URL, error fallback (4 tests)
 ```
 
 ### Test Approach
@@ -309,7 +320,7 @@ test/
 
 ### Test Helpers
 - `test/helpers/test_journal.dart` — `makeJournal()` factory creates a `JournalState` with defaults (tmdbId: 550, movieTitle: 'Fight Club'). Override any field for specific tests.
-- `test/helpers/test_movie.dart` — `makeBriefMovieJson()` factory creates a TMDB-style JSON map. Override any field for specific tests.
+- `test/helpers/test_movie.dart` — `makeBriefMovieJson()`, `makeDetailedMovieJson()`, `makeCastJson()`, `makeCrewJson()` factories create TMDB-style JSON maps. Override any field for specific tests.
 - `test/helpers/fake_http_client.dart` — `FakeHttpOverrides` that returns a transparent 1x1 PNG for any HTTP GET. Use in `setUpAll` for widget tests that render `Image.network` widgets (e.g., `JournalCard`). Set `HttpOverrides.global = FakeHttpOverrides()` and reset to `null` in `tearDownAll`.
 
 ### Writing New Tests
