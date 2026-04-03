@@ -60,10 +60,10 @@ void main() {
 
   group('TicketBack', () {
     group('header', () {
-      testWidgets('renders ORIGINAL MOVIE TICKET text', (tester) async {
+      testWidgets('renders FINK MOVIE JOURNAL text', (tester) async {
         await tester.pumpWidget(buildSubject());
         await tester.pumpAndSettle();
-        expect(find.text('ORIGINAL MOVIE TICKET'), findsOneWidget);
+        expect(find.text('FINK MOVIE JOURNAL'), findsOneWidget);
       });
 
       testWidgets('renders ticket number', (tester) async {

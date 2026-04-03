@@ -376,11 +376,11 @@ test/
 - **"Tap to Flip" label** displayed above the ticket (Avenir Next demi-bold, 16px, white)
 - **FlippableTicket** wraps front/back widgets with 3D `Matrix4.rotationY` flip animation (600ms, tap to toggle)
 - **TicketFront**: poster-only image filling the clipped ticket shape
-- **TicketBack**: cream background with movie details, emotions, date band, B&W scene image
+- **TicketBack**: cream background with "FINK MOVIE JOURNAL" header, movie details, emotions, date band, B&W scene image
 - **FilmStripClipper**: `CustomClipper<Path>` using `PathFillType.evenOdd` for film perforation holes
 - **Save to gallery**: `RepaintBoundary` → `toImage()` → PNG bytes → `Gal.putImageBytes()` (saves to Camera Roll, no custom album) → `CustomToast.showSuccess`
 - **Data extraction**: director from `movie.credits.crew` (job == 'Director'), cast from top 3 `movie.credits.cast`, scene fallback to `movieImages.backdrops.first`
-- **Ticket number**: `journalsControllerProvider.value.journals.length` (total journal count)
+- **Ticket number**: journal's chronological position (1-based) — sorts all journals by `createdAt` ascending, finds the current journal's index by `id`, returns `index + 1`
 - **Share bottom sheet**: App bar "Share" button opens `showModalBottomSheet` with drag indicator, "Copy text to post on Social" section (hidden when `thoughts` is empty) displaying `journal.thoughts` (maxLines: 10, ellipsis overflow), a "Copy Text" button using `Clipboard.setData()` + `CustomToast.showSuccess`, and a "Share Option" section with three buttons in a Row: Instagram Story, Threads, and Others
 - **Instagram Story sharing**: `_shareToInstagramStory()` captures ticket via `RepaintBoundary.toImage()`, writes PNG to temp file, calls `AppinioSocialShare().shareToInstagramStory(appId, stickerImage: path)`. Requires Facebook App ID (stored as `_facebookAppId` constant). Shows toast if Instagram not installed.
 - **Threads sharing**: `_shareToThreads()` composes text via `_composeThreadsText()`, opens `https://www.threads.net/intent/post?text={encoded}` via `url_launcher` with `LaunchMode.externalApplication`. Shows toast if Threads not installed.

@@ -472,11 +472,17 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                 ? asyncImages.value?.backdrops.firstOrNull?.filePath
                 : null);
 
-    // Ticket number from total journal count
-    final ticketNumber =
-        asyncJournals.hasValue
-            ? (asyncJournals.value?.journals.length ?? 0)
-            : 0;
+    // Ticket number from journal's chronological position (1-based)
+    final ticketNumber = () {
+      if (!asyncJournals.hasValue) return 0;
+      final journals = asyncJournals.value?.journals;
+      if (journals == null || journals.isEmpty) return 0;
+      final sorted = [...journals]..sort(
+        (a, b) => a.createdAt.dateTime.compareTo(b.createdAt.dateTime),
+      );
+      final index = sorted.indexWhere((j) => j.id == journal.id);
+      return index == -1 ? 0 : index + 1;
+    }();
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,

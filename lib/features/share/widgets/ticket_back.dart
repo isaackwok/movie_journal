@@ -48,7 +48,7 @@ class TicketBack extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'ORIGINAL MOVIE TICKET',
+                    'FINK MOVIE JOURNAL',
                     style: GoogleFonts.inriaSerif(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
