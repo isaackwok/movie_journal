@@ -1,27 +1,16 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/home/widgets/journal_card.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_complete.dart';
 
-import '../../../helpers/fake_http_client.dart';
 import '../../../helpers/test_journal.dart';
+import '../../../helpers/widget_test_setup.dart';
 
 void main() {
-  setUpAll(() {
-    // Return a transparent 1x1 PNG for any Image.network request
-    HttpOverrides.global = FakeHttpOverrides();
-    // Prevent Google Fonts from making HTTP requests in tests
-    GoogleFonts.config.allowRuntimeFetching = false;
-  });
-
-  tearDownAll(() {
-    HttpOverrides.global = null;
-  });
+  setUpAll(() => setUpWidgetTests());
+  tearDownAll(() => tearDownWidgetTests());
 
   group('JournalCompleteScreen', () {
     late JournalState journal;

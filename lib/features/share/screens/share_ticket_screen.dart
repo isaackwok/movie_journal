@@ -297,24 +297,32 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
     );
   }
 
-  Future<void> _shareToInstagramStory() async {
+  Future<Uint8List?> _captureTicketAsBytes() async {
     final pixelRatio = MediaQuery.of(context).devicePixelRatio;
+    final boundary =
+        _repaintKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
+    if (boundary == null) return null;
+    final image = await boundary.toImage(pixelRatio: pixelRatio);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    if (byteData == null) return null;
+    return byteData.buffer.asUint8List();
+  }
+
+  Future<File?> _captureTicketToFile(String filename) async {
+    final bytes = await _captureTicketAsBytes();
+    if (bytes == null) return null;
+    final file = File('${Directory.systemTemp.path}/$filename');
+    await file.writeAsBytes(bytes);
+    return file;
+  }
+
+  Future<void> _shareToInstagramStory() async {
     CustomToast.init(context);
 
     try {
-      final boundary =
-          _repaintKey.currentContext?.findRenderObject()
-              as RenderRepaintBoundary?;
-      if (boundary == null) return;
-
-      final image = await boundary.toImage(pixelRatio: pixelRatio);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) return;
-
-      final bytes = byteData.buffer.asUint8List();
-      final tempDir = Directory.systemTemp;
-      final file = File('${tempDir.path}/movie_ticket_story.png');
-      await file.writeAsBytes(bytes);
+      final file = await _captureTicketToFile('movie_ticket_story.png');
+      if (file == null) return;
 
       final socialShare = AppinioSocialShare();
       if (Platform.isIOS) {
@@ -373,22 +381,9 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
   }
 
   Future<void> _shareImageNatively() async {
-    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
-
     try {
-      final boundary =
-          _repaintKey.currentContext?.findRenderObject()
-              as RenderRepaintBoundary?;
-      if (boundary == null) return;
-
-      final image = await boundary.toImage(pixelRatio: pixelRatio);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) return;
-
-      final bytes = byteData.buffer.asUint8List();
-      final tempDir = Directory.systemTemp;
-      final file = File('${tempDir.path}/movie_ticket_share.png');
-      await file.writeAsBytes(bytes);
+      final file = await _captureTicketToFile('movie_ticket_share.png');
+      if (file == null) return;
 
       await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
     } catch (e) {
@@ -400,8 +395,6 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
     if (_saving) return;
     setState(() => _saving = true);
     CustomToast.init(context);
-
-    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
 
     try {
       // Request gallery permission
@@ -416,16 +409,10 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
         }
       }
 
-      final boundary =
-          _repaintKey.currentContext?.findRenderObject()
-              as RenderRepaintBoundary?;
-      if (boundary == null) return;
+      final bytes = await _captureTicketAsBytes();
+      if (bytes == null) return;
 
-      final image = await boundary.toImage(pixelRatio: pixelRatio);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) return;
-
-      await Gal.putImageBytes(byteData.buffer.asUint8List());
+      await Gal.putImageBytes(bytes);
 
       if (mounted) {
         CustomToast.showSuccess(context, 'Image saved to camera roll');
@@ -442,6 +429,20 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
     }
   }
 
+  int _computeTicketNumber(
+    AsyncValue<JournalsState> asyncJournals,
+    String journalId,
+  ) {
+    if (!asyncJournals.hasValue) return 0;
+    final journals = asyncJournals.value?.journals;
+    if (journals == null || journals.isEmpty) return 0;
+    final sorted = [...journals]..sort(
+      (a, b) => a.createdAt.dateTime.compareTo(b.createdAt.dateTime),
+    );
+    final index = sorted.indexWhere((j) => j.id == journalId);
+    return index == -1 ? 0 : index + 1;
+  }
+
   @override
   Widget build(BuildContext context) {
     final asyncMovie = ref.watch(movieDetailControllerProvider);
@@ -449,7 +450,8 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
     final asyncJournals = ref.watch(journalsControllerProvider);
 
     final journal = widget.journal;
-    final isLoading = asyncMovie.isLoading || asyncImages.isLoading;
+    final isLoading =
+        asyncMovie.isLoading || asyncImages.isLoading || asyncJournals.isLoading;
 
     // Extract movie details
     final movie = asyncMovie.hasValue ? asyncMovie.value : null;
@@ -472,17 +474,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                 ? asyncImages.value?.backdrops.firstOrNull?.filePath
                 : null);
 
-    // Ticket number from journal's chronological position (1-based)
-    final ticketNumber = () {
-      if (!asyncJournals.hasValue) return 0;
-      final journals = asyncJournals.value?.journals;
-      if (journals == null || journals.isEmpty) return 0;
-      final sorted = [...journals]..sort(
-        (a, b) => a.createdAt.dateTime.compareTo(b.createdAt.dateTime),
-      );
-      final index = sorted.indexWhere((j) => j.id == journal.id);
-      return index == -1 ? 0 : index + 1;
-    }();
+    final ticketNumber = _computeTicketNumber(asyncJournals, journal.id);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,

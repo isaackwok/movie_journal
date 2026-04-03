@@ -71,7 +71,7 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 
 ```bash
 flutter analyze    # Static analysis
-flutter test       # Run tests
+flutter test       # Run 198 tests
 flutter build apk  # Android build
 flutter build ios   # iOS build
 ```

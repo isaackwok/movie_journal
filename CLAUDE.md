@@ -321,14 +321,15 @@ test/
 ### Test Helpers
 - `test/helpers/test_journal.dart` — `makeJournal()` factory creates a `JournalState` with defaults (tmdbId: 550, movieTitle: 'Fight Club'). Override any field for specific tests.
 - `test/helpers/test_movie.dart` — `makeBriefMovieJson()`, `makeDetailedMovieJson()`, `makeCastJson()`, `makeCrewJson()` factories create TMDB-style JSON maps. Override any field for specific tests.
-- `test/helpers/fake_http_client.dart` — `FakeHttpOverrides` that returns a transparent 1x1 PNG for any HTTP GET. Use in `setUpAll` for widget tests that render `Image.network` widgets (e.g., `JournalCard`). Set `HttpOverrides.global = FakeHttpOverrides()` and reset to `null` in `tearDownAll`.
+- `test/helpers/fake_http_client.dart` — `FakeHttpOverrides` that returns a transparent 1x1 PNG for any HTTP GET. Used by `widget_test_setup.dart`.
+- `test/helpers/widget_test_setup.dart` — `setUpWidgetTests()` and `tearDownWidgetTests()` combine `FakeHttpOverrides` and `GoogleFonts.config.allowRuntimeFetching = false` into a single call. Use in `setUpAll`/`tearDownAll` for any widget test that renders `Image.network` or GoogleFonts widgets.
 
 ### Writing New Tests
 - Place tests in `test/features/<feature>/` mirroring the source structure
 - Use test helpers to avoid repeating boilerplate constructors
 - For Riverpod controller tests: create a `ProviderContainer` in `setUp()`, dispose in `tearDown()`
 - For model tests: no special setup needed, just import the model
-- For widget tests: wrap in `MaterialApp`, use `FakeHttpOverrides` for network images, disable `GoogleFonts.config.allowRuntimeFetching`. Use `pumpAndSettle()` after `pumpWidget()` when testing animated widgets. When testing `IgnorePointer`, use `find.byWidgetPredicate((w) => w is IgnorePointer && w.ignoring)` to filter out Flutter's internal `IgnorePointer` widgets.
+- For widget tests: wrap in `MaterialApp`, call `setUpWidgetTests()` / `tearDownWidgetTests()` from `test/helpers/widget_test_setup.dart` in `setUpAll`/`tearDownAll`. Use `pumpAndSettle()` after `pumpWidget()` when testing animated widgets. When testing `IgnorePointer`, use `find.byWidgetPredicate((w) => w is IgnorePointer && w.ignoring)` to filter out Flutter's internal `IgnorePointer` widgets.
 
 ### Known Test Findings
 - `SceneItem.copyWith(caption: null)` does not clear an existing caption — `??` operator preserves the old value. Clearing a caption after one was set requires a different approach than passing empty string to `updateSceneCaption()`.
@@ -383,19 +384,20 @@ test/
 - Feature lives under `lib/features/share/` with `screens/` and `widgets/` subdirectories
 - **TicketPosterPickerScreen** — poster selection screen before share ticket. Displays language tabs ("Original Language", "English", "繁體中文", "日本語") with `Scrollable.ensureVisible` auto-scroll on selection. Tab styling: selected = white 70% bg / white 90% border / black text, unselected = white 15% bg / transparent border / white text, and a 2-column grid of TMDB posters. "Original Language" resolves to the movie's `originalLanguage` field. 繁體中文 uses `zh-TW` locale code. Caches fetched posters per language in local `Map`. Selected poster persists across tab switches. Selection uses `Stack` overlay border (no image shrink). "Next" button uses same `ElevatedButton` pattern as ShareTicketScreen's "Share" button. Navigates to `ShareTicketScreen(journal:, posterPath:)` on "Next".
 - **Navigation flow**: callers → `TicketPosterPickerScreen(journal:)` → `ShareTicketScreen(journal:, posterPath:)`
-- **ShareTicketScreen** (`ConsumerStatefulWidget`) accepts a `JournalState` prop and optional `posterPath` (overrides `journal.moviePoster` for the ticket front). Reads movie details from `movieDetailControllerProvider` and images from `movieImagesControllerProvider`. Shows a centered `CircularProgressIndicator` while either provider is loading (`isLoading`), hiding the ticket and save button and disabling the share button. Once both APIs complete, renders the ticket and enables all actions.
+- **ShareTicketScreen** (`ConsumerStatefulWidget`) accepts a `JournalState` prop and optional `posterPath` (overrides `journal.moviePoster` for the ticket front). Reads movie details from `movieDetailControllerProvider`, images from `movieImagesControllerProvider`, and journals from `journalsControllerProvider`. Shows a centered `CircularProgressIndicator` while any provider is loading (`isLoading` gates on all three), hiding the ticket and save button and disabling the share button. Once all APIs complete, renders the ticket and enables all actions.
 - **"Tap to Flip" label** displayed above the ticket (Avenir Next demi-bold, 16px, white)
 - **FlippableTicket** wraps front/back widgets with 3D `Matrix4.rotationY` flip animation (600ms, tap to toggle)
 - **TicketFront**: poster-only image filling the clipped ticket shape
 - **TicketBack**: cream background with "FINK MOVIE JOURNAL" header, movie details, emotions, date band, B&W scene image
 - **FilmStripClipper**: `CustomClipper<Path>` using `PathFillType.evenOdd` for film perforation holes
-- **Save to gallery**: `RepaintBoundary` → `toImage()` → PNG bytes → `Gal.putImageBytes()` (saves to Camera Roll, no custom album) → `CustomToast.showSuccess`
+- **Image capture helpers**: `_captureTicketAsBytes()` captures the `RepaintBoundary` to PNG `Uint8List`, `_captureTicketToFile(filename)` wraps it to write a temp file. All share/save methods use these helpers instead of duplicating capture logic.
+- **Save to gallery**: `_captureTicketAsBytes()` → `Gal.putImageBytes()` (saves to Camera Roll, no custom album) → `CustomToast.showSuccess`
 - **Data extraction**: director from `movie.credits.crew` (job == 'Director'), cast from top 3 `movie.credits.cast`, scene fallback to `movieImages.backdrops.first`
-- **Ticket number**: journal's chronological position (1-based) — sorts all journals by `createdAt` ascending, finds the current journal's index by `id`, returns `index + 1`
+- **Ticket number**: computed by `_computeTicketNumber()` — journal's chronological position (1-based), sorts all journals by `createdAt` ascending, finds the current journal's index by `id`, returns `index + 1`
 - **Share bottom sheet**: App bar "Share" button opens `showModalBottomSheet` with drag indicator, "Copy text to post on Social" section (hidden when `thoughts` is empty) displaying `journal.thoughts` (maxLines: 10, ellipsis overflow), a "Copy Text" button using `Clipboard.setData()` + `CustomToast.showSuccess`, and a "Share Option" section with three buttons in a Row: Instagram Story, Threads, and Others
-- **Instagram Story sharing**: `_shareToInstagramStory()` captures ticket via `RepaintBoundary.toImage()`, writes PNG to temp file, calls `AppinioSocialShare().shareToInstagramStory(appId, stickerImage: path)`. Requires Facebook App ID (stored as `_facebookAppId` constant). Shows toast if Instagram not installed.
+- **Instagram Story sharing**: `_shareToInstagramStory()` uses `_captureTicketToFile()` to get a temp PNG, calls `AppinioSocialShare().shareToInstagramStory(appId, stickerImage: path)`. Requires Facebook App ID (stored as `_facebookAppId` constant). Shows toast if Instagram not installed.
 - **Threads sharing**: `_shareToThreads()` composes text via `_composeThreadsText()`, opens `https://www.threads.net/intent/post?text={encoded}` via `url_launcher` with `LaunchMode.externalApplication`. Shows toast if Threads not installed.
-- **Native share**: `_shareImageNatively()` captures current ticket side via `RepaintBoundary.toImage()`, writes PNG to `Directory.systemTemp`, and shares via `SharePlus.instance.share(ShareParams(files: [...]))`
+- **Native share**: `_shareImageNatively()` uses `_captureTicketToFile()` to get a temp PNG, shares via `SharePlus.instance.share(ShareParams(files: [...]))`
 - **Platform config**: iOS `Info.plist` has `LSApplicationQueriesSchemes` for `instagram-stories` and `threads`, plus Facebook App ID in `CFBundleURLSchemes`, and `UIApplicationSceneManifest` for Flutter scene lifecycle. Android `AndroidManifest.xml` has `<queries>` for Instagram story intent and Threads URL, plus `FileProvider` config with `filepaths.xml`.
 - iOS requires `NSPhotoLibraryAddUsageDescription` in `Info.plist` for gallery save permission
 - **iOS engine lifecycle**: `AppDelegate.swift` uses `FlutterImplicitEngineDelegate` protocol — plugin registration happens in `didInitializeImplicitFlutterEngine` instead of `application:didFinishLaunchingWithOptions`

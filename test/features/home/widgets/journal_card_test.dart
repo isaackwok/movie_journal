@@ -1,24 +1,15 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/home/widgets/journal_card.dart';
 
-import '../../../helpers/fake_http_client.dart';
 import '../../../helpers/test_journal.dart';
+import '../../../helpers/widget_test_setup.dart';
 
 void main() {
-  setUpAll(() {
-    HttpOverrides.global = FakeHttpOverrides();
-    GoogleFonts.config.allowRuntimeFetching = false;
-  });
-
-  tearDownAll(() {
-    HttpOverrides.global = null;
-  });
+  setUpAll(() => setUpWidgetTests());
+  tearDownAll(() => tearDownWidgetTests());
 
   Widget buildSubject({
     String movieTitle = 'Fight Club',

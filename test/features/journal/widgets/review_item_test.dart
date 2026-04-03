@@ -1,22 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/widgets/review_item.dart';
 import 'package:movie_journal/features/quesgen/review.dart';
 
-import '../../../helpers/fake_http_client.dart';
+import '../../../helpers/widget_test_setup.dart';
 
 void main() {
-  setUpAll(() {
-    HttpOverrides.global = FakeHttpOverrides();
-    GoogleFonts.config.allowRuntimeFetching = false;
-  });
-
-  tearDownAll(() {
-    HttpOverrides.global = null;
-  });
+  setUpAll(() => setUpWidgetTests());
+  tearDownAll(() => tearDownWidgetTests());
 
   final testReview = Review(
     text: 'A masterpiece of modern cinema.',

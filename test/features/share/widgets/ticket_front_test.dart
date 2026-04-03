@@ -1,19 +1,12 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_journal/features/share/widgets/ticket_front.dart';
 
-import '../../../helpers/fake_http_client.dart';
+import '../../../helpers/widget_test_setup.dart';
 
 void main() {
-  setUpAll(() {
-    HttpOverrides.global = FakeHttpOverrides();
-  });
-
-  tearDownAll(() {
-    HttpOverrides.global = null;
-  });
+  setUpAll(() => setUpWidgetTests());
+  tearDownAll(() => tearDownWidgetTests());
 
   Widget buildSubject({String posterPath = '/poster.jpg'}) {
     return MaterialApp(

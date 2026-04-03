@@ -1,24 +1,15 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/share/widgets/film_strip_clipper.dart';
 import 'package:movie_journal/features/share/widgets/ticket_back.dart';
 
-import '../../../helpers/fake_http_client.dart';
+import '../../../helpers/widget_test_setup.dart';
 
 void main() {
-  setUpAll(() {
-    HttpOverrides.global = FakeHttpOverrides();
-    GoogleFonts.config.allowRuntimeFetching = false;
-  });
-
-  tearDownAll(() {
-    HttpOverrides.global = null;
-  });
+  setUpAll(() => setUpWidgetTests());
+  tearDownAll(() => tearDownWidgetTests());
 
   late Jiffy testDate;
 
