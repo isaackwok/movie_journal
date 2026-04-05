@@ -9,7 +9,7 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 - **Scene Selection** — Pick memorable scenes from movie stills
 - **Thoughts & Captions** — Write freeform reflections about the film
 - **AI-Curated Reviews** — Browse reviews from Letterboxd and Reddit to spark your own thoughts
-- **Shareable Movie Tickets** — Generate flippable movie ticket images with poster front and details back, share to Instagram Stories, Threads, or save to gallery
+- **Shareable Movie Tickets** — Generate flippable movie ticket images with high-res poster front and details back, share to Instagram Stories, Threads, or save to gallery
 - **Poster Picker** — Choose ticket posters in multiple languages (Original, English, 繁體中文, 日本語)
 
 ## Getting Started

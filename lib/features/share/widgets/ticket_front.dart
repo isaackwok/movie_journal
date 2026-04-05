@@ -14,7 +14,7 @@ class TicketFront extends StatelessWidget {
     return ClipPath(
       clipper: FilmStripClipper(),
       child: Image.network(
-        'https://image.tmdb.org/t/p/w500$posterPath',
+        'https://image.tmdb.org/t/p/w780$posterPath',
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,

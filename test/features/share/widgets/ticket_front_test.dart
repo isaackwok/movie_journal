@@ -30,7 +30,7 @@ void main() {
       await tester.pumpWidget(buildSubject(posterPath: '/abc.jpg'));
       final image = tester.widget<Image>(find.byType(Image));
       final networkImage = image.image as NetworkImage;
-      expect(networkImage.url, 'https://image.tmdb.org/t/p/w500/abc.jpg');
+      expect(networkImage.url, 'https://image.tmdb.org/t/p/w780/abc.jpg');
     });
 
     testWidgets('image uses BoxFit.cover', (tester) async {

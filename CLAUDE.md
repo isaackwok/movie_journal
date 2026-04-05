@@ -387,7 +387,7 @@ test/
 - **ShareTicketScreen** (`ConsumerStatefulWidget`) accepts a `JournalState` prop and optional `posterPath` (overrides `journal.moviePoster` for the ticket front). Reads movie details from `movieDetailControllerProvider`, images from `movieImagesControllerProvider`, and journals from `journalsControllerProvider`. Shows a centered `CircularProgressIndicator` while any provider is loading (`isLoading` gates on all three), hiding the ticket and save button and disabling the share button. Once all APIs complete, renders the ticket and enables all actions.
 - **"Tap to Flip" label** displayed above the ticket (Avenir Next demi-bold, 16px, white)
 - **FlippableTicket** wraps front/back widgets with 3D `Matrix4.rotationY` flip animation (600ms, tap to toggle)
-- **TicketFront**: poster-only image filling the clipped ticket shape
+- **TicketFront**: poster-only image filling the clipped ticket shape (uses `/w780` for higher-resolution share output)
 - **TicketBack**: cream background with "FINK MOVIE JOURNAL" header, movie details, emotions, date band, B&W scene image
 - **FilmStripClipper**: `CustomClipper<Path>` using `PathFillType.evenOdd` for film perforation holes
 - **Image capture helpers**: `_captureTicketAsBytes()` captures the `RepaintBoundary` to PNG `Uint8List`, `_captureTicketToFile(filename)` wraps it to write a temp file. All share/save methods use these helpers instead of duplicating capture logic.
