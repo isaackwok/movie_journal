@@ -23,6 +23,17 @@ flutter build apk --release
 flutter build ios --release
 ```
 
+### Deploying to App Store / TestFlight
+```bash
+# Full build + upload (build number auto-managed by App Store Connect)
+./deploy.sh
+
+# With explicit build number
+./deploy.sh --build-number 29
+```
+
+Requires one-time setup: App Store Connect API Key (`.p8` file at `~/.appstoreconnect/private_keys/`) and credentials in `.deploy.env`. See deploy script comments for details.
+
 ### Testing and Linting
 ```bash
 # Run static analysis
