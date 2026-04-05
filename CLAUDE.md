@@ -91,7 +91,7 @@ The app follows a feature-based architecture where each feature is self-containe
   - `widgets/` - FlippableTicket (3D flip animation), TicketFront (poster side), TicketBack (details side), FilmStripClipper (perforation CustomClipper)
 
 - **login/** - Authentication screens and user creation flows
-  - `screens/` - LoginScreen, CreateUserScreen (username input with validation: alphanumeric/underscore/dot only, uniqueness check via Firestore)
+  - `screens/` - LoginScreen, CreateUserScreen (username input with validation: alphanumeric/underscore/dot only, uniqueness check via Firestore, error toasts use `ToastGravity.TOP` to stay visible above the keyboard)
 
 - **settings/** - User settings and account management
   - `screens/` - SettingsScreen (displays username, sign out, delete account options). Logout and delete flows invalidate journal/username providers to prevent stale data on re-login.

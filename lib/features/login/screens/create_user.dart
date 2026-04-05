@@ -45,7 +45,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
     }
 
     // Rule 3: Cannot end with "."
-    if (username.endsWith('.')) {
+    if (username.endsWith('.') || username.endsWith('_')) {
       return 'Username cannot end with _ or .';
     }
 
@@ -79,6 +79,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
         msg: validationError,
         backgroundColor: Colors.red,
         toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.TOP,
       );
       return;
     }
@@ -94,6 +95,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
             msg: 'Username already taken. Please choose another one.',
             backgroundColor: Colors.red,
             toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.TOP,
           );
         }
         return;
@@ -114,6 +116,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
           msg: 'Error: $e',
           backgroundColor: Colors.red,
           toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.TOP,
         );
       }
     } finally {

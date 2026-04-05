@@ -16,7 +16,7 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 
 ### Prerequisites
 
-- Flutter SDK `^3.7.2`
+- Flutter SDK `^3.7.2` 
 - A [TMDB API](https://www.themoviedb.org/documentation/api) key
 - Firebase project with Authentication and Firestore enabled
 - Xcode (for iOS) / Android Studio (for Android)
