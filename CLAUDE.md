@@ -91,7 +91,7 @@ The app follows a feature-based architecture where each feature is self-containe
   - `widgets/` - FlippableTicket (3D flip animation), TicketFront (poster side), TicketBack (details side), FilmStripClipper (perforation CustomClipper)
 
 - **login/** - Authentication screens and user creation flows
-  - `screens/` - LoginScreen, CreateUserScreen (username input with validation: alphanumeric/underscore/dot only, uniqueness check via Firestore, error toasts use `ToastGravity.TOP` to stay visible above the keyboard)
+  - `screens/` - LoginScreen, CreateUserScreen (username input with validation: alphanumeric/underscore/dot only, uniqueness check via Firestore, error toasts use `ToastGravity.TOP` to stay visible above the keyboard). `validateUsername()` is a top-level function for testability.
 
 - **settings/** - User settings and account management
   - `screens/` - SettingsScreen (displays username, sign out, delete account options). Logout and delete flows invalidate journal/username providers to prevent stale data on re-login.
@@ -299,6 +299,9 @@ test/
 │   │   │   └── movie_api_test.dart     # MovieListResponse.fromJson (2 tests)
 │   │   └── controllers/
 │   │       └── search_movie_controller_test.dart  # movieIntegrityChecker, state logic (5 tests)
+│   ├── login/
+│   │   └── screens/
+│   │       └── create_user_test.dart  # validateUsername: valid inputs, invalid chars, special-char-only, trailing _ and . (21 tests)
 │   ├── emotion/
 │   │   └── emotion_test.dart      # Emotion data integrity (6 tests)
 │   ├── quesgen/

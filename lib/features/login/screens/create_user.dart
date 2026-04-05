@@ -5,6 +5,37 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/shared_preferences_manager.dart';
 
+/// Validate username with the following rules:
+/// 1. Only alphabets (a-z), numbers (0-9), underscore (_) and fullstop (.) allowed
+/// 2. Cannot contain only (_) and (.)
+/// 3. Cannot end with _ or .
+///
+/// Returns an error message string if invalid, or null if valid.
+String? validateUsername(String username) {
+  if (username.isEmpty) {
+    return 'Username cannot be empty';
+  }
+
+  // Rule 1: Only allow a-z, 0-9, _, .
+  final validCharactersRegex = RegExp(r'^[a-zA-Z0-9_.]+$');
+  if (!validCharactersRegex.hasMatch(username)) {
+    return 'Username can only contain letters, numbers, _ and .';
+  }
+
+  // Rule 2: Cannot contain only _ and .
+  final onlySpecialCharsRegex = RegExp(r'^[_.]+$');
+  if (onlySpecialCharsRegex.hasMatch(username)) {
+    return 'Username cannot contain only _ and .';
+  }
+
+  // Rule 3: Cannot end with _ or .
+  if (username.endsWith('.') || username.endsWith('_')) {
+    return 'Username cannot end with _ or .';
+  }
+
+  return null; // Valid
+}
+
 class CreateUserScreen extends StatefulWidget {
   const CreateUserScreen({super.key});
 
@@ -21,35 +52,6 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
   void dispose() {
     _usernameController.dispose();
     super.dispose();
-  }
-
-  /// Validate username with the following rules:
-  /// 1. Only alphabets (a-z), numbers (0-9), underscore (_) and fullstop (.) allowed
-  /// 2. Cannot contain only (_) and (.)
-  /// 3. Cannot end with (.)
-  String? _validateUsername(String username) {
-    if (username.isEmpty) {
-      return 'Username cannot be empty';
-    }
-
-    // Rule 1: Only allow a-z, 0-9, _, .
-    final validCharactersRegex = RegExp(r'^[a-zA-Z0-9_.]+$');
-    if (!validCharactersRegex.hasMatch(username)) {
-      return 'Username can only contain letters, numbers, _ and .';
-    }
-
-    // Rule 2: Cannot contain only _ and .
-    final onlySpecialCharsRegex = RegExp(r'^[_.]+$');
-    if (onlySpecialCharsRegex.hasMatch(username)) {
-      return 'Username cannot contain only _ and .';
-    }
-
-    // Rule 3: Cannot end with "."
-    if (username.endsWith('.') || username.endsWith('_')) {
-      return 'Username cannot end with _ or .';
-    }
-
-    return null; // Valid
   }
 
   /// Check if username already exists in Firestore
@@ -73,7 +75,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
     final username = _usernameController.text.trim();
 
     // Validate username format
-    final validationError = _validateUsername(username);
+    final validationError = validateUsername(username);
     if (validationError != null) {
       Fluttertoast.showToast(
         msg: validationError,
