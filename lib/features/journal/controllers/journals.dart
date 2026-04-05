@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/firestore_manager.dart';
 
@@ -51,6 +52,7 @@ class JournalsController extends AsyncNotifier<JournalsState> {
 
     // Delete from Firestore first
     await _firestoreManager.deleteJournal(id);
+    AnalyticsManager.logJournalDeleted(journalId: id);
 
     // Update local state after successful Firestore deletion
     final updatedJournals =

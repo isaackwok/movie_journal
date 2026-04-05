@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/quesgen/review.dart';
 import 'package:movie_journal/features/journal/widgets/review_item.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/journal/widgets/reviews_bottom_sheet.dart';
 import 'package:movie_journal/features/journal/widgets/reviews_floating_button.dart';
 import 'package:movie_journal/shared_widgets/action_text_button.dart';
@@ -25,6 +26,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsManager.logScreenView('Thoughts');
     thoughtsController.text = ref.read(journalControllerProvider).thoughts;
     thoughtsController.addListener(_onTextChanged);
   }

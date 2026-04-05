@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 
 class MovieSearchBar extends ConsumerStatefulWidget {
@@ -16,6 +17,9 @@ class _MovieSearchBarState extends ConsumerState<MovieSearchBar> {
 
   void _submit(String value) {
     FocusScope.of(context).unfocus();
+    if (value.isNotEmpty) {
+      AnalyticsManager.logMovieSearched(query: value);
+    }
     ref.read(searchMovieControllerProvider.notifier).search(value);
   }
 

@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/home/widgets/add_movie_button.dart';
 import 'package:movie_journal/features/home/widgets/empty_placeholder.dart';
 import 'package:movie_journal/features/home/widgets/journals_list.dart';
@@ -97,7 +98,9 @@ class HomeScreen extends ConsumerWidget {
     return journalsAsync.when(
       data: (journalsState) {
         final journals = journalsState.journals;
-        return Scaffold(
+        return ScreenViewTracker(
+          screenName: 'Home',
+          child: Scaffold(
           key: const PageStorageKey('home'),
           backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
@@ -189,7 +192,7 @@ class HomeScreen extends ConsumerWidget {
                     padding: EdgeInsets.only(left: 20, right: 20),
                     child: const JournalsList(),
                   ),
-        );
+        ));
       },
       loading: () => const LoadingScaffold(),
       error:

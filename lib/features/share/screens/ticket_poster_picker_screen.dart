@@ -4,6 +4,7 @@ import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/share/screens/share_ticket_screen.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 
 class TicketPosterPickerScreen extends ConsumerStatefulWidget {
@@ -44,6 +45,7 @@ class _TicketPosterPickerScreenState
   @override
   void initState() {
     super.initState();
+    AnalyticsManager.logScreenView('TicketPosterPicker');
     _pageController = PageController();
     _pageController.addListener(_onPageScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {

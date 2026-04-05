@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/firebase_manager.dart';
 import 'package:movie_journal/firestore_manager.dart';
@@ -15,7 +16,9 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final usernameAsync = ref.watch(currentUsernameProvider);
 
-    return Scaffold(
+    return ScreenViewTracker(
+      screenName: 'Settings',
+      child: Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         leading: CircledIconButton(
@@ -71,7 +74,7 @@ class SettingsScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 

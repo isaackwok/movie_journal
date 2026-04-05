@@ -8,6 +8,9 @@ import 'package:movie_journal/features/journal/screens/journal_complete.dart';
 import '../../../helpers/test_journal.dart';
 import '../../../helpers/widget_test_setup.dart';
 
+// Note: journal_complete.dart now logs a screen view in initState via AnalyticsManager.
+// The call is safely wrapped and is a no-op without Firebase — no test changes needed.
+
 void main() {
   setUpAll(() => setUpWidgetTests());
   tearDownAll(() => tearDownWidgetTests());

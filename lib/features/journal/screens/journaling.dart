@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_complete.dart';
@@ -50,6 +51,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsManager.logScreenView('Journaling');
     _scrollController.addListener(_onScroll);
     CustomToast.init(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {

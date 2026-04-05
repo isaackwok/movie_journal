@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/shared_preferences_manager.dart';
 import 'package:movie_journal/themes.dart';
@@ -19,11 +20,11 @@ Future<void> main() async {
   // Initialize shared preferences with default values
   await SharedPreferencesManager.init();
 
-  // Initialize Firebase
-  // TODO: check https://firebase.google.com/docs/flutter/setup?platform=ios#add-plugins
-  // to install other firebase plugins if needed
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Disable analytics in debug builds to keep production data clean
+  await AnalyticsManager.setAnalyticsCollectionEnabled(!kDebugMode);
 
   runApp(runnableApp);
 }
@@ -42,10 +43,39 @@ Widget _buildRunnableApp({
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Set/clear analytics user ID on auth state changes
+    ref.listenManual(authStateProvider, (_, next) {
+      next.whenData((user) {
+        AnalyticsManager.setUserId(user?.uid);
+        if (user != null) {
+          final providerId = user.providerData.isNotEmpty
+              ? user.providerData.first.providerId
+              : 'unknown';
+          AnalyticsManager.setUserProperty('sign_in_method', providerId);
+        }
+      });
+    }, fireImmediately: true);
+
+    // Set username property when it becomes available
+    ref.listenManual(currentUsernameProvider, (_, next) {
+      next.whenData((username) {
+        AnalyticsManager.setUserProperty('username', username);
+      });
+    }, fireImmediately: true);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

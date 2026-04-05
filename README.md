@@ -62,7 +62,7 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 |-------|-----------|
 | Framework | Flutter |
 | State Management | Riverpod 3.x |
-| Backend | Firebase Auth + Cloud Firestore |
+| Backend | Firebase Auth + Cloud Firestore + Analytics |
 | Networking | Dio |
 | Movie Data | TMDB API |
 | AI Reviews | Custom review generation API |

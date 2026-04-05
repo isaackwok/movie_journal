@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/search_movie/widgets/movie_result_list.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/search_movie/widgets/movie_search_bar.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 
@@ -30,6 +31,7 @@ class _SearchMovieScreenState extends ConsumerState<SearchMovieScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsManager.logScreenView('SearchMovie');
     scrollController.addListener(_onScroll);
   }
 

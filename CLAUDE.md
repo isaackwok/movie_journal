@@ -126,6 +126,7 @@ The app follows a feature-based architecture where each feature is self-containe
   - Props: `icon` (required), `onPressed` (required), `iconSize` (default: 16), `iconColor`, `borderColor`, `outerPadding`, `size` (default: 36)
 
 **Root-level managers:**
+- `analytics_manager.dart` - Firebase Analytics wrapper (screen views, user ID, custom events). Also exports `ScreenViewTracker` widget for wrapping ConsumerWidget screens
 - `firebase_manager.dart` - Firebase Authentication wrapper (Apple Sign-In, Google Sign-In)
 - `firestore_manager.dart` - Firestore CRUD operations for journal entries
 - `shared_preferences_manager.dart` - Local preferences storage
@@ -177,6 +178,7 @@ Uses **Riverpod** for state management:
 - **firebase_core** (4.2.0) - Firebase initialization
 - **firebase_auth** (6.1.1) - User authentication (Apple, Google)
 - **cloud_firestore** (6.1.0) - NoSQL cloud database
+- **firebase_analytics** (12.0.4) - Google Analytics for Firebase (screen views, custom events, user properties)
 - **google_sign_in** (7.2.0) - Google authentication integration
 - **shared_preferences** (2.5.3) - Local key-value storage
 - **flutter_dotenv** (6.0.0) - Environment variables (API keys stored in `.env`)
@@ -276,6 +278,23 @@ feature_name/
 ### Initialization
 - Firebase initialized in `main.dart` before app runs
 - Must call `Firebase.initializeApp()` with platform-specific options
+
+### Analytics
+- `AnalyticsManager` in `lib/analytics_manager.dart` wraps `FirebaseAnalytics` with static methods
+- Analytics collection disabled in debug builds (`!kDebugMode`), set in `main.dart`
+- **User identification**: User ID and properties (`sign_in_method`, `username`) set via `ref.listenManual` on auth/username providers in `MyApp`
+- **Screen tracking**: Manual `logScreenView()` calls in each screen's `initState` (stateful screens) or via `ScreenViewTracker` wrapper widget (ConsumerWidget screens: Home, Settings, MoviePreview)
+- **Screen names**: Login, CreateUser, Home, Settings, SearchMovie, MoviePreview, Journaling, JournalComplete, JournalContent, Thoughts, CaptionEditor, TicketPosterPicker, ShareTicket
+- **Custom events**:
+  - `login` / `sign_up` — GA4 recommended events, logged in LoginScreen and CreateUserScreen
+  - `journal_created` (movie_title, tmdb_id, emotion_count, scene_count) — logged in `JournalController.save()`
+  - `journal_updated` (journal_id) — logged in `JournalController.update()`
+  - `journal_deleted` (journal_id) — logged in `JournalsController.removeJournal()`
+  - `movie_searched` (query) — logged on search submit in MovieSearchBar
+  - `movie_selected` (tmdb_id, movie_title) — logged when user taps a search result
+  - `journal_shared` (movie_title, share_method) — logged for instagram_story, threads, native share
+  - `ticket_saved` (movie_title) — logged when ticket image saved to gallery
+- **iOS config**: `IS_ANALYTICS_ENABLED` set to `true` in `GoogleService-Info.plist`
 
 ## Testing
 

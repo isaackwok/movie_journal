@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/journal/widgets/ai_references_accordion.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector_button.dart';
@@ -24,6 +25,7 @@ class _JournalContentState extends ConsumerState<JournalContent> {
   @override
   void initState() {
     super.initState();
+    AnalyticsManager.logScreenView('JournalContent');
     _pageController = PageController();
   }
 

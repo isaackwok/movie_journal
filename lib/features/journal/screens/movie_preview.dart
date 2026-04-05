@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journaling.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
@@ -16,7 +17,9 @@ class MoviePreviewScreen extends ConsumerWidget {
 
     return asyncState.when(
       data:
-          (movie) => Scaffold(
+          (movie) => ScreenViewTracker(
+            screenName: 'MoviePreview',
+            child: Scaffold(
             key: ValueKey(movieId),
             body: SafeArea(
               child: Stack(
@@ -192,7 +195,7 @@ class MoviePreviewScreen extends ConsumerWidget {
                 child: const Text('Start Journaling'),
               ),
             ),
-          ),
+          )),
       loading:
           () => Scaffold(
             key: ValueKey(movieId),

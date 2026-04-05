@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/journal/screens/movie_preview.dart';
 import 'package:movie_journal/features/movie/controllers/search_movie_controller.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
@@ -103,6 +104,10 @@ class MovieResultItem extends ConsumerWidget {
   final BriefMovie movie;
 
   void _onTap(BuildContext context, WidgetRef ref) {
+    AnalyticsManager.logMovieSelected(
+      tmdbId: movie.id,
+      movieTitle: movie.title,
+    );
     ref
         .read(movieDetailControllerProvider.notifier)
         .fetchMovieDetails(movie.id);

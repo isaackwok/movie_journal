@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/firebase_manager.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -12,10 +13,17 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsManager.logScreenView('Login');
+  }
+
   Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
     try {
       await FirebaseManager.signInWithGoogle();
+      AnalyticsManager.logSignIn(method: 'google');
     } catch (e) {
       // handle error
     } finally {
@@ -29,6 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       await FirebaseManager.signInWithApple();
+      AnalyticsManager.logSignIn(method: 'apple');
     } catch (e) {
       // handle error
     } finally {

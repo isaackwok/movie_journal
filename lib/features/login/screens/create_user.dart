@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/shared_preferences_manager.dart';
 
@@ -47,6 +48,12 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsManager.logScreenView('CreateUser');
+  }
 
   @override
   void dispose() {
@@ -106,6 +113,9 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
       // All checks passed - create user
       var newUserDoc = await _createUser(username);
       await _uploadLocalJournals(newUserDoc);
+      final providerId = FirebaseAuth.instance.currentUser?.providerData
+          .firstOrNull?.providerId ?? 'unknown';
+      AnalyticsManager.logSignUp(method: providerId);
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const HomeScreen()),

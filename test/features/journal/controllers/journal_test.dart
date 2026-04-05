@@ -9,6 +9,9 @@ import 'package:movie_journal/features/quesgen/review.dart';
 
 import '../../../helpers/test_journal.dart';
 
+// Note: journal.dart now includes AnalyticsManager calls in save()/update().
+// These are no-ops without Firebase and don't affect model/state tests below.
+
 void main() {
   // ── JournalState (data model) ──────────────────────────────────────
 

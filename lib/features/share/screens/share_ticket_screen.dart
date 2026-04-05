@@ -15,6 +15,7 @@ import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/share/widgets/flippable_ticket.dart';
 import 'package:movie_journal/features/share/widgets/ticket_back.dart';
 import 'package:movie_journal/features/share/widgets/ticket_front.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 
@@ -37,6 +38,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsManager.logScreenView('ShareTicket');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
           .read(movieDetailControllerProvider.notifier)
@@ -336,6 +338,10 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
           stickerImage: file.path,
         );
       }
+      AnalyticsManager.logJournalShared(
+        movieTitle: widget.journal.movieTitle,
+        shareMethod: 'instagram_story',
+      );
     } catch (e) {
       debugPrint('Instagram Story share error: $e');
       if (mounted) {
@@ -355,6 +361,10 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
 
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
+        AnalyticsManager.logJournalShared(
+          movieTitle: widget.journal.movieTitle,
+          shareMethod: 'threads',
+        );
       } else {
         if (mounted) {
           CustomToast.showError('Could not open Threads. Is it installed?');
@@ -386,6 +396,10 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
       if (file == null) return;
 
       await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+      AnalyticsManager.logJournalShared(
+        movieTitle: widget.journal.movieTitle,
+        shareMethod: 'native',
+      );
     } catch (e) {
       debugPrint('Share error: $e');
     }
@@ -413,6 +427,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
       if (bytes == null) return;
 
       await Gal.putImageBytes(bytes);
+      AnalyticsManager.logTicketSaved(movieTitle: widget.journal.movieTitle);
 
       if (mounted) {
         CustomToast.showSuccess(context, 'Image saved to camera roll');

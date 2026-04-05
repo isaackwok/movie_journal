@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/widgets/scene_card.dart';
 import 'package:movie_journal/shared_widgets/action_text_button.dart';
@@ -21,6 +22,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
   @override
   void initState() {
     super.initState();
+    AnalyticsManager.logScreenView('CaptionEditor');
     _currentPage = widget.initialSceneIndex;
     _pageController = PageController(initialPage: widget.initialSceneIndex);
 

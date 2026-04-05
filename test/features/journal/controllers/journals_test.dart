@@ -3,6 +3,9 @@ import 'package:movie_journal/features/journal/controllers/journals.dart';
 
 import '../../../helpers/test_journal.dart';
 
+// Note: journals.dart now includes an AnalyticsManager call in removeJournal().
+// This is a no-op without Firebase and doesn't affect copyWith tests below.
+
 void main() {
   group('JournalsState', () {
     test('defaults to empty journals list', () {

@@ -1,6 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_journal/features/login/screens/create_user.dart';
 
+// Note: create_user.dart now includes AnalyticsManager calls (screen view + sign_up event).
+// These are no-ops without Firebase and don't affect validateUsername() tests below.
+
 void main() {
   group('validateUsername', () {
     group('valid usernames', () {

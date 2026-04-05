@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/quesgen/review.dart';
@@ -326,6 +327,8 @@ class JournalController extends Notifier<JournalState> {
     final journalsController = ref.read(journalsControllerProvider.notifier);
     await journalsController.refreshJournals();
 
+    AnalyticsManager.logJournalUpdated(journalId: state.id);
+
     return this;
   }
 
@@ -350,6 +353,13 @@ class JournalController extends Notifier<JournalState> {
     // Refresh the journals list from Firestore to include the new journal
     final journalsController = ref.read(journalsControllerProvider.notifier);
     await journalsController.refreshJournals();
+
+    AnalyticsManager.logJournalCreated(
+      movieTitle: state.movieTitle,
+      tmdbId: state.tmdbId,
+      emotionCount: state.emotions.length,
+      sceneCount: state.selectedScenes.length,
+    );
 
     return this;
   }

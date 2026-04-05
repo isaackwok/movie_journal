@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/home/widgets/journal_card.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_content.dart';
@@ -28,6 +29,7 @@ class _JournalCompleteScreenState extends State<JournalCompleteScreen>
   @override
   void initState() {
     super.initState();
+    AnalyticsManager.logScreenView('JournalComplete');
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
