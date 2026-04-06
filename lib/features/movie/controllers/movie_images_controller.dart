@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
@@ -6,9 +8,20 @@ class MovieImagesController extends AsyncNotifier<MovieImagesState> {
   int? _movieId;
 
   @override
-  Future<MovieImagesState> build() async {
-    // Return empty state initially - will be fetched via getMovieImages
-    throw UnimplementedError('Use getMovieImages(id) to load images');
+  Future<MovieImagesState> build() {
+    // Stay in AsyncLoading until getMovieImages(id:) is called externally.
+    //
+    // We deliberately return a Future that never completes instead of
+    // throwing or returning an empty state. Throwing here (the previous
+    // behavior) caused Riverpod to flip the provider into AsyncError on the
+    // next microtask, producing a one-frame "Error loading images" flash on
+    // ScenesSelector's first render in the journaling page (issue #2).
+    // Returning an empty state would similarly mis-render — backdrops would
+    // briefly look "empty" and trigger the "Scene missing!" placeholder.
+    //
+    // getMovieImages() assigns directly to `state`, so this pending future
+    // is never awaited beyond keeping the initial state as AsyncLoading.
+    return Completer<MovieImagesState>().future;
   }
 
   Future<void> getMovieImages({required int id, String? language}) async {
