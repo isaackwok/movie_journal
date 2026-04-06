@@ -339,7 +339,7 @@ test/
 │   └── share/
 │       └── widgets/
 │           ├── film_strip_clipper_test.dart  # CustomClipper geometry: corner holes, edge perforations, evenOdd fill (23 tests)
-│           ├── flippable_ticket_test.dart     # FlippableTicket: tap to flip, front/back switching, animation midpoint (7 tests)
+│           ├── flippable_ticket_test.dart     # FlippableTicket: tap, swipe, fling, peek hint (21 tests)
 │           ├── ticket_back_test.dart         # TicketBack widget: header, title, details, emotions, date/time, scene, layout (22 tests)
 │           └── ticket_front_test.dart        # TicketFront widget: ClipPath, TMDB URL, error fallback (4 tests)
 ```
@@ -419,7 +419,7 @@ test/
 - **Navigation flow**: callers → `TicketPosterPickerScreen(journal:)` → `ShareTicketScreen(journal:, posterPath:)`
 - **ShareTicketScreen** (`ConsumerStatefulWidget`) accepts a `JournalState` prop and optional `posterPath` (overrides `journal.moviePoster` for the ticket front). Reads movie details from `movieDetailControllerProvider`, images from `movieImagesControllerProvider`, and journals from `journalsControllerProvider`. Shows a centered `CircularProgressIndicator` while any provider is loading (`isLoading` gates on all three), hiding the ticket and save button and disabling the share button. Once all APIs complete, renders the ticket and enables all actions.
 - **"Tap to Flip" label** displayed above the ticket (Avenir Next demi-bold, 16px, white)
-- **FlippableTicket** wraps front/back widgets with 3D `Matrix4.rotationY` flip animation (600ms, tap to toggle)
+- **FlippableTicket** wraps front/back widgets with 3D `Matrix4.rotationY` flip animation (600ms). Supports tap-to-flip (full 180° animated flip) and horizontal swipe-to-flip (direct drag control with snap-to-nearest on release, fling support with 300 px/s velocity threshold). `hintOnMount` (default: false) triggers a peek animation on mount: 500ms delay → peek to 0.30 (350ms easeOut) → return to 0.0 (350ms easeIn via `animateBack`). Uses `_peekCancelled` flag so early taps/drags cancel the pending peek. `animateBack` (not `animateTo`) is used for the return to ensure the controller status is `dismissed` — `animateTo(0.0)` would leave status as `completed`, breaking `_flip()`'s `isCompleted` check.
 - **TicketFront**: poster-only image filling the clipped ticket shape (uses `/w780` for higher-resolution share output)
 - **TicketBack**: cream background with "FINK MOVIE JOURNAL" header, movie details, emotions, date band, B&W scene image
 - **FilmStripClipper**: `CustomClipper<Path>` using `PathFillType.evenOdd` for film perforation holes
@@ -467,10 +467,12 @@ test/
 │   ├── stop-update-claude-md.sh     # Reminds to update CLAUDE.md after code changes
 │   └── stop-sync-tests.sh          # Reminds to update tests when source files change
 └── skills/
-    └── journal-data-access/
-        ├── SKILL.md                 # Riverpod patterns for journal CRUD
-        └── references/
-            └── journal-state-model.md  # JournalState fields and Firestore schema
+    ├── journal-data-access/
+    │   ├── SKILL.md                 # Riverpod patterns for journal CRUD
+    │   └── references/
+    │       └── journal-state-model.md  # JournalState fields and Firestore schema
+    └── flutter-animation-testing/
+        └── SKILL.md                 # Animation test pitfalls and patterns
 ```
 
 ### Hooks
@@ -481,3 +483,4 @@ test/
 
 ### Skills
 - **journal-data-access** — Documents the Riverpod provider architecture for journal data. Covers the three core providers (`journalControllerProvider`, `journalsControllerProvider`, `journalModeProvider`), `ref.watch` vs `ref.read` patterns, CRUD operations, create vs edit mode, and AsyncValue handling. Reference file includes full JournalState fields and Firestore document schema.
+- **flutter-animation-testing** — Pitfalls and patterns for testing Flutter animations. Covers: (1) `animateTo` vs `animateBack` status corruption (`animateTo(0.0)` leaves `isCompleted=true`), (2) `pumpAndSettle` not advancing past `Future.delayed` timers, (3) `pumpAndSettle` exiting between chained async animations. Includes a checklist and explicit-pump patterns.

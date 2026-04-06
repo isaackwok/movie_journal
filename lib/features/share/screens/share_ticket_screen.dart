@@ -578,6 +578,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                                 child: RepaintBoundary(
                             key: _repaintKey,
                             child: FlippableTicket(
+                              hintOnMount: true,
                               front: TicketFront(
                                 posterPath: widget.posterPath ?? journal.moviePoster,
                               ),
