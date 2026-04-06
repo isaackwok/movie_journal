@@ -328,6 +328,7 @@ test/
 │   │   ├── data/data_sources/
 │   │   │   └── movie_api_test.dart     # MovieListResponse.fromJson (2 tests)
 │   │   └── controllers/
+│   │       ├── movie_images_controller_test.dart  # Initial AsyncLoading state (regression test for issue #2 — "Error loading images" flash, 1 test)
 │   │       └── search_movie_controller_test.dart  # movieIntegrityChecker, state logic (5 tests)
 │   ├── login/
 │   │   └── screens/
@@ -390,6 +391,7 @@ test/
 - API client: `lib/core/network/tmdb_dio_client.dart`
 - Environment variable required: TMDB API key in `.env`
 - Movie data models in `lib/features/movie/data/`
+- **`MovieImagesController.build()`** intentionally returns a never-completing `Completer<MovieImagesState>().future` so the provider stays in `AsyncLoading` until callers explicitly invoke `getMovieImages(id:)`. Do **not** make `build()` `throw` or return an empty state — both produce a one-frame UI flash on `ScenesSelector` (issue #2): `throw` flips the AsyncNotifier into `AsyncError` on the next microtask (overriding any synchronous `state = AsyncLoading` that callers set), and an empty state would briefly trigger the "Scene missing!" placeholder.
 
 ### Modifying Journal Features
 - **Single journal state** managed by `JournalState` in `lib/features/journal/controllers/journal.dart`
