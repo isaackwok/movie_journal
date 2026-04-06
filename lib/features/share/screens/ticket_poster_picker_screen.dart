@@ -19,15 +19,17 @@ class TicketPosterPickerScreen extends ConsumerStatefulWidget {
 
 class _TicketPosterPickerScreenState
     extends ConsumerState<TicketPosterPickerScreen> {
-  static const _languageTabs = [
+  static const _allLanguageTabs = [
     ('Original Language', null),
     ('English', 'en'),
     ('繁體中文', 'zh-TW'),
     ('日本語', 'ja'),
   ];
 
-  final List<GlobalKey> _tabKeys = List.generate(
-    _languageTabs.length,
+  List<(String, String?)> _languageTabs = _allLanguageTabs;
+
+  List<GlobalKey> _tabKeys = List.generate(
+    _allLanguageTabs.length,
     (_) => GlobalKey(),
   );
 
@@ -75,9 +77,30 @@ class _TicketPosterPickerScreenState
     final movie = asyncMovie.hasValue ? asyncMovie.value : null;
     if (movie != null) {
       _resolvedOriginalLanguage = movie.originalLanguage;
+      _applyLanguageTabFilter();
     }
 
     await _fetchPostersForTab(0);
+  }
+
+  /// Hides any language tab whose code matches the movie's original language
+  /// (e.g. if `original_language` is `zh`, drop the `zh-TW` tab) so the user
+  /// doesn't see the same posters twice across tabs.
+  void _applyLanguageTabFilter() {
+    final original = _resolvedOriginalLanguage;
+    if (original == null) return;
+    final originalBase = original.split('-').first.toLowerCase();
+    final filtered = _allLanguageTabs.where((tab) {
+      final code = tab.$2;
+      if (code == null) return true;
+      return code.split('-').first.toLowerCase() != originalBase;
+    }).toList();
+    if (filtered.length == _languageTabs.length) return;
+    if (!mounted) return;
+    setState(() {
+      _languageTabs = filtered;
+      _tabKeys = List.generate(filtered.length, (_) => GlobalKey());
+    });
   }
 
   String _languageCodeForTab(int index) {
