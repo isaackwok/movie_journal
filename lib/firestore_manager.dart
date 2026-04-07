@@ -143,18 +143,25 @@ class FirestoreManager {
   /// This deletes:
   /// - All journals belonging to the user
   /// - The user document itself
-  Future<void> deleteUser(String userId) async {
+  ///
+  /// Returns the list of journal document IDs that were deleted, so callers
+  /// (e.g. account deletion) can log per-journal analytics events.
+  Future<List<String>> deleteUser(String userId) async {
     // Delete all journals belonging to this user
     final journals = await _db
         .collection('journals')
         .where('userId', isEqualTo: userId)
         .get();
 
+    final deletedIds = <String>[];
     for (final doc in journals.docs) {
       await doc.reference.delete();
+      deletedIds.add(doc.id);
     }
 
     // Delete the user document
     await _db.collection('users').doc(userId).delete();
+
+    return deletedIds;
   }
 }

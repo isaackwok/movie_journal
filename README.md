@@ -11,6 +11,7 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 - **AI-Curated Reviews** — Browse reviews from Letterboxd and Reddit to spark your own thoughts
 - **Shareable Movie Tickets** — Generate flippable movie ticket images with high-res poster front and details back, peek hint animation on entry, share to Instagram Stories, Threads, or save to gallery
 - **Poster Picker** — Choose ticket posters in multiple languages (Original, English, 繁體中文, 日本語)
+- **Account Management** — Sign in with Apple or Google. Deleting your account performs a fresh re-authentication and then permanently removes all your journals and account data — no orphaned records left behind.
 
 ## Getting Started
 

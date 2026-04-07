@@ -180,4 +180,73 @@ class FirebaseManager {
       await user.delete();
     }
   }
+
+  /// Re-authenticate the current user using their original sign-in provider.
+  ///
+  /// Required before destructive actions like account deletion when the user's
+  /// last sign-in is too old (Firebase throws `requires-recent-login`).
+  ///
+  /// Detects the provider from `currentUser.providerData` and runs the
+  /// corresponding interactive flow:
+  /// - `apple.com` → AppleAuthProvider via `reauthenticateWithProvider` /
+  ///   `reauthenticateWithPopup`
+  /// - `google.com` → fresh `GoogleSignIn` credential via
+  ///   `reauthenticateWithCredential`, or `reauthenticateWithPopup` on web
+  ///
+  /// Anonymous users are a no-op (no provider to re-auth against).
+  ///
+  /// Throws [FirebaseAuthException] with code `no-current-user` if no user is
+  /// signed in, or `unsupported-provider` if the linked provider is neither
+  /// Apple nor Google. Provider-level cancellation propagates from the SDK
+  /// (e.g. Apple `canceled`, popup `popup-closed-by-user`, or
+  /// `GoogleSignInException` for the Google native flow). Callers must treat
+  /// any thrown error as "abort, do not destroy data".
+  Future<void> reauthenticate() async {
+    final user = currentUser;
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'no-current-user',
+        message: 'No user is currently signed in.',
+      );
+    }
+
+    if (user.isAnonymous) return;
+
+    final providerId =
+        user.providerData.isNotEmpty
+            ? user.providerData.first.providerId
+            : null;
+
+    switch (providerId) {
+      case 'apple.com':
+        final appleProvider = AppleAuthProvider();
+        if (kIsWeb) {
+          await user.reauthenticateWithPopup(appleProvider);
+        } else {
+          await user.reauthenticateWithProvider(appleProvider);
+        }
+        break;
+      case 'google.com':
+        if (kIsWeb) {
+          final googleProvider = GoogleAuthProvider();
+          googleProvider.addScope('email');
+          googleProvider.addScope('profile');
+          await user.reauthenticateWithPopup(googleProvider);
+        } else {
+          final googleUser = await GoogleSignIn.instance.authenticate();
+          final googleAuth = googleUser.authentication;
+          final credential = GoogleAuthProvider.credential(
+            idToken: googleAuth.idToken,
+          );
+          await user.reauthenticateWithCredential(credential);
+        }
+        break;
+      default:
+        throw FirebaseAuthException(
+          code: 'unsupported-provider',
+          message:
+              'Cannot re-authenticate user with provider: ${providerId ?? 'none'}',
+        );
+    }
+  }
 }

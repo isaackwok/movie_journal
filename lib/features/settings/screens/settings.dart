@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -172,16 +173,53 @@ class _AccountSection extends ConsumerWidget {
   }
 
   Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
-    try {
-      final firebaseManager = FirebaseManager();
-      final userId = firebaseManager.currentUser?.uid;
+    final firebaseManager = FirebaseManager();
+    final userId = firebaseManager.currentUser?.uid;
+    if (userId == null) return;
 
-      if (userId != null) {
-        // Delete user data from Firestore
-        await FirestoreManager().deleteUser(userId);
+    // 1. Re-authenticate before any destructive action. This guarantees that
+    //    the subsequent auth-account deletion won't fail with
+    //    `requires-recent-login`, which would otherwise leave us with deleted
+    //    Firestore data but a still-existing auth account.
+    try {
+      await firebaseManager.reauthenticate();
+    } on FirebaseAuthException catch (e) {
+      // User backed out of the provider prompt — silently abort.
+      const cancelCodes = {
+        'canceled',
+        'cancelled',
+        'sign-in-cancelled',
+        'popup-closed-by-user',
+        'web-context-canceled',
+      };
+      if (cancelCodes.contains(e.code)) return;
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Re-authentication required: ${e.message ?? e.code}',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    } catch (_) {
+      // Non-Firebase errors (e.g. GoogleSignIn cancellation) — abort without
+      // touching data. We don't surface a SnackBar because we can't reliably
+      // distinguish cancellation from a real error here.
+      return;
+    }
+
+    // 2. Delete Firestore data and log analytics for each removed journal.
+    try {
+      final deletedJournalIds = await FirestoreManager().deleteUser(userId);
+      for (final id in deletedJournalIds) {
+        AnalyticsManager.logJournalDeleted(journalId: id);
       }
 
-      // Delete Firebase Auth account
+      // 3. Delete the auth account (safe — re-auth was just performed).
       await firebaseManager.deleteAccount();
 
       ref.invalidate(journalsControllerProvider);
