@@ -7,7 +7,7 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 - **Movie Search** — Search TMDB's database and view detailed movie information
 - **Emotion Journaling** — Choose from 24 curated emotions across 4 groups (Uplifting, Intense, Soothing, Quiet) to describe your experience
 - **Scene Selection** — Pick memorable scenes from movie stills
-- **Thoughts & Captions** — Write freeform reflections about the film. The caption editor auto-focuses the input on entry, so you can start typing immediately without a manual tap.
+- **Thoughts & Captions** — Write freeform reflections about the film. The caption editor auto-focuses the input on entry and keeps the keyboard attached as you swipe between scenes, so you can caption multiple scenes in a single pass.
 - **AI-Curated Reviews** — Browse reviews from Letterboxd and Reddit to spark your own thoughts
 - **Shareable Movie Tickets** — Generate flippable movie ticket images with high-res poster front and details back, peek hint animation on entry, share to Instagram Stories, Threads, or save to gallery
 - **Poster Picker** — Choose ticket posters in multiple languages (Original, English, 繁體中文, 日本語)

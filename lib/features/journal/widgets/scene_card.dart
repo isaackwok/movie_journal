@@ -4,16 +4,16 @@ class SceneCard extends StatefulWidget {
   final String imagePath;
   final String? caption;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final bool isEditable;
-  final bool autofocus;
 
   const SceneCard({
     super.key,
     required this.imagePath,
     this.caption,
     this.controller,
+    this.focusNode,
     this.isEditable = false,
-    this.autofocus = false,
   });
 
   @override
@@ -72,8 +72,8 @@ class _SceneCardState extends State<SceneCard> {
         ),
         TextField(
           enabled: widget.isEditable,
-          autofocus: widget.autofocus,
           controller: _effectiveController,
+          focusNode: widget.focusNode,
           style: TextStyle(
             color: Colors.white,
             fontSize: 13,
