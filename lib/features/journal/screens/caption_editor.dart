@@ -123,6 +123,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
                           imagePath: scene.path,
                           controller: controller,
                           isEditable: true,
+                          autofocus: index == widget.initialSceneIndex,
                         ),
                       ),
                     );

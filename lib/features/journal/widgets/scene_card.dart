@@ -5,6 +5,7 @@ class SceneCard extends StatefulWidget {
   final String? caption;
   final TextEditingController? controller;
   final bool isEditable;
+  final bool autofocus;
 
   const SceneCard({
     super.key,
@@ -12,6 +13,7 @@ class SceneCard extends StatefulWidget {
     this.caption,
     this.controller,
     this.isEditable = false,
+    this.autofocus = false,
   });
 
   @override
@@ -70,6 +72,7 @@ class _SceneCardState extends State<SceneCard> {
         ),
         TextField(
           enabled: widget.isEditable,
+          autofocus: widget.autofocus,
           controller: _effectiveController,
           style: TextStyle(
             color: Colors.white,

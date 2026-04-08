@@ -403,7 +403,7 @@ test/
   - `journal_content.dart` - View saved journal with all details
   - `movie_preview.dart` - Movie poster and details preview before journaling
   - `thoughts.dart` - Dedicated thoughts editor screen with horizontal selected reviews section at the top (scrollable cards + "Add" button) and text input below
-  - `caption_editor.dart` - Caption editing screen
+  - `caption_editor.dart` - Caption editing screen. Auto-focuses the caption `TextField` of the initial scene on entry by passing `autofocus: index == widget.initialSceneIndex` down to `SceneCard`, so users can start typing immediately without a manual tap. Because `PageView.builder` lazily builds children, only the initial scene's `TextField` exists at mount time and claims focus.
   - `journal_complete.dart` - Post-save success screen shown after creating a journal. Displays animated checkmark, "You've saved a journal" message, reuses `JournalCard` from `home/widgets/` (wrapped in `IgnorePointer`), "Share Ticket" button (navigates to `ShareTicketScreen`), and "View Journal" button. Uses staggered animations (`SingleTickerProviderStateMixin` with `Interval` curves) for a cascading reveal effect. Accepts a `JournalState` prop captured before state cleanup.
 - **Key widgets**:
   - `emotions_selector_button.dart` & `emotions_selector_bottom_sheet.dart` - Emotion selection UI
