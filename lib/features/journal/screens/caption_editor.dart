@@ -17,6 +17,7 @@ class CaptionEditor extends ConsumerStatefulWidget {
 class _CaptionEditorState extends ConsumerState<CaptionEditor> {
   late PageController _pageController;
   late Map<String, TextEditingController> _captionControllers;
+  late Map<String, FocusNode> _captionFocusNodes;
   int _currentPage = 0;
 
   @override
@@ -26,15 +27,25 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
     _currentPage = widget.initialSceneIndex;
     _pageController = PageController(initialPage: widget.initialSceneIndex);
 
-    // Initialize caption controllers for each scene
+    // Initialize caption controllers and focus nodes for each scene.
     final selectedScenes = ref.read(journalControllerProvider).selectedScenes;
     _captionControllers = {};
+    _captionFocusNodes = {};
 
     for (final scene in selectedScenes) {
       _captionControllers[scene.path] = TextEditingController(
         text: scene.caption ?? '',
       );
+      _captionFocusNodes[scene.path] = FocusNode();
     }
+
+    // Focus the visible scene's TextField once the first frame is laid out,
+    // so users can start typing immediately on entry.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || selectedScenes.isEmpty) return;
+      final currentScene = selectedScenes[_currentPage];
+      _captionFocusNodes[currentScene.path]?.requestFocus();
+    });
   }
 
   @override
@@ -43,6 +54,10 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
     // Dispose all caption controllers
     for (final controller in _captionControllers.values) {
       controller.dispose();
+    }
+    // Dispose all focus nodes
+    for (final focusNode in _captionFocusNodes.values) {
+      focusNode.dispose();
     }
     super.dispose();
   }
@@ -63,6 +78,13 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
     setState(() {
       _currentPage = page;
     });
+
+    // Keep the keyboard attached to whichever scene is now visible, so users
+    // can caption multiple scenes in a single pass without re-tapping.
+    final selectedScenes = ref.read(journalControllerProvider).selectedScenes;
+    if (selectedScenes.isEmpty || page >= selectedScenes.length) return;
+    final currentScene = selectedScenes[page];
+    _captionFocusNodes[currentScene.path]?.requestFocus();
   }
 
   void _saveAllCaptions() {
@@ -115,6 +137,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
                   itemBuilder: (context, index) {
                     final scene = selectedScenes[index];
                     final controller = _captionControllers[scene.path];
+                    final focusNode = _captionFocusNodes[scene.path];
 
                     return SingleChildScrollView(
                       child: Padding(
@@ -122,6 +145,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
                         child: SceneCard(
                           imagePath: scene.path,
                           controller: controller,
+                          focusNode: focusNode,
                           isEditable: true,
                         ),
                       ),

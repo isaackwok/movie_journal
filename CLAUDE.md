@@ -403,7 +403,7 @@ test/
   - `journal_content.dart` - View saved journal with all details
   - `movie_preview.dart` - Movie poster and details preview before journaling
   - `thoughts.dart` - Dedicated thoughts editor screen with horizontal selected reviews section at the top (scrollable cards + "Add" button) and text input below
-  - `caption_editor.dart` - Caption editing screen
+  - `caption_editor.dart` - Caption editing screen. Owns a `Map<String, FocusNode> _captionFocusNodes` keyed by scene path, mirroring the existing `_captionControllers` lifecycle — populated in `initState`, disposed in `dispose`. A `WidgetsBinding.instance.addPostFrameCallback` in `initState` focuses the initial scene's `TextField` on mount, and `_onPageChanged` re-focuses the newly visible scene on every swipe, so the keyboard follows the user as they caption multiple scenes in a single pass. `SceneCard` accepts the node via an optional `FocusNode? focusNode` passthrough with no owner-flag bookkeeping (if `null`, `TextField` creates its own internal node).
   - `journal_complete.dart` - Post-save success screen shown after creating a journal. Displays animated checkmark, "You've saved a journal" message, reuses `JournalCard` from `home/widgets/` (wrapped in `IgnorePointer`), "Share Ticket" button (navigates to `ShareTicketScreen`), and "View Journal" button. Uses staggered animations (`SingleTickerProviderStateMixin` with `Interval` curves) for a cascading reveal effect. Accepts a `JournalState` prop captured before state cleanup.
 - **Key widgets**:
   - `emotions_selector_button.dart` & `emotions_selector_bottom_sheet.dart` - Emotion selection UI
