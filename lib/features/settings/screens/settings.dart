@@ -1,11 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
-import 'package:movie_journal/firebase_manager.dart';
-import 'package:movie_journal/firestore_manager.dart';
+import 'package:movie_journal/supabase_db_manager.dart';
+import 'package:movie_journal/supabase_manager.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
@@ -142,7 +141,7 @@ class _AccountSection extends ConsumerWidget {
             ),
             onCancel: () => Navigator.of(context).pop(),
             onConfirm: () async {
-              await FirebaseManager.signOut();
+              await SupabaseManager.signOut();
               ref.invalidate(journalsControllerProvider);
               ref.invalidate(currentUsernameProvider);
               if (context.mounted) {
@@ -173,26 +172,18 @@ class _AccountSection extends ConsumerWidget {
   }
 
   Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
-    final firebaseManager = FirebaseManager();
-    final userId = firebaseManager.currentUser?.uid;
+    final supabaseManager = SupabaseManager();
+    final userId = supabaseManager.currentUser?.id;
     if (userId == null) return;
 
-    // 1. Re-authenticate before any destructive action. This guarantees that
-    //    the subsequent auth-account deletion won't fail with
-    //    `requires-recent-login`, which would otherwise leave us with deleted
-    //    Firestore data but a still-existing auth account.
+    // 1. Re-authenticate before any destructive action. This guarantees we
+    //    have a fresh session when calling the `delete-account` edge
+    //    function, and matches the UX users expect for permanent deletes.
     try {
-      await firebaseManager.reauthenticate();
-    } on FirebaseAuthException catch (e) {
+      await supabaseManager.reauthenticate();
+    } on AppAuthException catch (e) {
       // User backed out of the provider prompt — silently abort.
-      const cancelCodes = {
-        'canceled',
-        'cancelled',
-        'sign-in-cancelled',
-        'popup-closed-by-user',
-        'web-context-canceled',
-      };
-      if (cancelCodes.contains(e.code)) return;
+      if (cancelledAuthCodes.contains(e.code)) return;
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -206,21 +197,22 @@ class _AccountSection extends ConsumerWidget {
       }
       return;
     } catch (_) {
-      // Non-Firebase errors (e.g. GoogleSignIn cancellation) — abort without
+      // Non-app errors (e.g. provider SDK cancellation) — abort without
       // touching data. We don't surface a SnackBar because we can't reliably
       // distinguish cancellation from a real error here.
       return;
     }
 
-    // 2. Delete Firestore data and log analytics for each removed journal.
+    // 2. Delete DB rows and log analytics for each removed journal.
     try {
-      final deletedJournalIds = await FirestoreManager().deleteUser(userId);
+      final deletedJournalIds = await SupabaseDbManager().deleteUser(userId);
       for (final id in deletedJournalIds) {
         AnalyticsManager.logJournalDeleted(journalId: id);
       }
 
-      // 3. Delete the auth account (safe — re-auth was just performed).
-      await firebaseManager.deleteAccount();
+      // 3. Delete the auth account via the edge function (safe — re-auth was
+      //    just performed).
+      await supabaseManager.deleteAccount();
 
       ref.invalidate(journalsControllerProvider);
       ref.invalidate(currentUsernameProvider);

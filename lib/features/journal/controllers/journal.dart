@@ -1,13 +1,13 @@
 import 'dart:convert';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/quesgen/review.dart';
-import 'package:movie_journal/firestore_manager.dart';
+import 'package:movie_journal/supabase_db_manager.dart';
+import 'package:movie_journal/supabase_manager.dart';
 import 'package:uuid/uuid.dart';
 
 // Scene item with path and optional caption
@@ -316,13 +316,13 @@ class JournalController extends Notifier<JournalState> {
     final now = Jiffy.now();
     state = state.copyWith(updatedAt: now);
 
-    final user = FirebaseAuth.instance.currentUser;
+    final user = SupabaseManager().currentUser;
     if (user == null) {
       throw Exception('User not logged in');
     }
 
-    final firestoreManager = FirestoreManager();
-    await firestoreManager.updateJournal(state.id, state);
+    final dbManager = SupabaseDbManager();
+    await dbManager.updateJournal(state.id, state);
 
     final journalsController = ref.read(journalsControllerProvider.notifier);
     await journalsController.refreshJournals();
@@ -338,19 +338,19 @@ class JournalController extends Notifier<JournalState> {
     state = state.copyWith(createdAt: state.createdAt, updatedAt: now);
 
     // Get current user
-    final user = FirebaseAuth.instance.currentUser;
+    final user = SupabaseManager().currentUser;
     if (user == null) {
       throw Exception('User not logged in');
     }
 
-    // Save to Firestore
-    final firestoreManager = FirestoreManager();
-    final docRef = await firestoreManager.addJournal(user.uid, state);
+    // Insert into Supabase and capture the new row id.
+    final dbManager = SupabaseDbManager();
+    final newId = await dbManager.addJournal(user.id, state);
 
-    // Update the state with the Firestore document ID
-    state = state.copyWith(id: docRef.id);
+    // Update the state with the server-assigned id.
+    state = state.copyWith(id: newId);
 
-    // Refresh the journals list from Firestore to include the new journal
+    // Refresh the journals list to include the new journal
     final journalsController = ref.read(journalsControllerProvider.notifier);
     await journalsController.refreshJournals();
 

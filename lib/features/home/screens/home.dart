@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,24 +9,23 @@ import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/login/screens/login.dart';
 import 'package:movie_journal/features/login/screens/create_user.dart';
 import 'package:movie_journal/features/settings/screens/settings.dart';
-import 'package:movie_journal/firebase_manager.dart';
-import 'package:movie_journal/firestore_manager.dart';
+import 'package:movie_journal/supabase_db_manager.dart';
+import 'package:movie_journal/supabase_manager.dart';
 
-/// Provider that streams Firebase authentication state changes
-/// Returns the current User or null if not authenticated
-final authStateProvider = StreamProvider<User?>((ref) {
-  final firebaseManager = FirebaseManager();
-  return firebaseManager.authStateChanges;
+/// Provider that streams Supabase authentication state changes.
+/// Returns the current [AppUser] or null if not authenticated.
+final authStateProvider = StreamProvider<AppUser?>((ref) {
+  return SupabaseManager().authStateChanges;
 });
 
-/// Provider that fetches the current user's username from Firestore
+/// Provider that fetches the current user's username from Supabase.
 final currentUsernameProvider = FutureProvider<String>((ref) async {
   final authState = await ref.watch(authStateProvider.future);
   if (authState == null) {
     return 'Guest';
   }
 
-  final userData = await FirestoreManager().getUser(authState.uid);
+  final userData = await SupabaseDbManager().getUser(authState.id);
   return userData?['username'] ?? 'User';
 });
 
@@ -56,9 +54,9 @@ class HomeScreen extends ConsumerWidget {
           return const LoginScreen();
         }
 
-        // Check if user document exists in Firestore
+        // Check if user row exists in Supabase.
         return FutureBuilder<bool>(
-          future: FirestoreManager().userExists(user.uid),
+          future: SupabaseDbManager().userExists(user.id),
           builder: (context, snapshot) {
             // Still loading user existence check
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -91,7 +89,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHomeScreen(BuildContext context, WidgetRef ref, User user) {
+  Widget _buildHomeScreen(BuildContext context, WidgetRef ref, AppUser user) {
     final journalsAsync = ref.watch(journalsControllerProvider);
     final usernameAsync = ref.watch(currentUsernameProvider);
 

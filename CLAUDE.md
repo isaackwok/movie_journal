@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Flutter movie journal application that allows users to search for movies, view movie details, and create journal entries with emotions, thoughts, and AI-curated reviews about watched movies. The app integrates with The Movie Database (TMDB) API and uses Firebase for authentication and data storage.
+This is a Flutter movie journal application that allows users to search for movies, view movie details, and create journal entries with emotions, thoughts, and AI-curated reviews about watched movies. The app integrates with The Movie Database (TMDB) API. Authentication (Apple + Google Sign-In) and journal/user data storage run on **Supabase** (Auth + Postgres + Edge Functions). Firebase Analytics is retained for product analytics.
 
 ## Development Commands
 
@@ -102,7 +102,7 @@ The app follows a feature-based architecture where each feature is self-containe
   - `widgets/` - FlippableTicket (3D flip animation), TicketFront (poster side), TicketBack (details side), FilmStripClipper (perforation CustomClipper)
 
 - **login/** - Authentication screens and user creation flows
-  - `screens/` - LoginScreen, CreateUserScreen (username input with validation: alphanumeric/underscore/dot only, uniqueness check via Firestore, error toasts use `ToastGravity.TOP` to stay visible above the keyboard). `validateUsername()` is a top-level function for testability.
+  - `screens/` - LoginScreen, CreateUserScreen (username input with validation: alphanumeric/underscore/dot only, uniqueness check via `SupabaseDbManager.usernameExists`, error toasts use `ToastGravity.TOP` to stay visible above the keyboard). `validateUsername()` is a top-level function for testability.
 
 - **settings/** - User settings and account management
   - `screens/` - SettingsScreen (displays username, sign out, delete account options). Logout and delete flows invalidate journal/username providers to prevent stale data on re-login.
@@ -127,11 +127,11 @@ The app follows a feature-based architecture where each feature is self-containe
 
 **Root-level managers:**
 - `analytics_manager.dart` - Firebase Analytics wrapper (screen views, user ID, custom events). Also exports `ScreenViewTracker` widget for wrapping ConsumerWidget screens
-- `firebase_manager.dart` - Firebase Authentication wrapper (Apple Sign-In, Google Sign-In)
-- `firestore_manager.dart` - Firestore CRUD operations for journal entries
+- `supabase_manager.dart` - Supabase Auth wrapper (Apple Sign-In, Google Sign-In, anonymous session, re-auth, delete account). Exposes the app-local `AppUser` struct (`{id, providerId, isAnonymous}`), `AppAuthException`, `cancelledAuthCodes`, and the testable top-level `mapSupabaseProvider()` function. Keeps Firebase provider-id vocabulary (`apple.com`/`google.com`/`anonymous`) so analytics strings don't change.
+- `supabase_db_manager.dart` - Supabase Postgres CRUD wrapper for `public.journals` and `public.users`. Mirrors the former `FirestoreManager` method shapes but returns new row ids as `String`/`List<String>`. Contains `@visibleForTesting` `journalToRow`/`rowToJournalJson` adapters that re-key between camelCase (`JournalState`) and snake_case (Postgres columns).
 - `shared_preferences_manager.dart` - Local preferences storage
 - `themes.dart` - App-wide theme definitions (light/dark mode)
-- `main.dart` - App entry point with Firebase initialization and web responsiveness
+- `main.dart` - App entry point with Firebase (Analytics) + Supabase initialization and web responsiveness
 
 ### State Management
 
@@ -151,37 +151,38 @@ Uses **Riverpod** for state management:
    - Select movie → MoviePreview → Start journaling → Journaling screen
    - Select emotions (EmotionsSelectorBottomSheet) → Select scenes (ScenesSelectSheet) → Write thoughts (ThoughtsEditor)
    - Optionally fetch AI-curated reviews (ReviewsBottomSheet via `quesgen_dio_client.dart`)
-   - Add caption (CaptionEditor) → Save to Firestore (via `FirestoreManager`) with userId → JournalCompleteScreen (animated success screen with journal card preview, "Share Ticket" and "View Journal" buttons)
+   - Add caption (CaptionEditor) → Save to Supabase Postgres (via `SupabaseDbManager`) with user_id → JournalCompleteScreen (animated success screen with journal card preview, "Share Ticket" and "View Journal" buttons)
    - Optional: "Share Ticket" → ShareTicketScreen → flippable movie ticket (poster front / details back with film strip perforations) → "Save Image" captures ticket as PNG via `RepaintBoundary` → saves to gallery via `gal` package
 
 3. **Journal Editing**:
    - JournalContent → More menu → Edit → loads journal into `JournalController`, fetches movie images/details, navigates to `JournalingScreen(editJournalId: id)`
    - `JournalMode` provider (`journalModeProvider`) tracks create vs edit mode — any widget can read it without prop threading
    - In edit mode: ThoughtsScreen hides Reviews FAB and "Add" card, review taps are no-ops, date shows `createdAt`
-   - Save calls `update()` (Firestore `.update()`, preserves `createdAt`) → `popUntil(isFirst)` back to home
+   - Save calls `update()` (Postgres `UPDATE ... WHERE id = $1`, preserves `created_at`) → `popUntil(isFirst)` back to home
    - Navigation: Home → JournalContent → [Edit] → JournalingScreen → [Save] → popUntil Home
 
 4. **Journal Viewing**:
-   - HomeScreen displays JournalsList → Fetch from Firestore by userId
+   - HomeScreen displays JournalsList → Fetch from `public.journals` by `user_id` (RLS also enforces this server-side)
    - Select journal → JournalContent screen → View emotions, thoughts, scenes, reviews
 
 5. **Authentication**:
-   - LoginScreen → Apple/Google Sign-In → Firebase Auth → Store user session
-   - CreateUserScreen for new users → Set username → Store in Firestore
-   - Journals synced by userId field in Firestore documents
+   - LoginScreen → Apple/Google Sign-In → Supabase Auth (`signInWithIdToken` on native, `signInWithOAuth` on web) → Store user session
+   - CreateUserScreen for new users → Set username → Insert into `public.users`
+   - Journals linked by `user_id` FK to `auth.users(id)` — Row Level Security policies (`users_self`, `journals_owner`) restrict all reads/writes to `auth.uid() = user_id`
    - **Logout/Delete**: SettingsScreen invalidates `journalsControllerProvider` and `currentUsernameProvider` via `ref.invalidate()` before navigating to HomeScreen via `pushAndRemoveUntil`, ensuring stale data from the previous user is discarded. Both flows use `pushAndRemoveUntil` to clear the entire navigation stack (including any open dialogs) — avoid popping dialogs before calling the delete/logout handler, as `showDialog`'s `builder: (context)` shadows the outer `BuildContext` and popping unmounts the dialog context
-   - **Delete Account ordering**: `_deleteAccount()` calls `FirebaseManager.reauthenticate()` *before* any destructive action. This forces a fresh Apple/Google prompt so the subsequent `currentUser.delete()` cannot fail with `requires-recent-login` (which would otherwise leave Firestore data deleted but the auth account still alive — an unrecoverable half-deleted state). If the user cancels the re-auth prompt (codes: `canceled`/`cancelled`/`sign-in-cancelled`/`popup-closed-by-user`/`web-context-canceled`) the function returns without touching any data. Only after re-auth succeeds does it call `FirestoreManager.deleteUser()` (which now returns `List<String>` of deleted journal IDs), log `AnalyticsManager.logJournalDeleted` for each ID, then delete the auth account.
-   - **`FirebaseManager.reauthenticate()`**: Detects the active provider via `currentUser.providerData.first.providerId`. For `apple.com` it uses `AppleAuthProvider` + `reauthenticateWithProvider`/`WithPopup`; for `google.com` it obtains a fresh credential via `GoogleSignIn.instance.authenticate()` (or `reauthenticateWithPopup` on web). Anonymous users are a no-op. Unknown providers throw `FirebaseAuthException(code: 'unsupported-provider')`.
+   - **Delete Account ordering**: `_deleteAccount()` calls `SupabaseManager().reauthenticate()` *before* any destructive action. This forces a fresh Apple/Google prompt so the caller is guaranteed a just-confirmed session before the server-side delete runs. If the user cancels the re-auth prompt, `reauthenticate()` throws `AppAuthException` with a code in `cancelledAuthCodes` (`canceled`/`cancelled`/`sign-in-cancelled`/`popup-closed-by-user`/`web-context-canceled`) and the function returns without touching any data. Only after re-auth succeeds does it call `SupabaseDbManager.deleteUser()` (which cascades: selects journal ids, deletes `public.journals` rows, deletes the `public.users` row, and returns the list of deleted journal ids), log `AnalyticsManager.logJournalDeleted` for each id, then call `SupabaseManager().deleteAccount()` which invokes the `delete-account` edge function (service-role `auth.admin.deleteUser`) and signs out locally.
+   - **`SupabaseManager.reauthenticate()`**: Detects the active provider via `AppUser.providerId` (derived from Supabase `user.appMetadata['provider']`, mapped to `apple.com`/`google.com`/`anonymous` via `mapSupabaseProvider()`). For `apple.com` it re-runs `signInWithApple()`; for `google.com` it re-runs `signInWithGoogle()`. Anonymous users are a no-op. Unknown providers throw `AppAuthException(code: 'unsupported-provider')`. Both sign-in flows translate user cancellation into `AppAuthException(code: 'canceled')`.
 
 ## Key Dependencies
 
 - **flutter_riverpod** (3.0.3) - State management framework
 - **dio** (5.8.0+1) - HTTP client for API calls
-- **firebase_core** (4.2.0) - Firebase initialization
-- **firebase_auth** (6.1.1) - User authentication (Apple, Google)
-- **cloud_firestore** (6.1.0) - NoSQL cloud database
+- **firebase_core** (4.2.0) - Firebase initialization (retained for Analytics)
 - **firebase_analytics** (12.0.4) - Google Analytics for Firebase (screen views, custom events, user properties)
-- **google_sign_in** (7.2.0) - Google authentication integration
+- **supabase_flutter** (^2.8.0) - Supabase Auth + Postgres + Edge Functions client
+- **sign_in_with_apple** (^6.1.0) - Native Apple ID credential flow on iOS (feeds `signInWithIdToken`)
+- **crypto** (^3.0.3) - SHA-256 nonce hashing for Apple Sign-In
+- **google_sign_in** (7.2.0) - Source of Google ID tokens on native (passed to Supabase `signInWithIdToken`)
 - **shared_preferences** (2.5.3) - Local key-value storage
 - **flutter_dotenv** (6.0.0) - Environment variables (API keys stored in `.env`)
 - **skeletonizer** (2.0.1) - Loading state skeleton animations
@@ -207,9 +208,40 @@ Uses **Riverpod** for state management:
 The app requires a `.env` file in the root directory with:
 - TMDB API key
 - Review generation API endpoint and key
+- `SUPABASE_URL` and `SUPABASE_ANON_KEY` for Supabase client initialization
 - Other environment-specific configuration
 
-Firebase configuration is in `lib/firebase_options.dart` (auto-generated).
+Firebase configuration is in `lib/firebase_options.dart` (auto-generated, still needed for Firebase Analytics).
+
+## Supabase Backend
+
+The authentication + data backend lives in Supabase. Two artifacts in-repo describe the server-side contract:
+
+- **`supabase/migrations/0001_init.sql`** — defines `public.users` (FK to `auth.users(id)` with `on delete cascade`, `username` unique), `public.journals` (FK to `auth.users`, snake_case columns for all `JournalState` fields, `emotions text[]`, `selected_scenes jsonb`, `selected_refs jsonb`, timestamptz `created_at`/`updated_at`), and Row Level Security policies:
+  - `users_self` — a user can CRUD only their own `public.users` row (`auth.uid() = id`).
+  - `users_username_readable` — anyone authenticated can `select` the `username` column for uniqueness checks during CreateUser.
+  - `journals_owner` — a user can CRUD only their own `public.journals` rows (`auth.uid() = user_id`).
+- **`supabase/functions/delete-account/index.ts`** — Deno edge function. The Supabase client SDK cannot delete its own auth user (only the service role can call `auth.admin.deleteUser`). The function verifies the caller's JWT via the anon key client, then uses a service-role client to delete `auth.users(<caller id>)`. Invoked from Dart via `client.functions.invoke('delete-account')`.
+
+Apply migrations by running `supabase db push` (or pasting the SQL into Supabase Studio). Deploy the edge function with `supabase functions deploy delete-account` — it requires the `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` environment variables to be available to the function runtime (set via `supabase secrets set`).
+
+### Schema mapping
+
+`JournalState.toMap()` produces camelCase keys; Postgres columns are snake_case. The translation lives entirely in `SupabaseDbManager.journalToRow`/`rowToJournalJson` — `JournalState.toMap/fromJson` is still the single source of truth for field values. Mapping:
+
+| JournalState key | Postgres column | Notes |
+|---|---|---|
+| `tmdbId` | `tmdb_id` | int |
+| `movieTitle` | `movie_title` | text |
+| `moviePoster` | `movie_poster` | nullable text, adapter defaults to `''` |
+| `emotions` | `emotions` | text[] |
+| `selectedScenes` | `selected_scenes` | jsonb |
+| `selectedRefs` | `selected_refs` | jsonb |
+| `thoughts` | `thoughts` | text |
+| `createdAt` | `created_at` | timestamptz |
+| `updatedAt` | `updated_at` | timestamptz |
+
+The `user_id` column is added by the caller (`addJournal`/`addJournalsToCollection`) — `journalToRow` never emits it, and `rowToJournalJson` drops it so `JournalState.fromJson` is unchanged.
 
 ## Coding Standards
 
@@ -261,25 +293,29 @@ feature_name/
 - Use `MediaQuery` for responsive breakpoints
 - Support both mobile and web platforms
 
-## Firebase Integration
+## Backend Integration
 
-### Authentication
-- `FirebaseManager` provides wrappers for auth operations
-- Supports Apple Sign-In and Google Sign-In
-- Auth state changes available via `authStateChanges` stream
-- Current implementation note: Apple Sign-In is enabled (check `firebase_manager.dart` for setup instructions)
+### Authentication (Supabase Auth)
+- `SupabaseManager` (in `lib/supabase_manager.dart`) wraps `Supabase.instance.client.auth`.
+- Supports **Apple Sign-In** (native iOS uses `sign_in_with_apple` + `signInWithIdToken` with a SHA-256 hashed nonce; web/Android falls back to `signInWithOAuth(OAuthProvider.apple)`) and **Google Sign-In** (native uses `GoogleSignIn.instance.authenticate()` → `idToken` → `signInWithIdToken`; web uses `signInWithOAuth(OAuthProvider.google)`).
+- Auth state changes available via `authStateChanges` stream — a `Stream<AppUser?>` mapped from `onAuthStateChange`.
+- `currentUser` returns an `AppUser` struct (`{id, providerId, isAnonymous}`), built from Supabase `User.appMetadata['provider']` via the testable top-level `mapSupabaseProvider()` function. Provider ids preserve Firebase's vocabulary (`apple.com`, `google.com`, `anonymous`) so analytics strings don't change.
+- Re-auth + delete are handled by instance methods `reauthenticate()` and `deleteAccount()`. `deleteAccount()` invokes the `delete-account` edge function (service role required) and then calls `auth.signOut()` locally.
+- Predictable failures surface as `AppAuthException {code, message}`. Cancellation codes are collected in `cancelledAuthCodes` so call sites can silently abort instead of showing an error.
+- Xcode capability required: **Sign in with Apple** must be enabled on the Runner target.
 
-### Firestore
-- `FirestoreManager` handles journal CRUD operations
-- Journals stored in `journals` collection with `userId` field
-- Query journals by user: `getJournalsCollection(userId)`
-- Add journals: `addJournal(userId, journal)`
-- Update journals: `updateJournal(journalId, journal)` — uses Firestore `.update()`, fails if doc doesn't exist
-- Delete journals: `deleteJournal(journalId)`
+### Postgres (Supabase)
+- `SupabaseDbManager` (in `lib/supabase_db_manager.dart`) handles journal + user CRUD against `public.journals` and `public.users`.
+- Query journals by user: `getJournalsCollection(userId)` → `from('journals').select().eq('user_id', userId)`.
+- Add journals: `addJournal(userId, journal)` returns the new row's `id` (`String`). Bulk insert: `addJournalsToCollection(userId, journals)` returns `List<String>`.
+- Update journals: `updateJournal(journalId, journal)` — `UPDATE ... WHERE id = $1`.
+- Delete journals: `deleteJournal(journalId)`.
+- User CRUD: `createUser`, `userExists`, `getUser` (shaped to match the old Firestore payload: `{userId, username, createdAt, updatedAt}`), `usernameExists` (used by CreateUser uniqueness check), `updateUsername`, `deleteUser` (cascading: returns journal ids before deleting, for analytics).
+- All reads/writes are gated by RLS — clients can only see/modify their own rows.
 
 ### Initialization
-- Firebase initialized in `main.dart` before app runs
-- Must call `Firebase.initializeApp()` with platform-specific options
+- `main.dart` calls `await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)` first (Analytics still needs it), then `await Supabase.initialize(url: dotenv.env['SUPABASE_URL']!, anonKey: dotenv.env['SUPABASE_ANON_KEY']!)`.
+- Both must succeed before `runApp` — the `authStateProvider` in `home.dart` listens to `SupabaseManager().authStateChanges`.
 
 ### Analytics
 - `AnalyticsManager` in `lib/analytics_manager.dart` wraps `FirebaseAnalytics` with static methods
@@ -345,6 +381,8 @@ test/
 │           ├── flippable_ticket_test.dart     # FlippableTicket: tap, swipe, fling, peek hint (21 tests)
 │           ├── ticket_back_test.dart         # TicketBack widget: header, title, details, emotions, date/time, scene, layout (22 tests)
 │           └── ticket_front_test.dart        # TicketFront widget: ClipPath, TMDB URL, error fallback (4 tests)
+├── supabase_db_manager_test.dart     # SupabaseDbManager.journalToRow / rowToJournalJson adapters + round-trip through JournalState.fromJson (5 tests)
+└── supabase_manager_test.dart        # mapSupabaseProvider (google/apple/unknown/anonymous/empty), cancelledAuthCodes membership, AppAuthException toString (8 tests)
 ```
 
 ### Test Approach
@@ -352,7 +390,7 @@ test/
 - **Controller state tests**: Use `ProviderContainer` to test Riverpod notifiers without Flutter widgets
 - **Widget tests**: Use `testWidgets` with `MaterialApp` wrapper; require `FakeHttpOverrides` for `Image.network` and `GoogleFonts.config.allowRuntimeFetching = false`
 - **Data integrity tests**: Validate emotion list structure (24 emotions, 4 groups, energy levels)
-- No Firebase or API mocking — tests cover models, state mutations, and widget rendering only
+- No Firebase, Supabase, or API mocking — tests cover models, state mutations, widget rendering, and pure adapter/mapping functions. The Supabase manager tests exercise `mapSupabaseProvider` (a top-level pure function) and `SupabaseDbManager.journalToRow`/`rowToJournalJson` (marked `@visibleForTesting`), so no `SupabaseClient` stubbing is needed.
 
 ### Test Helpers
 - `test/helpers/test_journal.dart` — `makeJournal()` factory creates a `JournalState` with defaults (tmdbId: 550, movieTitle: 'Fight Club'). Override any field for specific tests.
@@ -413,7 +451,7 @@ test/
   - `poster_preview_modal.dart` - Full-size poster preview modal
   - `ai_references_accordion.dart` - Expandable AI references/reviews section using `ReviewItem` with `transparent: true` and `showAction: false`
   - `journal_content_more_menu.dart` - More options menu for saved journals (edit and delete actions)
-- **Create flow**: Save to Firestore via `JournalController.save()` → captures `JournalState` → navigates to `JournalCompleteScreen` (pushAndRemoveUntil, keeps Home) → "View Journal" does `pushReplacement` to `JournalContent` → back returns to Home
+- **Create flow**: Save to Supabase via `JournalController.save()` (inserts into `public.journals`, captures the returned row id and folds it into `JournalState.id`) → navigates to `JournalCompleteScreen` (pushAndRemoveUntil, keeps Home) → "View Journal" does `pushReplacement` to `JournalContent` → back returns to Home
 - **Edit flow**: Load via `JournalController.loadJournal()` → edit in `JournalingScreen(editJournalId: id)` → `JournalController.update()` → popUntil home
 - **Mode management**: `journalModeProvider` (`JournalMode.create` / `JournalMode.edit`) — set in `JournalingScreen.initState`, reset in `_cleanupState()`. Widgets like `ThoughtsScreen` read it to conditionally hide edit-inappropriate UI (FAB, Add card)
 
@@ -474,7 +512,7 @@ test/
     ├── journal-data-access/
     │   ├── SKILL.md                 # Riverpod patterns for journal CRUD
     │   └── references/
-    │       └── journal-state-model.md  # JournalState fields and Firestore schema
+    │       └── journal-state-model.md  # JournalState fields and Supabase/Postgres schema
     └── flutter-animation-testing/
         └── SKILL.md                 # Animation test pitfalls and patterns
 ```
@@ -486,5 +524,5 @@ test/
 - Hooks are registered in `settings.local.json` under the `hooks.PreToolUse` and `hooks.Stop` keys (gitignored, local to each developer)
 
 ### Skills
-- **journal-data-access** — Documents the Riverpod provider architecture for journal data. Covers the three core providers (`journalControllerProvider`, `journalsControllerProvider`, `journalModeProvider`), `ref.watch` vs `ref.read` patterns, CRUD operations, create vs edit mode, and AsyncValue handling. Reference file includes full JournalState fields and Firestore document schema.
+- **journal-data-access** — Documents the Riverpod provider architecture for journal data. Covers the three core providers (`journalControllerProvider`, `journalsControllerProvider`, `journalModeProvider`), `ref.watch` vs `ref.read` patterns, CRUD operations, create vs edit mode, and AsyncValue handling. Reference file includes full JournalState fields and Supabase Postgres schema.
 - **flutter-animation-testing** — Pitfalls and patterns for testing Flutter animations. Covers: (1) `animateTo` vs `animateBack` status corruption (`animateTo(0.0)` leaves `isCompleted=true`), (2) `pumpAndSettle` not advancing past `Future.delayed` timers, (3) `pumpAndSettle` exiting between chained async animations. Includes a checklist and explicit-pump patterns.

@@ -7,6 +7,7 @@ import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/shared_preferences_manager.dart';
 import 'package:movie_journal/themes.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -21,7 +22,16 @@ Future<void> main() async {
   await SharedPreferencesManager.init();
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  // firebase_core + firebase_analytics remain for analytics only.
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Supabase handles auth + database (see lib/supabase_manager.dart and
+  // lib/supabase_db_manager.dart).
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
 
   // Disable analytics in debug builds to keep production data clean
   await AnalyticsManager.setAnalyticsCollectionEnabled(!kDebugMode);
@@ -58,12 +68,9 @@ class _MyAppState extends ConsumerState<MyApp> {
     // Set/clear analytics user ID on auth state changes
     ref.listenManual(authStateProvider, (_, next) {
       next.whenData((user) {
-        AnalyticsManager.setUserId(user?.uid);
+        AnalyticsManager.setUserId(user?.id);
         if (user != null) {
-          final providerId = user.providerData.isNotEmpty
-              ? user.providerData.first.providerId
-              : 'unknown';
-          AnalyticsManager.setUserProperty('sign_in_method', providerId);
+          AnalyticsManager.setUserProperty('sign_in_method', user.providerId);
         }
       });
     }, fireImmediately: true);

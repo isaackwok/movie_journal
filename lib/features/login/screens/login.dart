@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:movie_journal/analytics_manager.dart';
-import 'package:movie_journal/firebase_manager.dart';
+import 'package:movie_journal/supabase_manager.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
     try {
-      await FirebaseManager.signInWithGoogle();
+      await SupabaseManager.signInWithGoogle();
       AnalyticsManager.logSignIn(method: 'google');
     } catch (e) {
       // handle error
@@ -36,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signInWithApple() async {
     setState(() => _isLoading = true);
     try {
-      await FirebaseManager.signInWithApple();
+      await SupabaseManager.signInWithApple();
       AnalyticsManager.logSignIn(method: 'apple');
     } catch (e) {
       // handle error

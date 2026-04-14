@@ -1,8 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
-import 'package:movie_journal/firestore_manager.dart';
+import 'package:movie_journal/supabase_db_manager.dart';
+import 'package:movie_journal/supabase_manager.dart';
 
 class JournalsState {
   final List<JournalState> journals;
@@ -14,20 +14,18 @@ class JournalsState {
   }
 }
 
-// AsyncNotifier for loading journals from Firestore
+// AsyncNotifier for loading journals from Supabase
 class JournalsController extends AsyncNotifier<JournalsState> {
-  final FirestoreManager _firestoreManager = FirestoreManager();
+  final SupabaseDbManager _dbManager = SupabaseDbManager();
 
   @override
   Future<JournalsState> build() async {
-    // Get current user from Firebase Auth
-    final user = FirebaseAuth.instance.currentUser;
+    final user = SupabaseManager().currentUser;
     if (user == null) {
       throw Exception('User not logged in');
     }
 
-    // Load journals from Firestore
-    final journals = await _firestoreManager.getJournalsCollection(user.uid);
+    final journals = await _dbManager.getJournalsCollection(user.id);
     return JournalsState(journals: journals);
   }
 
@@ -37,24 +35,20 @@ class JournalsController extends AsyncNotifier<JournalsState> {
 
     final updatedJournals = [...currentState.journals, journal];
     state = AsyncValue.data(currentState.copyWith(journals: updatedJournals));
-
-    // TODO: Add Firestore write logic here
   }
 
-  /// Remove a journal from both Firestore and local state
+  /// Remove a journal from both Supabase and local state.
   ///
-  /// This method first deletes the journal from Firestore, then updates
-  /// the local state to reflect the deletion. If Firestore deletion fails,
-  /// the local state is not updated.
+  /// Deletes the row in Supabase first; if that fails, the local state is
+  /// left unchanged so the UI stays consistent with the database.
   Future<void> removeJournal(String id) async {
     final currentState = state.value;
     if (currentState == null) return;
 
-    // Delete from Firestore first
-    await _firestoreManager.deleteJournal(id);
+    await _dbManager.deleteJournal(id);
     AnalyticsManager.logJournalDeleted(journalId: id);
 
-    // Update local state after successful Firestore deletion
+    // Update local state after successful Supabase deletion
     final updatedJournals =
         currentState.journals.where((j) => j.id != id).toList();
     state = AsyncValue.data(currentState.copyWith(journals: updatedJournals));
@@ -70,11 +64,11 @@ class JournalsController extends AsyncNotifier<JournalsState> {
   Future<void> refreshJournals() async {
     // Keep the current data while loading to prevent UI flicker
     state = await AsyncValue.guard(() async {
-      final user = FirebaseAuth.instance.currentUser;
+      final user = SupabaseManager().currentUser;
       if (user == null) {
         throw Exception('User not logged in');
       }
-      final journals = await _firestoreManager.getJournalsCollection(user.uid);
+      final journals = await _dbManager.getJournalsCollection(user.id);
       return JournalsState(journals: journals);
     });
   }

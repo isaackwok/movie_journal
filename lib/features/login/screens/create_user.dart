@@ -1,10 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/shared_preferences_manager.dart';
+import 'package:movie_journal/supabase_db_manager.dart';
+import 'package:movie_journal/supabase_manager.dart';
 
 /// Validate username with the following rules:
 /// 1. Only alphabets (a-z), numbers (0-9), underscore (_) and fullstop (.) allowed
@@ -46,7 +46,7 @@ class CreateUserScreen extends StatefulWidget {
 
 class _CreateUserScreenState extends State<CreateUserScreen> {
   final TextEditingController _usernameController = TextEditingController();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final SupabaseDbManager _dbManager = SupabaseDbManager();
   bool _isLoading = false;
 
   @override
@@ -61,17 +61,10 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
     super.dispose();
   }
 
-  /// Check if username already exists in Firestore
+  /// Check if the username is already taken.
   Future<bool> _checkUsernameExists(String username) async {
     try {
-      final querySnapshot =
-          await _firestore
-              .collection('users')
-              .where('username', isEqualTo: username)
-              .limit(1)
-              .get();
-
-      return querySnapshot.docs.isNotEmpty;
+      return await _dbManager.usernameExists(username);
     } catch (e) {
       throw Exception('Failed to check username availability: $e');
     }
@@ -111,10 +104,10 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
       }
 
       // All checks passed - create user
-      var newUserDoc = await _createUser(username);
-      await _uploadLocalJournals(newUserDoc);
-      final providerId = FirebaseAuth.instance.currentUser?.providerData
-          .firstOrNull?.providerId ?? 'unknown';
+      final userId = await _createUser(username);
+      await _uploadLocalJournals(userId);
+      final providerId =
+          SupabaseManager().currentUser?.providerId ?? 'unknown';
       AnalyticsManager.logSignUp(method: providerId);
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
@@ -138,41 +131,23 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
     }
   }
 
-  /// Create user function (to be implemented)
-  Future<DocumentReference<Map<String, dynamic>>> _createUser(
-    String username,
-  ) async {
-    var firebaseUser = FirebaseAuth.instance.currentUser;
-    if (firebaseUser == null) {
-      throw Exception('No authenticated Firebase user found.');
+  /// Create the user row in Supabase and return the user id.
+  Future<String> _createUser(String username) async {
+    final currentUser = SupabaseManager().currentUser;
+    if (currentUser == null) {
+      throw Exception('No authenticated user found.');
     }
-    // create user in Firestore
-    var newUserDoc = _firestore.collection('users').doc(firebaseUser.uid);
-    await newUserDoc.set({
-      'username': username,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-
-    return newUserDoc;
-
-    // Fluttertoast.showToast(
-    //   msg: 'Username "$username" is available! Creating user...',
-    //   backgroundColor: Colors.green,
-    // );
+    await _dbManager.createUser(userId: currentUser.id, username: username);
+    return currentUser.id;
   }
 
-  Future<void> _uploadLocalJournals(
-    DocumentReference<Map<String, dynamic>> userDoc,
-  ) async {
-    // upload existing journals in SharedPreferences to Firestore under this user
-    var journals = SharedPreferencesManager.getJournals();
-    WriteBatch batch = _firestore.batch();
-    for (var journal in journals) {
-      Map<String, dynamic> newJournalData = journal.toMap();
-      newJournalData['userId'] = userDoc.id;
-      batch.set(_firestore.collection('journals').doc(), newJournalData);
-    }
-    await batch.commit();
+  /// Upload any journals saved in SharedPreferences (from pre-login flows) to
+  /// Supabase under this user. Done as a single bulk insert for parity with
+  /// the previous Firestore WriteBatch.
+  Future<void> _uploadLocalJournals(String userId) async {
+    final journals = SharedPreferencesManager.getJournals();
+    if (journals.isEmpty) return;
+    await _dbManager.addJournalsToCollection(userId, journals);
   }
 
   @override
