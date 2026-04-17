@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "Fink Icon-iOS-Default-1024x1024@1x.png",
+      "filename" : "YiYi App Icon No Radius.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "Fink Icon-iOS-Default-1024x1024@1x 1.png",
+      "filename" : "YiYi App Icon No Radius 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "Fink Icon-iOS-Default-1024x1024@1x 2.png",
+      "filename" : "YiYi App Icon No Radius 2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
