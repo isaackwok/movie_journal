@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/quesgen/api.dart';
 import 'package:movie_journal/features/quesgen/review.dart';
@@ -39,10 +41,12 @@ class QuesgenController extends Notifier<QuesgenState> {
   }) async {
     state = state.copyWith(isLoading: true);
     try {
+      final locale = _toBackendLocaleTag(PlatformDispatcher.instance.locale);
       final newReviews = await ref
           .read(quesgenApiProvider)
           .generateReviews(
             movieId: movieId,
+            locale: locale,
           );
       state = state.copyWith(reviews: newReviews, isLoading: false);
     } catch (e) {
@@ -54,3 +58,22 @@ class QuesgenController extends Notifier<QuesgenState> {
     state = state.copyWith(reviews: [], isLoading: false, isError: false);
   }
 }
+
+/// Convert the OS-reported [Locale] into a BCP 47 tag the backend
+/// (and TMDB, in the future) understands.
+///
+/// - Combines [Locale.languageCode] with [Locale.countryCode] when present,
+///   e.g. `en_US` -> `"en-US"`.
+/// - Drops [Locale.scriptCode]. TMDB does not accept script subtags
+///   (`zh-Hant-TW` is invalid; `zh-TW` is correct). For CJK the country
+///   code already encodes the script (TW/HK -> Traditional, CN -> Simplified).
+/// - Returns `null` when the language code is missing so the caller can
+///   omit `?lang=` and let the server apply its own default.
+String? _toBackendLocaleTag(Locale locale) {
+  final language = locale.languageCode.trim();
+  if (language.isEmpty) return null;
+  final country = locale.countryCode;
+  if (country == null || country.isEmpty) return language;
+  return '$language-$country';
+}
+
