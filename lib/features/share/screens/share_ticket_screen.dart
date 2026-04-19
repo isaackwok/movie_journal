@@ -596,7 +596,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                               foregroundColor: Colors.black,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(999),
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               textStyle: const TextStyle(
                                 fontSize: 16,
