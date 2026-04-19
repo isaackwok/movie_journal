@@ -11,6 +11,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
+import 'package:movie_journal/features/journal/screens/journal_content.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/share/widgets/flippable_ticket.dart';
 import 'package:movie_journal/features/share/widgets/ticket_back.dart';
@@ -19,11 +20,19 @@ import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 
+enum ShareTicketEntry { journalContent, journalComplete }
+
 class ShareTicketScreen extends ConsumerStatefulWidget {
   final JournalState journal;
   final String? posterPath;
+  final ShareTicketEntry entry;
 
-  const ShareTicketScreen({super.key, required this.journal, this.posterPath});
+  const ShareTicketScreen({
+    super.key,
+    required this.journal,
+    this.posterPath,
+    required this.entry,
+  });
 
   @override
   ConsumerState<ShareTicketScreen> createState() => _ShareTicketScreenState();
@@ -444,6 +453,22 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
     }
   }
 
+  void _onClose() {
+    final nav = Navigator.of(context);
+    switch (widget.entry) {
+      case ShareTicketEntry.journalContent:
+        nav.pop();
+        if (nav.canPop()) nav.pop();
+      case ShareTicketEntry.journalComplete:
+        nav.pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => JournalContent(journalId: widget.journal.id),
+          ),
+          (route) => route.isFirst,
+        );
+    }
+  }
+
   int _computeTicketNumber(
     AsyncValue<JournalsState> asyncJournals,
     String journalId,
@@ -507,43 +532,10 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
         centerTitle: true,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: ElevatedButton(
-              onPressed: isLoading ? null : _showShareBottomSheet,
-              style: ButtonStyle(
-                shape: WidgetStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                padding: WidgetStateProperty.all(
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                textStyle: WidgetStateProperty.all(
-                  const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
-                ),
-                overlayColor: WidgetStateProperty.all(
-                  Theme.of(context).colorScheme.primary,
-                ),
-                backgroundColor: WidgetStateProperty.all(Colors.transparent),
-                side: WidgetStateProperty.all(
-                  BorderSide(
-                    color:
-                        isLoading
-                            ? Colors.white24
-                            : Theme.of(context).colorScheme.primary,
-                    width: 1,
-                  ),
-                ),
-                foregroundColor: WidgetStateProperty.all(
-                  isLoading ? Colors.white38 : Colors.white,
-                ),
-              ),
-              child: const Text('Share'),
+            padding: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              onPressed: _onClose,
+              icon: const Icon(Icons.close, color: Colors.white, size: 24),
             ),
           ),
         ],
@@ -553,34 +545,19 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
               ? const Center(child: CircularProgressIndicator())
               : Column(
                 children: [
-                  // Flippable ticket
                   Expanded(
                     child: Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Tap to Flip label
-                            Text(
-                              'Tap to Flip',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'AvenirNext',
-                                color: Colors.white.withAlpha(153),
-                              ),
-                            ),
-                            const SizedBox(height: 30),
-                            Flexible(
-                              child: AspectRatio(
-                                aspectRatio: 2 / 3,
-                                child: RepaintBoundary(
+                        child: AspectRatio(
+                          aspectRatio: 2 / 3,
+                          child: RepaintBoundary(
                             key: _repaintKey,
                             child: FlippableTicket(
                               hintOnMount: true,
                               front: TicketFront(
-                                posterPath: widget.posterPath ?? journal.moviePoster,
+                                posterPath:
+                                    widget.posterPath ?? journal.moviePoster,
                               ),
                               back: TicketBack(
                                 movieTitle: journal.movieTitle,
@@ -596,40 +573,41 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                             ),
                           ),
                         ),
-                            ),
-                            // Counterbalance text + gap so ticket stays centered
-                            const SizedBox(height: 30 + 20),
-                          ],
-                        ),
                       ),
                     ),
                   ),
-
-                  // Save Image button
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 48),
-                    child: GestureDetector(
-                      onTap: _saving ? null : _saveImage,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.download,
-                            color: _saving ? Colors.white38 : Colors.white,
-                            size: 28,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Save Image',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              fontFamily: 'AvenirNext',
-                              color: _saving ? Colors.white38 : Colors.white,
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+                    child: Row(
+                      children: [
+                        CircledIconButton(
+                          icon: Icons.download,
+                          onPressed: _saving ? null : _saveImage,
+                          iconSize: 20,
+                          size: 48,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _showShareBottomSheet,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              foregroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'AvenirNext',
+                              ),
                             ),
+                            child: const Text('Share'),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_journal/features/home/widgets/journal_card.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_complete.dart';
+import 'package:movie_journal/features/share/screens/ticket_poster_picker_screen.dart';
 
 import '../../../helpers/test_journal.dart';
 import '../../../helpers/widget_test_setup.dart';
@@ -94,6 +95,19 @@ void main() {
       await tester.tap(find.text('Share Ticket'));
       await tester.pumpAndSettle();
       // No exception = handler ran without crash (currently a TODO stub)
+    });
+
+    testWidgets('Share Ticket navigates to TicketPosterPickerScreen',
+        (tester) async {
+      await tester.pumpWidget(buildSubject());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Share Ticket'));
+      await tester.pumpAndSettle();
+
+      // Verifies the new required `entry` parameter is satisfied and
+      // navigation from JournalComplete reaches the poster picker screen.
+      expect(find.byType(TicketPosterPickerScreen), findsOneWidget);
     });
 
     testWidgets('checkmark has filled white circle with dark icon',
