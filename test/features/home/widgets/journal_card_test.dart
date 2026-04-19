@@ -59,6 +59,13 @@ void main() {
       expect(image.fit, BoxFit.cover);
     });
 
+    testWidgets('poster is locked to the 150:215 portrait aspect ratio',
+        (tester) async {
+      await tester.pumpWidget(buildSubject());
+      final aspectRatio = tester.widget<AspectRatio>(find.byType(AspectRatio));
+      expect(aspectRatio.aspectRatio, 150 / 215);
+    });
+
     testWidgets('wraps content in InkWell for tap interaction', (tester) async {
       await tester.pumpWidget(buildSubject());
       expect(find.byType(InkWell), findsOneWidget);

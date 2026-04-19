@@ -68,12 +68,16 @@ class _JournalCardState extends ConsumerState<JournalCard> {
         ),
       ],
       builder: (ctx, animation) => ConstrainedBox(
-        // Cap the preview's intrinsic size. Without this, CupertinoContextMenu's
-        // delegate can compute childSize.height larger than the overlay, making
-        // the menu-sheet constraint `size.height - childSize.height - padding`
-        // go negative and triggering a layout assertion. The cap is larger than
-        // any real grid cell, so in-grid rendering is unaffected.
-        constraints: const BoxConstraints(maxWidth: 240, maxHeight: 340),
+        // Cap the preview's intrinsic size. Two things to satisfy:
+        //   1. CupertinoContextMenu's delegate computes
+        //      `menuSheetHeight = overlaySize.height - childSize.height - padding`;
+        //      without a cap the child can be larger than the overlay and make
+        //      that go negative, tripping a layout assertion.
+        //   2. The image uses AspectRatio(150/215), so a wider card forces a
+        //      proportionally taller image. maxWidth × 1.433 + text + gap +
+        //      padding must stay under maxHeight, otherwise the Column overflows.
+        // 200 × (215/150) + 70 ≈ 330, comfortably under 340.
+        constraints: const BoxConstraints(maxWidth: 200, maxHeight: 340),
         child: _JournalCardVisual(
           journal: journal,
           // Only accept taps when the menu is at rest — during the zoom
@@ -110,37 +114,45 @@ class _JournalCardVisual extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  'https://image.tmdb.org/t/p/w342${journal.moviePoster}',
-                  width: 150,
-                  height: 215,
-                  fit: BoxFit.cover,
-                  alignment: Alignment.center,
+                child: AspectRatio(
+                  aspectRatio: 150 / 215,
+                  child: Image.network(
+                    'https://image.tmdb.org/t/p/w342${journal.moviePoster}',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                  ),
                 ),
               ),
               SizedBox(height: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    journal.movieTitle,
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+              Flexible(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      journal.movieTitle,
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        height: 1.1,
+                      ),
+                      textAlign: TextAlign.start,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    textAlign: TextAlign.start,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    journal.updatedAt.format(pattern: 'MMM. do yyyy'),
-                    style: GoogleFonts.nothingYouCouldDo(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
+                    Text(
+                      journal.updatedAt.format(pattern: 'MMM. do yyyy'),
+                      style: GoogleFonts.nothingYouCouldDo(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        height: 1.1,
+                      ),
+                      textAlign: TextAlign.start,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    textAlign: TextAlign.start,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
