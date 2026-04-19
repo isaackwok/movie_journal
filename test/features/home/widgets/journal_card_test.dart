@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -58,6 +59,13 @@ void main() {
       expect(image.fit, BoxFit.cover);
     });
 
+    testWidgets('poster is locked to the 150:215 portrait aspect ratio',
+        (tester) async {
+      await tester.pumpWidget(buildSubject());
+      final aspectRatio = tester.widget<AspectRatio>(find.byType(AspectRatio));
+      expect(aspectRatio.aspectRatio, 150 / 215);
+    });
+
     testWidgets('wraps content in InkWell for tap interaction', (tester) async {
       await tester.pumpWidget(buildSubject());
       expect(find.byType(InkWell), findsOneWidget);
@@ -87,6 +95,20 @@ void main() {
       expect(containers, isNotEmpty);
       final decoration = containers.first.decoration as BoxDecoration;
       expect(decoration.color, const Color(0xFF222222));
+    });
+
+    testWidgets('wraps the card in a CupertinoContextMenu (iOS-style preview)',
+        (tester) async {
+      await tester.pumpWidget(buildSubject());
+      expect(find.byType(CupertinoContextMenu), findsOneWidget);
+    });
+
+    testWidgets('enables haptic feedback on the context menu', (tester) async {
+      await tester.pumpWidget(buildSubject());
+      final menu = tester.widget<CupertinoContextMenu>(
+        find.byType(CupertinoContextMenu),
+      );
+      expect(menu.enableHapticFeedback, isTrue);
     });
   });
 }
