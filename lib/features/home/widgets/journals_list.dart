@@ -53,20 +53,50 @@ class JournalsList extends ConsumerWidget {
                 ),
               ),
               SizedBox(height: 16),
-              GridView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 16,
-                  childAspectRatio:
-                      0.59, // Width:Height ratio (adjust based on your content)
-                ),
-                itemCount: entry.value.length,
-                itemBuilder: (context, index) {
-                  return JournalCard(journal: entry.value[index]);
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  // Compute cell height from cell width so the cell hugs the
+                  // card's content with no empty trailing gap on any device.
+                  //
+                  // Layout inside JournalCard:
+                  //   - 12px top padding
+                  //   - Poster: AspectRatio(150/215) so height = innerWidth * 1.433
+                  //   - 8px SizedBox
+                  //   - Title (Inter 18, height: 1.1) ≈ 22px
+                  //   - 4px SizedBox
+                  //   - Date (NothingYouCouldDo 12, height: 1.1) ≈ 16px
+                  //   - 12px bottom padding
+                  // Non-poster vertical total = 12 + 8 + 22 + 4 + 16 + 12 ≈ 74
+                  const crossAxisCount = 2;
+                  const crossAxisSpacing = 12.0;
+                  const horizontalPaddingPerCard = 12.0 * 2;
+                  const posterAspectFactor = 215.0 / 150.0;
+                  const nonPosterHeight = 74.0;
+
+                  final cellWidth = (constraints.maxWidth -
+                          crossAxisSpacing * (crossAxisCount - 1)) /
+                      crossAxisCount;
+                  final posterHeight =
+                      (cellWidth - horizontalPaddingPerCard) *
+                          posterAspectFactor;
+                  final cellHeight = posterHeight + nonPosterHeight;
+
+                  return GridView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: crossAxisSpacing,
+                      mainAxisSpacing: 16,
+                      mainAxisExtent: cellHeight,
+                    ),
+                    itemCount: entry.value.length,
+                    itemBuilder: (context, index) {
+                      return JournalCard(journal: entry.value[index]);
+                    },
+                  );
                 },
               ),
             ],
