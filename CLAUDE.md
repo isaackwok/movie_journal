@@ -66,12 +66,12 @@ The app follows a feature-based architecture where each feature is self-containe
 
 - **home/** - Main dashboard displaying journal entries list, empty state placeholders, and add movie button
   - `screens/` - HomeScreen with navigation. Empty state renders `EmptyPlaceholder` outside `SingleChildScrollView` (needs bounded height for `LayoutBuilder`); non-empty state wraps `JournalsList` in `SingleChildScrollView`.
-  - `widgets/` - JournalCard, JournalsList, EmptyPlaceholder, AddMovieButton
+  - `widgets/` - JournalCard, JournalsList, EmptyPlaceholder, AddMovieButton. `JournalCard` is a `ConsumerStatefulWidget` that supports long-press on the card to open a `showMenu` context menu anchored at the touch position with **Edit / Share / Delete** options. Tap position is captured via `InkWell.onTapDown` into `_tapPosition` and fed into `RelativeRect.fromRect` with the overlay `RenderBox` as the outer rect. Menu items delegate to the shared helpers in `lib/features/journal/widgets/journal_actions.dart`.
 
 - **journal/** - Core journaling features with full workflow from movie selection to saving
   - `controllers/` - JournalState (single journal), JournalsState (list of journals), JournalMode enum + JournalModeNotifier (create/edit mode)
   - `screens/` - Journaling (main editor), JournalComplete (post-save success screen), JournalContent (view saved journal), MoviePreview, ThoughtsEditor, CaptionEditor
-  - `widgets/` - EmotionsSelectorButton, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, ReviewItem, ReviewsBottomSheet, ThoughtsEditor, PosterPreviewModal, AiReferencesAccordion, JournalContentMoreMenu
+  - `widgets/` - EmotionsSelectorButton, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, ReviewItem, ReviewsBottomSheet, ThoughtsEditor, PosterPreviewModal, AiReferencesAccordion, JournalContentMoreMenu, and `journal_actions.dart` — a set of shared helper functions (`editJournal`, `shareJournal`, `confirmDeleteJournal`, `deleteJournal`) that encapsulate the domain actions a journal can undergo. Reused by both the more-menu on `JournalContent` and the long-press menu on `JournalCard`. The helpers own the *domain action* (load state / navigate to editor, confirm dialog, Firestore delete + toast, navigate to `TicketPosterPickerScreen`) but intentionally leave post-action navigation (e.g. popping after delete) to the caller, since that depends on which screen initiated the action.
 
 - **movie/** - Movie data management with repository pattern
   - `controllers/` - MovieDetailController, MovieImagesController, SearchMovieController
@@ -311,7 +311,7 @@ test/
 ├── features/
 │   ├── home/
 │   │   └── widgets/
-│   │       └── journal_card_test.dart     # JournalCard widget: poster, title, date, styling (7 tests)
+│   │       └── journal_card_test.dart     # JournalCard widget: poster, title, date, styling, long-press context menu (10 tests)
 │   ├── journal/
 │   │   ├── controllers/
 │   │   │   ├── journal_test.dart      # JournalState model, SceneItem, JournalController (28 tests)
@@ -412,7 +412,7 @@ test/
   - `reviews_bottom_sheet.dart` - Scrollable bottom sheet listing AI-curated reviews with add/selected actions
   - `poster_preview_modal.dart` - Full-size poster preview modal
   - `ai_references_accordion.dart` - Expandable AI references/reviews section using `ReviewItem` with `transparent: true` and `showAction: false`
-  - `journal_content_more_menu.dart` - More options menu for saved journals (edit and delete actions)
+  - `journal_content_more_menu.dart` - More options menu for saved journals (edit and delete actions). A `PopupMenuButton` anchored to the AppBar. Delegates to the shared helpers in `journal_actions.dart` for the edit/delete behavior, and adds its own `Navigator.pop()` after a successful delete (to leave the now-stale `JournalContent` screen).
 - **Create flow**: Save to Firestore via `JournalController.save()` → captures `JournalState` → navigates to `JournalCompleteScreen` (pushAndRemoveUntil, keeps Home) → "View Journal" does `pushReplacement` to `JournalContent` → back returns to Home
 - **Edit flow**: Load via `JournalController.loadJournal()` → edit in `JournalingScreen(editJournalId: id)` → `JournalController.update()` → popUntil home
 - **Mode management**: `journalModeProvider` (`JournalMode.create` / `JournalMode.edit`) — set in `JournalingScreen.initState`, reset in `_cleanupState()`. Widgets like `ThoughtsScreen` read it to conditionally hide edit-inappropriate UI (FAB, Add card)

@@ -88,5 +88,34 @@ void main() {
       final decoration = containers.first.decoration as BoxDecoration;
       expect(decoration.color, const Color(0xFF222222));
     });
+
+    testWidgets('InkWell exposes onLongPress handler', (tester) async {
+      await tester.pumpWidget(buildSubject());
+      final inkWell = tester.widget<InkWell>(find.byType(InkWell));
+      expect(inkWell.onLongPress, isNotNull);
+    });
+
+    testWidgets('long press shows Edit, Share, and Delete options',
+        (tester) async {
+      await tester.pumpWidget(buildSubject());
+
+      await tester.longPress(find.byType(InkWell));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit'), findsOneWidget);
+      expect(find.text('Share'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+    });
+
+    testWidgets('Delete option is rendered in destructive color',
+        (tester) async {
+      await tester.pumpWidget(buildSubject());
+
+      await tester.longPress(find.byType(InkWell));
+      await tester.pumpAndSettle();
+
+      final deleteText = tester.widget<Text>(find.text('Delete'));
+      expect(deleteText.style?.color, const Color(0xFFFF615D));
+    });
   });
 }
