@@ -4,6 +4,7 @@ import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/home/widgets/journal_card.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_content.dart';
+import 'package:movie_journal/features/share/screens/share_ticket_screen.dart';
 import 'package:movie_journal/features/share/screens/ticket_poster_picker_screen.dart';
 
 class JournalCompleteScreen extends StatefulWidget {
@@ -158,8 +159,10 @@ class _JournalCompleteScreenState extends State<JournalCompleteScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            TicketPosterPickerScreen(journal: widget.journal),
+                        builder: (context) => TicketPosterPickerScreen(
+                          journal: widget.journal,
+                          entry: ShareTicketEntry.journalComplete,
+                        ),
                       ),
                     );
                   },
