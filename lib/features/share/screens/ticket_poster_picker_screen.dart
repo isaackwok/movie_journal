@@ -9,8 +9,13 @@ import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 
 class TicketPosterPickerScreen extends ConsumerStatefulWidget {
   final JournalState journal;
+  final ShareTicketEntry entry;
 
-  const TicketPosterPickerScreen({super.key, required this.journal});
+  const TicketPosterPickerScreen({
+    super.key,
+    required this.journal,
+    required this.entry,
+  });
 
   @override
   ConsumerState<TicketPosterPickerScreen> createState() =>
@@ -188,6 +193,7 @@ class _TicketPosterPickerScreenState
         builder: (context) => ShareTicketScreen(
           journal: widget.journal,
           posterPath: _selectedPosterPath,
+          entry: widget.entry,
         ),
       ),
     );

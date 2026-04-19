@@ -4,6 +4,7 @@ import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/journal/screens/journaling.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
+import 'package:movie_journal/features/share/screens/share_ticket_screen.dart';
 import 'package:movie_journal/features/share/screens/ticket_poster_picker_screen.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
@@ -32,7 +33,10 @@ void editJournal(BuildContext context, WidgetRef ref, JournalState journal) {
 void shareJournal(BuildContext context, JournalState journal) {
   Navigator.of(context).push(
     MaterialPageRoute(
-      builder: (_) => TicketPosterPickerScreen(journal: journal),
+      builder: (_) => TicketPosterPickerScreen(
+        journal: journal,
+        entry: ShareTicketEntry.journalContent,
+      ),
     ),
   );
 }
