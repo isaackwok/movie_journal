@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -89,33 +90,18 @@ void main() {
       expect(decoration.color, const Color(0xFF222222));
     });
 
-    testWidgets('InkWell exposes onLongPress handler', (tester) async {
-      await tester.pumpWidget(buildSubject());
-      final inkWell = tester.widget<InkWell>(find.byType(InkWell));
-      expect(inkWell.onLongPress, isNotNull);
-    });
-
-    testWidgets('long press shows Edit, Share, and Delete options',
+    testWidgets('wraps the card in a CupertinoContextMenu (iOS-style preview)',
         (tester) async {
       await tester.pumpWidget(buildSubject());
-
-      await tester.longPress(find.byType(InkWell));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Edit'), findsOneWidget);
-      expect(find.text('Share'), findsOneWidget);
-      expect(find.text('Delete'), findsOneWidget);
+      expect(find.byType(CupertinoContextMenu), findsOneWidget);
     });
 
-    testWidgets('Delete option is rendered in destructive color',
-        (tester) async {
+    testWidgets('enables haptic feedback on the context menu', (tester) async {
       await tester.pumpWidget(buildSubject());
-
-      await tester.longPress(find.byType(InkWell));
-      await tester.pumpAndSettle();
-
-      final deleteText = tester.widget<Text>(find.text('Delete'));
-      expect(deleteText.style?.color, const Color(0xFFFF615D));
+      final menu = tester.widget<CupertinoContextMenu>(
+        find.byType(CupertinoContextMenu),
+      );
+      expect(menu.enableHapticFeedback, isTrue);
     });
   });
 }

@@ -1,11 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_content.dart';
 import 'package:movie_journal/features/journal/widgets/journal_actions.dart';
-
-enum _JournalCardAction { edit, share, delete }
 
 class JournalCard extends ConsumerStatefulWidget {
   final JournalState journal;
@@ -16,120 +15,135 @@ class JournalCard extends ConsumerStatefulWidget {
 }
 
 class _JournalCardState extends ConsumerState<JournalCard> {
-  Offset? _tapPosition;
-
-  Future<void> _showContextMenu() async {
-    final position = _tapPosition;
-    if (position == null) return;
-
-    final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-
-    final selected = await showMenu<_JournalCardAction>(
-      context: context,
-      position: RelativeRect.fromRect(
-        Rect.fromPoints(position, position),
-        Offset.zero & overlay.size,
+  void _openJournal() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => JournalContent(journalId: widget.journal.id),
       ),
-      items: const <PopupMenuEntry<_JournalCardAction>>[
-        PopupMenuItem<_JournalCardAction>(
-          value: _JournalCardAction.edit,
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Text('Edit'),
-        ),
-        PopupMenuItem<_JournalCardAction>(
-          value: _JournalCardAction.share,
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Text('Share'),
-        ),
-        PopupMenuItem<_JournalCardAction>(
-          value: _JournalCardAction.delete,
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Text('Delete', style: TextStyle(color: Color(0xFFFF615D))),
-        ),
-      ],
     );
-
-    if (!mounted || selected == null) return;
-    await _handleAction(selected);
   }
 
-  Future<void> _handleAction(_JournalCardAction action) async {
-    final journal = widget.journal;
-    switch (action) {
-      case _JournalCardAction.edit:
-        editJournal(context, ref, journal);
-        break;
-      case _JournalCardAction.share:
-        shareJournal(context, journal);
-        break;
-      case _JournalCardAction.delete:
-        final shouldDelete = await confirmDeleteJournal(context);
-        if (!shouldDelete || !mounted) return;
-        await deleteJournal(context, ref, journal.id);
-        break;
-    }
+  Future<void> _dismissMenuThen(
+    BuildContext menuContext,
+    Future<void> Function() action,
+  ) async {
+    Navigator.of(menuContext, rootNavigator: true).pop();
+    // Let the context menu overlay finish dismissing before the next
+    // navigation/dialog pushes, so the back stack is clean.
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    await action();
   }
 
   @override
   Widget build(BuildContext context) {
     final journal = widget.journal;
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTapDown: (details) => _tapPosition = details.globalPosition,
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => JournalContent(journalId: journal.id),
-          ),
-        );
-      },
-      onLongPress: _showContextMenu,
-      child: Container(
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: Color(0xFF222222),
+    return CupertinoContextMenu.builder(
+      enableHapticFeedback: true,
+      actions: [
+        CupertinoContextMenuAction(
+          trailingIcon: CupertinoIcons.pencil,
+          onPressed: () => _dismissMenuThen(context, () async {
+            editJournal(this.context, ref, journal);
+          }),
+          child: const Text('Edit'),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                'https://image.tmdb.org/t/p/w342${journal.moviePoster}',
-                width: 150,
-                height: 215,
-                fit: BoxFit.cover,
-                alignment: Alignment.center,
+        CupertinoContextMenuAction(
+          trailingIcon: CupertinoIcons.share,
+          onPressed: () => _dismissMenuThen(context, () async {
+            shareJournal(this.context, journal);
+          }),
+          child: const Text('Share'),
+        ),
+        CupertinoContextMenuAction(
+          isDestructiveAction: true,
+          trailingIcon: CupertinoIcons.delete,
+          onPressed: () => _dismissMenuThen(context, () async {
+            final shouldDelete = await confirmDeleteJournal(this.context);
+            if (!shouldDelete || !mounted) return;
+            await deleteJournal(this.context, ref, journal.id);
+          }),
+          child: const Text('Delete'),
+        ),
+      ],
+      builder: (ctx, animation) => ConstrainedBox(
+        // Cap the preview's intrinsic size. Without this, CupertinoContextMenu's
+        // delegate can compute childSize.height larger than the overlay, making
+        // the menu-sheet constraint `size.height - childSize.height - padding`
+        // go negative and triggering a layout assertion. The cap is larger than
+        // any real grid cell, so in-grid rendering is unaffected.
+        constraints: const BoxConstraints(maxWidth: 240, maxHeight: 340),
+        child: _JournalCardVisual(
+          journal: journal,
+          // Only accept taps when the menu is at rest — during the zoom
+          // transition, taps should be consumed by the context menu route.
+          onTap: animation.value == 0 ? _openJournal : null,
+        ),
+      ),
+    );
+  }
+}
+
+class _JournalCardVisual extends StatelessWidget {
+  final JournalState journal;
+  final VoidCallback? onTap;
+
+  const _JournalCardVisual({required this.journal, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Color(0xFF222222),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  'https://image.tmdb.org/t/p/w342${journal.moviePoster}',
+                  width: 150,
+                  height: 215,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                ),
               ),
-            ),
-            SizedBox(height: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  journal.movieTitle,
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
+              SizedBox(height: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    journal.movieTitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.start,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  textAlign: TextAlign.start,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  journal.updatedAt.format(pattern: 'MMM. do yyyy'),
-                  style: GoogleFonts.nothingYouCouldDo(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                  Text(
+                    journal.updatedAt.format(pattern: 'MMM. do yyyy'),
+                    style: GoogleFonts.nothingYouCouldDo(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.start,
                   ),
-                  textAlign: TextAlign.start,
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
