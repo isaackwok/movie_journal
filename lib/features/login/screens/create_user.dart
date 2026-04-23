@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:movie_journal/analytics_manager.dart';
@@ -37,16 +38,16 @@ String? validateUsername(String username) {
   return null; // Valid
 }
 
-class CreateUserScreen extends StatefulWidget {
+class CreateUserScreen extends ConsumerStatefulWidget {
   const CreateUserScreen({super.key});
 
   @override
-  State<CreateUserScreen> createState() => _CreateUserScreenState();
+  ConsumerState<CreateUserScreen> createState() => _CreateUserScreenState();
 }
 
-class _CreateUserScreenState extends State<CreateUserScreen> {
+class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
   final TextEditingController _usernameController = TextEditingController();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
   bool _isLoading = false;
 
   @override
@@ -113,6 +114,9 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
       // All checks passed - create user
       var newUserDoc = await _createUser(username);
       await _uploadLocalJournals(newUserDoc);
+      // The provider was evaluated at app startup (before this doc existed)
+      // and cached the 'User' fallback — invalidate so HomeScreen re-fetches.
+      ref.invalidate(currentUsernameProvider);
       final providerId = FirebaseAuth.instance.currentUser?.providerData
           .firstOrNull?.providerId ?? 'unknown';
       AnalyticsManager.logSignUp(method: providerId);

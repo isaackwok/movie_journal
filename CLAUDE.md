@@ -167,6 +167,7 @@ Uses **Riverpod** for state management:
    - CreateUserScreen for new users → Set username → Store in Firestore
    - Journals synced by userId field in Firestore documents
    - **Logout/Delete**: SettingsScreen invalidates `journalsControllerProvider` and `currentUsernameProvider` before navigating via `pushAndRemoveUntil`. Don't pop dialogs before calling the handler — `showDialog`'s `builder: (context)` shadows the outer context and popping it unmounts the dialog context.
+   - **Onboarding (create user) must invalidate `currentUsernameProvider`**: `main.dart` eagerly subscribes to it via `ref.listenManual(..., fireImmediately: true)` for analytics, so at app startup for a first-time signup the provider runs while `users/{uid}` doesn't exist yet, resolves to the `'User'` fallback, and caches it. After `_createUser()` writes the doc in `CreateUserScreen`, call `ref.invalidate(currentUsernameProvider)` before navigating to `HomeScreen` or the home will display `'User'` instead of the chosen name.
    - **Delete Account ordering (gotcha)**: `_deleteAccount()` must call `FirebaseManager.reauthenticate()` *before* any destructive action. Otherwise `currentUser.delete()` fails with `requires-recent-login` after Firestore data is already gone, leaving an unrecoverable half-deleted state. Order: reauthenticate → `FirestoreManager.deleteUser()` → log analytics per deleted journal id → `currentUser.delete()`.
 
 ## Key Dependencies
