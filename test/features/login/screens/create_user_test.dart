@@ -1,8 +1,15 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_journal/features/login/screens/create_user.dart';
 
-// Note: create_user.dart now includes AnalyticsManager calls (screen view + sign_up event).
-// These are no-ops without Firebase and don't affect validateUsername() tests below.
+import '../../../helpers/widget_test_setup.dart';
+
+// Note: create_user.dart includes AnalyticsManager calls (screen view + sign_up event)
+// and is now a ConsumerStatefulWidget so it can invalidate currentUsernameProvider
+// after onboarding writes the user doc. AnalyticsManager is a no-op without Firebase,
+// and the Firestore calls in _handleStartJournaling only fire on button press, so the
+// rendering tests below mount the screen safely.
 
 void main() {
   group('validateUsername', () {
@@ -131,6 +138,41 @@ void main() {
       test('allows leading underscore', () {
         expect(validateUsername('_john'), isNull);
       });
+    });
+  });
+
+  group('CreateUserScreen rendering', () {
+    setUpAll(() => setUpWidgetTests());
+    tearDownAll(() => tearDownWidgetTests());
+
+    Widget buildSubject() {
+      return const ProviderScope(
+        child: MaterialApp(home: CreateUserScreen()),
+      );
+    }
+
+    testWidgets('mounts inside a ProviderScope without throwing',
+        (tester) async {
+      await tester.pumpWidget(buildSubject());
+      expect(find.byType(CreateUserScreen), findsOneWidget);
+    });
+
+    testWidgets('renders the Pick a name title', (tester) async {
+      await tester.pumpWidget(buildSubject());
+      expect(find.text('Pick a name.'), findsOneWidget);
+    });
+
+    testWidgets('renders the username input field', (tester) async {
+      await tester.pumpWidget(buildSubject());
+      expect(find.byType(TextField), findsOneWidget);
+    });
+
+    testWidgets('renders the Start Journaling button', (tester) async {
+      await tester.pumpWidget(buildSubject());
+      expect(
+        find.widgetWithText(ElevatedButton, 'Start Journaling'),
+        findsOneWidget,
+      );
     });
   });
 }
