@@ -44,47 +44,51 @@ class _JournalCardState extends ConsumerState<JournalCard> {
       actions: [
         CupertinoContextMenuAction(
           trailingIcon: CupertinoIcons.pencil,
-          onPressed: () => _dismissMenuThen(context, () async {
-            editJournal(this.context, ref, journal);
-          }),
+          onPressed:
+              () => _dismissMenuThen(context, () async {
+                editJournal(this.context, ref, journal);
+              }),
           child: const Text('Edit'),
         ),
         CupertinoContextMenuAction(
           trailingIcon: CupertinoIcons.share,
-          onPressed: () => _dismissMenuThen(context, () async {
-            shareJournal(this.context, journal);
-          }),
+          onPressed:
+              () => _dismissMenuThen(context, () async {
+                shareJournal(this.context, journal);
+              }),
           child: const Text('Share'),
         ),
         CupertinoContextMenuAction(
           isDestructiveAction: true,
           trailingIcon: CupertinoIcons.delete,
-          onPressed: () => _dismissMenuThen(context, () async {
-            final shouldDelete = await confirmDeleteJournal(this.context);
-            if (!shouldDelete || !mounted) return;
-            await deleteJournal(this.context, ref, journal.id);
-          }),
+          onPressed:
+              () => _dismissMenuThen(context, () async {
+                final shouldDelete = await confirmDeleteJournal(this.context);
+                if (!shouldDelete || !mounted) return;
+                await deleteJournal(this.context, ref, journal.id);
+              }),
           child: const Text('Delete'),
         ),
       ],
-      builder: (ctx, animation) => ConstrainedBox(
-        // Cap the preview's intrinsic size. Two things to satisfy:
-        //   1. CupertinoContextMenu's delegate computes
-        //      `menuSheetHeight = overlaySize.height - childSize.height - padding`;
-        //      without a cap the child can be larger than the overlay and make
-        //      that go negative, tripping a layout assertion.
-        //   2. The image uses AspectRatio(150/215), so a wider card forces a
-        //      proportionally taller image. maxWidth × 1.433 + text + gap +
-        //      padding must stay under maxHeight, otherwise the Column overflows.
-        // 200 × (215/150) + 70 ≈ 330, comfortably under 340.
-        constraints: const BoxConstraints(maxWidth: 200, maxHeight: 340),
-        child: _JournalCardVisual(
-          journal: journal,
-          // Only accept taps when the menu is at rest — during the zoom
-          // transition, taps should be consumed by the context menu route.
-          onTap: animation.value == 0 ? _openJournal : null,
-        ),
-      ),
+      builder:
+          (ctx, animation) => ConstrainedBox(
+            // Cap the preview's intrinsic size. Two things to satisfy:
+            //   1. CupertinoContextMenu's delegate computes
+            //      `menuSheetHeight = overlaySize.height - childSize.height - padding`;
+            //      without a cap the child can be larger than the overlay and make
+            //      that go negative, tripping a layout assertion.
+            //   2. The image uses AspectRatio(150/215), so a wider card forces a
+            //      proportionally taller image. maxWidth × 1.433 + text + gap +
+            //      padding must stay under maxHeight, otherwise the Column overflows.
+            // 200 × (215/150) + 70 ≈ 330, comfortably under 340.
+            constraints: const BoxConstraints(maxWidth: 200, maxHeight: 340),
+            child: _JournalCardVisual(
+              journal: journal,
+              // Only accept taps when the menu is at rest — during the zoom
+              // transition, taps should be consumed by the context menu route.
+              onTap: animation.value == 0 ? _openJournal : null,
+            ),
+          ),
     );
   }
 }
@@ -132,7 +136,7 @@ class _JournalCardVisual extends StatelessWidget {
                     Text(
                       journal.movieTitle,
                       style: GoogleFonts.inter(
-                        fontSize: 18,
+                        fontSize: 14,
                         fontWeight: FontWeight.w700,
                         height: 1.1,
                       ),
