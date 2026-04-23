@@ -92,6 +92,57 @@ void main() {
       });
     });
 
+    group('typography', () {
+      TextSpan? findSpanByText(InlineSpan span, String target) {
+        if (span is TextSpan) {
+          if (span.text == target) return span;
+          for (final child in span.children ?? const <InlineSpan>[]) {
+            final hit = findSpanByText(child, target);
+            if (hit != null) return hit;
+          }
+        }
+        return null;
+      }
+
+      TextSpan? findEmotionSpan(WidgetTester tester, String emotionName) {
+        for (final rt in tester.widgetList<RichText>(find.byType(RichText))) {
+          final hit = findSpanByText(rt.text, emotionName);
+          if (hit != null) return hit;
+        }
+        return null;
+      }
+
+      testWidgets('emotion name renders in AvenirNext at w600',
+          (tester) async {
+        await tester.pumpWidget(buildSubject(
+          emotions: [emotionList[EmotionType.joyful]!],
+        ));
+
+        final span = findEmotionSpan(tester, 'joyful');
+        expect(span, isNotNull);
+        expect(span!.style?.fontWeight, FontWeight.w600);
+        expect(span.style?.fontFamily, 'AvenirNext');
+      });
+
+      testWidgets('all emotion names share the same typography when multiple',
+          (tester) async {
+        await tester.pumpWidget(buildSubject(
+          emotions: [
+            emotionList[EmotionType.joyful]!,
+            emotionList[EmotionType.inspired]!,
+            emotionList[EmotionType.hopeful]!,
+          ],
+        ));
+
+        for (final name in ['joyful', 'inspired', 'hopeful']) {
+          final span = findEmotionSpan(tester, name);
+          expect(span, isNotNull, reason: 'missing span for $name');
+          expect(span!.style?.fontWeight, FontWeight.w600);
+          expect(span.style?.fontFamily, 'AvenirNext');
+        }
+      });
+    });
+
     group('selected state', () {
       testWidgets('shows edit icon when emotions are selected',
           (tester) async {

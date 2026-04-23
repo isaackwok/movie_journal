@@ -238,9 +238,9 @@ feature_name/
 ## UI/UX Guidelines
 
 ### Typography
-- **Google Fonts** are used throughout the app (e.g., Nothing You Could Do for usernames in Settings)
-- Access via `GoogleFonts` package with customizable font weights and sizes
-- Maintain consistent text styles across the app using theme definitions
+- **AvenirNext** is the primary UI font (registered in `pubspec.yaml` at weights 100–800, with Demi at w600). For inline bold accents in body text (emotion names, scene labels, date subtitles) use `fontFamily: 'AvenirNext'` with `FontWeight.w600` — not `.bold`/`.w700`, which falls back to a synthetic bold of the ambient font. The emotion-name typography is pinned by the `typography` group in `emotions_selector_button_test.dart`.
+- **Google Fonts** are used for specific display treatments — `Inter` for movie/journal titles, `Nothing You Could Do` for usernames in Settings. Access via the `google_fonts` package.
+- Theme colors via `Theme.of(context).colorScheme`.
 
 ### Theme
 - Supports light and dark themes (default: dark mode)

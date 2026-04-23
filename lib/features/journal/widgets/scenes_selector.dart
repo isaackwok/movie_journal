@@ -204,7 +204,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           fontFamily: 'AvenirNext',
                         ),
                       ),
