@@ -342,7 +342,7 @@ class _EmotionsSelectorBottomSheetState
                         ),
                         SizedBox(height: 4),
                         Text(
-                          'select up to ${widget.maxSelectionLimit} (${_tempSelectedEmotions.length}/${widget.maxSelectionLimit})',
+                          'Select up to ${widget.maxSelectionLimit} (${_tempSelectedEmotions.length}/${widget.maxSelectionLimit})',
                           style: TextStyle(
                             fontFamily: 'AvenirNext',
                             fontSize: 14,

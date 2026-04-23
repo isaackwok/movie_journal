@@ -44,7 +44,7 @@ void main() {
           (tester) async {
         await tester.pumpWidget(buildSubject());
         await tester.pumpAndSettle();
-        expect(find.text('select up to 3 (0/3)'), findsOneWidget);
+        expect(find.text('Select up to 3 (0/3)'), findsOneWidget);
       });
 
       testWidgets('counter reflects initial emotions count', (tester) async {
@@ -52,7 +52,7 @@ void main() {
           initialEmotions: [emotionList[EmotionType.joyful]!],
         ));
         await tester.pumpAndSettle();
-        expect(find.text('select up to 3 (1/3)'), findsOneWidget);
+        expect(find.text('Select up to 3 (1/3)'), findsOneWidget);
       });
 
       testWidgets('displays close icon button', (tester) async {
@@ -112,7 +112,7 @@ void main() {
         await tester.tap(find.text('Joyful'));
         await tester.pumpAndSettle();
 
-        expect(find.text('select up to 3 (1/3)'), findsOneWidget);
+        expect(find.text('Select up to 3 (1/3)'), findsOneWidget);
       });
 
       testWidgets('tapping a second emotion updates counter to 2',
@@ -125,7 +125,7 @@ void main() {
         await tester.tap(find.text('Angry'));
         await tester.pumpAndSettle();
 
-        expect(find.text('select up to 3 (2/3)'), findsOneWidget);
+        expect(find.text('Select up to 3 (2/3)'), findsOneWidget);
       });
 
       testWidgets('cannot select more than 3 emotions', (tester) async {
@@ -139,12 +139,12 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Shocked'));
         await tester.pumpAndSettle();
-        expect(find.text('select up to 3 (3/3)'), findsOneWidget);
+        expect(find.text('Select up to 3 (3/3)'), findsOneWidget);
 
         // Try to select a 4th — counter should stay at 3/3
         await tester.tap(find.text('Funny'));
         await tester.pumpAndSettle();
-        expect(find.text('select up to 3 (3/3)'), findsOneWidget);
+        expect(find.text('Select up to 3 (3/3)'), findsOneWidget);
       });
 
       testWidgets('tapping a selected emotion deselects it', (tester) async {
@@ -152,13 +152,13 @@ void main() {
           initialEmotions: [emotionList[EmotionType.joyful]!],
         ));
         await tester.pumpAndSettle();
-        expect(find.text('select up to 3 (1/3)'), findsOneWidget);
+        expect(find.text('Select up to 3 (1/3)'), findsOneWidget);
 
         // Tap Joyful to deselect
         await tester.tap(find.text('Joyful'));
         await tester.pumpAndSettle();
 
-        expect(find.text('select up to 3 (0/3)'), findsOneWidget);
+        expect(find.text('Select up to 3 (0/3)'), findsOneWidget);
       });
     });
 
