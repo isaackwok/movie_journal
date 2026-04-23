@@ -64,15 +64,11 @@ flutter pub outdated
 
 The app follows a feature-based architecture where each feature is self-contained in `lib/features/`:
 
-- **home/** - Main dashboard displaying journal entries list, empty state placeholders, and add movie button
-  - `screens/` - HomeScreen with navigation. Empty state renders `EmptyPlaceholder` outside `SingleChildScrollView` (needs bounded height for `LayoutBuilder`); non-empty state wraps `JournalsList` in `SingleChildScrollView`.
-  - `widgets/` - JournalCard, JournalsList, EmptyPlaceholder, AddMovieButton. `JournalCard` is a `ConsumerStatefulWidget` wrapped in `CupertinoContextMenu.builder` — long-press produces the iOS-native preview (blurred/dimmed background, scaled-up card via Hero transition, menu sliding in) with built-in heavy-impact haptic feedback (`enableHapticFeedback: true`, which works cross-platform via `HapticFeedback.heavyImpact`). Menu actions are `CupertinoContextMenuAction` items for **Edit / Share / Delete** (delete uses `isDestructiveAction: true` for the red styling), each delegating to the shared helpers in `lib/features/journal/widgets/journal_actions.dart`. Actions first `Navigator.of(menuContext, rootNavigator: true).pop()` to close the overlay, then await a zero-duration Future so the overlay finishes dismissing before any follow-up `Navigator.push` / `showDialog` runs (prevents the new route from stacking on top of the dismissing menu). Tap navigation is gated on `animation.value == 0` so a tap fired during the context-menu zoom transition is ignored — the inner `InkWell.onTap` is `null` while the animation is running. The builder wraps the card in a `ConstrainedBox(maxWidth: 200, maxHeight: 340)` to work around a `CupertinoContextMenu` layout assertion: the delegate computes `menuSheetHeight = overlaySize.height − childSize.height − padding`, and because our `Column` defaults to `MainAxisSize.max`, an unconstrained intrinsic probe can report a childSize larger than the overlay, making the subtraction negative. Grid cells are ~140×260 so the cap never affects in-grid rendering — it only kicks in during the preview. The specific `maxWidth: 200` is coupled to the poster's `AspectRatio(150/215)`: since image height = width × 1.433, the cap has to leave room for `maxWidth × 1.433 + gap + text + padding ≤ maxHeight` (200 × 1.433 + 8 + ~38 + 24 ≈ 357 is too tight, but the Column's 316 inner budget comfortably holds `176 × 1.433 = 252` + the rest).
-
-**Poster aspect ratio**: the image is wrapped in `AspectRatio(aspectRatio: 150/215)` instead of using explicit `Image.network(width: 150, height: 215)`. In a `Column(crossAxisAlignment: CrossAxisAlignment.stretch)`, an explicit-width image gets its width overridden by the parent's tight constraint while the explicit height stays — resulting in a ~216×215 near-square poster in the wider context menu preview. `AspectRatio` locks the 150:215 portrait shape regardless of card width, so the poster scales proportionally in both grid (140-wide) and preview (176-wide) contexts.
-
-**Text-column overflow guard**: the title/date `Column` is wrapped in `Flexible` (so it absorbs sub-pixel height rounding from grid cell sizing) and the text styles carry `height: 1.1` to tighten line spacing. A `SizedBox(height: 4)` sits between the title and the date for visual separation. Without the `Flexible` + tight line heights, the outer Column overflows by ~1 pixel during the context-menu zoom animation where sizes interpolate frame-by-frame.
-
-**Grid cell sizing** (in `journals_list.dart`): the grid uses a `LayoutBuilder` that computes `mainAxisExtent` from the actual cell width rather than a fixed `childAspectRatio`. The formula: `cellHeight = (cellWidth − 24) × (215/150) + 74`, where the 24 is the card's horizontal padding (2 × 12), 215/150 is the poster's aspect factor, and 74 is the constant non-poster vertical total (12 top padding + 8 gap + ~22 title + 4 gap + ~16 date + 12 bottom padding). This makes each cell hug the card tightly on every device, eliminating the dead space that `childAspectRatio: 0.59` used to leave below the date on wider phones. The coupling between `journals_list.dart`'s math and `journal_card.dart`'s actual layout is intentional — if you change the card's padding, gap, text size, or poster ratio, update `nonPosterHeight` / `posterAspectFactor` here so the cells stay tight.
+- **home/** - Main dashboard: journal entries list, empty state, add movie button
+  - `screens/` - HomeScreen. Empty state renders `EmptyPlaceholder` outside `SingleChildScrollView` (needs bounded height for `LayoutBuilder`); non-empty state wraps `JournalsList` in `SingleChildScrollView`.
+  - `widgets/` - JournalCard, JournalsList, EmptyPlaceholder, AddMovieButton.
+    - `JournalCard`: long-press triggers iOS-style `CupertinoContextMenu` with Edit / Share / Delete actions, all delegating to `lib/features/journal/widgets/journal_actions.dart`. Tap navigation is gated on `animation.value == 0` to ignore taps during the context-menu zoom. The card is wrapped in a `ConstrainedBox(maxWidth: 200, maxHeight: 340)` to sidestep a `CupertinoContextMenu` layout assertion — do not remove.
+    - `JournalsList`: grid uses a `LayoutBuilder` that computes `mainAxisExtent` from actual cell width, not `childAspectRatio`. If you change card padding / gap / text size / poster ratio, update `nonPosterHeight` and `posterAspectFactor` in `journals_list.dart` so cells stay tight.
 
 - **journal/** - Core journaling features with full workflow from movie selection to saving
   - `controllers/` - JournalState (single journal), JournalsState (list of journals), JournalMode enum + JournalModeNotifier (create/edit mode)
@@ -90,12 +86,7 @@ The app follows a feature-based architecture where each feature is self-containe
   - `screens/` - SearchMovieScreen
   - `widgets/` - MovieSearchBar, MovieResultList
 
-- **emotion/** - Emotion data model and definitions
-  - `emotion.dart` - Emotion class and EmotionType enum with 24 emotions organized into 4 groups:
-    - **Uplifting** (high energy, positive): Joyful, Funny, Inspired, Mind-blown, Hopeful, Fulfilling
-    - **Intense** (high energy, negative): Shocked, Angry, Terrified, Anxious, Overwhelmed, Disturbed
-    - **Soothing** (low energy, positive): Heartwarming, Touched, Peaceful, Therapeutic, Nostalgic, Cozy
-    - **Quiet** (low energy, negative): Melancholic, Confused, Profound, Bittersweet, Powerless, Lonely
+- **emotion/** - Emotion data model (24 emotions in 4 groups — see Working with Emotions section)
 
 - **quesgen/** - AI review fetching service for movie reviews from external sources
   - `review.dart` - Review data model with `text` and `source` fields (sources: "letterboxd", "reddit")
@@ -175,9 +166,8 @@ Uses **Riverpod** for state management:
    - LoginScreen → Apple/Google Sign-In → Firebase Auth → Store user session
    - CreateUserScreen for new users → Set username → Store in Firestore
    - Journals synced by userId field in Firestore documents
-   - **Logout/Delete**: SettingsScreen invalidates `journalsControllerProvider` and `currentUsernameProvider` via `ref.invalidate()` before navigating to HomeScreen via `pushAndRemoveUntil`, ensuring stale data from the previous user is discarded. Both flows use `pushAndRemoveUntil` to clear the entire navigation stack (including any open dialogs) — avoid popping dialogs before calling the delete/logout handler, as `showDialog`'s `builder: (context)` shadows the outer `BuildContext` and popping unmounts the dialog context
-   - **Delete Account ordering**: `_deleteAccount()` calls `FirebaseManager.reauthenticate()` *before* any destructive action. This forces a fresh Apple/Google prompt so the subsequent `currentUser.delete()` cannot fail with `requires-recent-login` (which would otherwise leave Firestore data deleted but the auth account still alive — an unrecoverable half-deleted state). If the user cancels the re-auth prompt (codes: `canceled`/`cancelled`/`sign-in-cancelled`/`popup-closed-by-user`/`web-context-canceled`) the function returns without touching any data. Only after re-auth succeeds does it call `FirestoreManager.deleteUser()` (which now returns `List<String>` of deleted journal IDs), log `AnalyticsManager.logJournalDeleted` for each ID, then delete the auth account.
-   - **`FirebaseManager.reauthenticate()`**: Detects the active provider via `currentUser.providerData.first.providerId`. For `apple.com` it uses `AppleAuthProvider` + `reauthenticateWithProvider`/`WithPopup`; for `google.com` it obtains a fresh credential via `GoogleSignIn.instance.authenticate()` (or `reauthenticateWithPopup` on web). Anonymous users are a no-op. Unknown providers throw `FirebaseAuthException(code: 'unsupported-provider')`.
+   - **Logout/Delete**: SettingsScreen invalidates `journalsControllerProvider` and `currentUsernameProvider` before navigating via `pushAndRemoveUntil`. Don't pop dialogs before calling the handler — `showDialog`'s `builder: (context)` shadows the outer context and popping it unmounts the dialog context.
+   - **Delete Account ordering (gotcha)**: `_deleteAccount()` must call `FirebaseManager.reauthenticate()` *before* any destructive action. Otherwise `currentUser.delete()` fails with `requires-recent-login` after Firestore data is already gone, leaving an unrecoverable half-deleted state. Order: reauthenticate → `FirestoreManager.deleteUser()` → log analytics per deleted journal id → `currentUser.delete()`.
 
 ## Key Dependencies
 
@@ -288,70 +278,15 @@ feature_name/
 - Must call `Firebase.initializeApp()` with platform-specific options
 
 ### Analytics
-- `AnalyticsManager` in `lib/analytics_manager.dart` wraps `FirebaseAnalytics` with static methods
-- Analytics collection disabled in debug builds (`!kDebugMode`), set in `main.dart`
-- **User identification**: User ID and properties (`sign_in_method`, `username`) set via `ref.listenManual` on auth/username providers in `MyApp`
-- **Screen tracking**: Manual `logScreenView()` calls in each screen's `initState` (stateful screens) or via `ScreenViewTracker` wrapper widget (ConsumerWidget screens: Home, Settings, MoviePreview)
-- **Screen names**: Login, CreateUser, Home, Settings, SearchMovie, MoviePreview, Journaling, JournalComplete, JournalContent, Thoughts, CaptionEditor, TicketPosterPicker, ShareTicket
-- **Custom events**:
-  - `login` / `sign_up` — GA4 recommended events, logged in LoginScreen and CreateUserScreen
-  - `journal_created` (movie_title, tmdb_id, emotion_count, scene_count) — logged in `JournalController.save()`
-  - `journal_updated` (journal_id) — logged in `JournalController.update()`
-  - `journal_deleted` (journal_id) — logged in `JournalsController.removeJournal()`
-  - `movie_searched` (query) — logged on search submit in MovieSearchBar
-  - `movie_selected` (tmdb_id, movie_title) — logged when user taps a search result
-  - `journal_shared` (movie_title, share_method) — logged for instagram_story, threads, native share
-  - `ticket_saved` (movie_title) — logged when ticket image saved to gallery
-- **iOS config**: `IS_ANALYTICS_ENABLED` set to `true` in `GoogleService-Info.plist`
+- `AnalyticsManager` in `lib/analytics_manager.dart` wraps `FirebaseAnalytics` with static methods. Disabled in debug builds (`!kDebugMode`, set in `main.dart`). All events, screen names, and user properties live there — read the source rather than maintaining a list here.
+- **Screen tracking pattern**: stateful screens call `logScreenView()` in `initState`; ConsumerWidget screens wrap in the `ScreenViewTracker` widget.
+- **User identification**: `ref.listenManual` on auth/username providers in `MyApp` sets user id + `sign_in_method` / `username` properties.
+- **iOS config**: `IS_ANALYTICS_ENABLED: true` in `GoogleService-Info.plist`.
 
 ## Testing
 
 ### Test Structure
-Tests mirror the `lib/features/` structure under `test/features/`:
-```
-test/
-├── helpers/
-│   ├── test_journal.dart          # makeJournal() factory with sensible defaults
-│   ├── test_movie.dart            # makeBriefMovieJson() factory for TMDB JSON fixtures
-│   └── fake_http_client.dart      # FakeHttpOverrides for widget tests with Image.network
-├── features/
-│   ├── home/
-│   │   └── widgets/
-│   │       └── journal_card_test.dart     # JournalCard widget: poster, title, date, styling, iOS-style CupertinoContextMenu wiring, 150:215 AspectRatio lock (10 tests)
-│   ├── journal/
-│   │   ├── controllers/
-│   │   │   ├── journal_test.dart      # JournalState model, SceneItem, JournalController (28 tests)
-│   │   │   └── journals_test.dart     # JournalsState copyWith (4 tests)
-│   │   ├── screens/
-│   │   │   └── journal_complete_test.dart  # JournalCompleteScreen widget tests (10 tests)
-│   │   └── widgets/
-│   │       ├── emotions_selector_bottom_sheet_test.dart  # Multi-select, max limit, selection/deselection, Done/cancel (18 tests)
-│   │       ├── emotions_selector_button_test.dart  # Energy gradients, text formatting, readonly mode (13 tests)
-│   │       └── review_item_test.dart  # ReviewItem: 4 visual states, interaction, transparent variant (13 tests)
-│   ├── movie/
-│   │   ├── data/models/
-│   │   │   ├── brief_movie_test.dart   # BriefMovie.fromJson parsing (5 tests)
-│   │   │   ├── detailed_movie_test.dart # DetailedMovie + nested types fromJson (25 tests)
-│   │   │   └── movie_image_test.dart   # MovieImage.fromJson parsing (1 test)
-│   │   ├── data/data_sources/
-│   │   │   └── movie_api_test.dart     # MovieListResponse.fromJson (2 tests)
-│   │   └── controllers/
-│   │       ├── movie_images_controller_test.dart  # Initial AsyncLoading state (regression test for issue #2 — "Error loading images" flash, 1 test)
-│   │       └── search_movie_controller_test.dart  # movieIntegrityChecker, state logic (5 tests)
-│   ├── login/
-│   │   └── screens/
-│   │       └── create_user_test.dart  # validateUsername: valid inputs, invalid chars, special-char-only, trailing _ and . (21 tests)
-│   ├── emotion/
-│   │   └── emotion_test.dart      # Emotion data integrity (6 tests)
-│   ├── quesgen/
-│   │   └── review_test.dart       # Review model serialization + equality (5 tests)
-│   └── share/
-│       └── widgets/
-│           ├── film_strip_clipper_test.dart  # CustomClipper geometry: corner holes, edge perforations, evenOdd fill (23 tests)
-│           ├── flippable_ticket_test.dart     # FlippableTicket: tap, swipe, fling, peek hint (21 tests)
-│           ├── ticket_back_test.dart         # TicketBack widget: header, title, details, emotions, date/time, scene, layout (22 tests)
-│           └── ticket_front_test.dart        # TicketFront widget: ClipPath, TMDB URL, error fallback (4 tests)
-```
+Tests mirror `lib/features/` under `test/features/`. Shared helpers live in `test/helpers/` (see below). Browse `test/features/` directly for the current test inventory — listing every file here would rot.
 
 ### Test Approach
 - **Pure model tests**: Serialization, deserialization, backward compatibility, equality
@@ -402,50 +337,29 @@ test/
 - **`MovieImagesController.build()`** intentionally returns a never-completing `Completer<MovieImagesState>().future` so the provider stays in `AsyncLoading` until callers explicitly invoke `getMovieImages(id:)`. Do **not** make `build()` `throw` or return an empty state — both produce a one-frame UI flash on `ScenesSelector` (issue #2): `throw` flips the AsyncNotifier into `AsyncError` on the next microtask (overriding any synchronous `state = AsyncLoading` that callers set), and an empty state would briefly trigger the "Scene missing!" placeholder.
 
 ### Modifying Journal Features
-- **Single journal state** managed by `JournalState` in `lib/features/journal/controllers/journal.dart`
-- **List of journals** managed by `JournalsState` in `lib/features/journal/controllers/journals.dart`
-- **Main screens**:
-  - `journaling.dart` - Main journal editor with emotion and scene selection. Supports both create and edit modes via optional `editJournalId` prop (null = create, non-null = edit). Sets `journalModeProvider` on init.
-  - `journal_content.dart` - View saved journal with all details
-  - `movie_preview.dart` - Movie poster and details preview before journaling
-  - `thoughts.dart` - Dedicated thoughts editor screen with horizontal selected reviews section at the top (scrollable cards + "Add" button) and text input below
-  - `caption_editor.dart` - Caption editing screen. Owns a `Map<String, FocusNode> _captionFocusNodes` keyed by scene path, mirroring the existing `_captionControllers` lifecycle — populated in `initState`, disposed in `dispose`. A `WidgetsBinding.instance.addPostFrameCallback` in `initState` focuses the initial scene's `TextField` on mount, and `_onPageChanged` re-focuses the newly visible scene on every swipe, so the keyboard follows the user as they caption multiple scenes in a single pass. `SceneCard` accepts the node via an optional `FocusNode? focusNode` passthrough with no owner-flag bookkeeping (if `null`, `TextField` creates its own internal node).
-  - `journal_complete.dart` - Post-save success screen shown after creating a journal. Displays animated checkmark, "You've saved a journal" message, reuses `JournalCard` from `home/widgets/` (wrapped in `IgnorePointer`), "Share Ticket" button (navigates to `ShareTicketScreen`), and "View Journal" button. Uses staggered animations (`SingleTickerProviderStateMixin` with `Interval` curves) for a cascading reveal effect. Accepts a `JournalState` prop captured before state cleanup.
-- **Key widgets**:
-  - `emotions_selector_button.dart` & `emotions_selector_bottom_sheet.dart` - Emotion selection UI
-  - `scenes_selector.dart` & `scenes_select_sheet.dart` - Scene selection from movie images
-  - `review_item.dart` - Reusable review card with source icon (Letterboxd/Reddit) and optional action button. Props: `review` (required), `onPress` (optional), `showAction` (default: true), `isSelected` (default: false), `transparent` (default: false). When `transparent: true`, background is transparent with a subtle white border (used in accordion and horizontal scroll contexts). Four visual states: no action button (`showAction: false`), add button (`showAction: true`), selected checkmark (`showAction: true, isSelected: true`), transparent variant (`transparent: true`)
-  - `reviews_bottom_sheet.dart` - Scrollable bottom sheet listing AI-curated reviews with add/selected actions
-  - `poster_preview_modal.dart` - Full-size poster preview modal
-  - `ai_references_accordion.dart` - Expandable AI references/reviews section using `ReviewItem` with `transparent: true` and `showAction: false`
-  - `journal_content_more_menu.dart` - More options menu for saved journals (edit and delete actions). A `PopupMenuButton` anchored to the AppBar. Delegates to the shared helpers in `journal_actions.dart` for the edit/delete behavior, and adds its own `Navigator.pop()` after a successful delete (to leave the now-stale `JournalContent` screen).
-- **Create flow**: Save to Firestore via `JournalController.save()` → captures `JournalState` → navigates to `JournalCompleteScreen` (pushAndRemoveUntil, keeps Home) → "View Journal" does `pushReplacement` to `JournalContent` → back returns to Home
-- **Edit flow**: Load via `JournalController.loadJournal()` → edit in `JournalingScreen(editJournalId: id)` → `JournalController.update()` → popUntil home
-- **Mode management**: `journalModeProvider` (`JournalMode.create` / `JournalMode.edit`) — set in `JournalingScreen.initState`, reset in `_cleanupState()`. Widgets like `ThoughtsScreen` read it to conditionally hide edit-inappropriate UI (FAB, Add card)
+State lives in `lib/features/journal/controllers/`: `JournalState` (single) and `JournalsState` (list). See the `journal-data-access` skill for provider patterns.
+
+- **`JournalingScreen(editJournalId?)`**: single editor for both create and edit. `null` = create, non-null = edit. Sets `journalModeProvider` in `initState`, resets in `_cleanupState()`.
+- **Mode provider**: `journalModeProvider` (`JournalMode.create` / `edit`) — widgets like `ThoughtsScreen` read it to hide edit-inappropriate UI (Reviews FAB, "Add" card; review taps become no-ops in edit mode).
+- **Create flow**: `JournalController.save()` → captures `JournalState` → `pushAndRemoveUntil` to `JournalCompleteScreen` (keeps Home) → "View Journal" `pushReplacement` to `JournalContent`.
+- **Edit flow**: `JournalController.loadJournal()` → `JournalingScreen(editJournalId)` → `JournalController.update()` (Firestore `.update()`, preserves `createdAt`) → `popUntil(isFirst)`.
+- **Caption editor focus management**: `caption_editor.dart` owns `_captionFocusNodes` keyed by scene path. A `postFrameCallback` in `initState` focuses the initial scene's `TextField`; `_onPageChanged` re-focuses on every swipe so the keyboard stays up as the user captions multiple scenes.
+- **Journal actions**: `lib/features/journal/widgets/journal_actions.dart` holds `editJournal` / `shareJournal` / `confirmDeleteJournal` / `deleteJournal`. Reused by both `JournalContent`'s more-menu and `JournalCard`'s context menu. Helpers own the domain action but leave post-action navigation to the caller.
+- **`ReviewItem`** has four visual states via `showAction` / `isSelected` / `transparent` props — used in reviews bottom sheet (add/selected), AI references accordion (transparent, no action), etc.
 
 ### Working with Share Ticket
-- Feature lives under `lib/features/share/` with `screens/` and `widgets/` subdirectories
-- **TicketPosterPickerScreen** — poster selection screen before share ticket. Takes a required `ShareTicketEntry entry` (forwarded verbatim to `ShareTicketScreen`). Displays language tabs ("Original Language", "English", "繁體中文", "日本語") with `Scrollable.ensureVisible` auto-scroll on selection. Tab styling: selected = white 70% bg / white 90% border / black text, unselected = white 15% bg / transparent border / white text, and a 2-column grid of TMDB posters. "Original Language" resolves to the movie's `originalLanguage` field. 繁體中文 uses `zh-TW` locale code. After the movie detail loads, `_applyLanguageTabFilter()` drops any fixed-language tab whose base code (part before `-`, case-insensitive) matches the movie's original language, so the duplicate tab is hidden (e.g. an English movie hides the "English" tab, a Chinese movie hides "繁體中文"). Caches fetched posters per language in local `Map`. Selected poster persists across tab switches. Selection uses `Stack` overlay border (no image shrink). Navigates to `ShareTicketScreen(journal:, posterPath:, entry:)` on "Next".
-- **Navigation flow**: callers → `TicketPosterPickerScreen(journal:, entry:)` → `ShareTicketScreen(journal:, posterPath:, entry:)`
-- **`ShareTicketEntry` enum** (defined in `share_ticket_screen.dart`): `journalContent` and `journalComplete` — identifies which screen opened the share flow so the close button can route back correctly. `JournalContent` call site passes `ShareTicketEntry.journalContent`; `JournalComplete` call site passes `ShareTicketEntry.journalComplete`.
-- **ShareTicketScreen** (`ConsumerStatefulWidget`) accepts a `JournalState journal`, optional `String? posterPath` (overrides `journal.moviePoster` for the ticket front), and a required `ShareTicketEntry entry`. Reads movie details from `movieDetailControllerProvider`, images from `movieImagesControllerProvider`, and journals from `journalsControllerProvider`. Shows a centered `CircularProgressIndicator` while any provider is loading (`isLoading` gates on all three). Once all APIs complete, renders the ticket (truly vertically centered) and the bottom action row.
-- **AppBar**: left = `CircledIconButton` back arrow (pops once). Right = plain `IconButton(Icons.close)` wired to `_onClose()`. Close behavior depends on `entry`: `journalContent` pops twice (ShareTicket + TicketPosterPicker → lands on pre-existing JournalContent); `journalComplete` uses `Navigator.pushAndRemoveUntil(JournalContent(journalId), (r) => r.isFirst)` to skip the celebration screen and land on JournalContent above Home.
-- **Bottom action row** (replaces the old AppBar "Share" button and the old label-under-icon "Save Image"): a `Row` with `CircledIconButton(icon: Icons.download, size: 48, iconSize: 20)` (save-to-gallery) + `SizedBox(width: 12)` + `Expanded(ElevatedButton('Share'))`. The Share button uses `colorScheme.primary` bg with black text, 16px vertical padding, and `BorderRadius.circular(16)`.
-- **FlippableTicket** wraps front/back widgets with 3D `Matrix4.rotationY` flip animation (600ms). Supports tap-to-flip (full 180° animated flip) and horizontal swipe-to-flip (direct drag control with snap-to-nearest on release, fling support with 300 px/s velocity threshold). `hintOnMount` (default: false, set to `true` on the ShareTicket usage so the peek animation hints at flipping without a text label) triggers a peek animation on mount: 500ms delay → peek to 0.30 (350ms easeOut) → return to 0.0 (350ms easeIn via `animateBack`). Uses `_peekCancelled` flag so early taps/drags cancel the pending peek. `animateBack` (not `animateTo`) is used for the return to ensure the controller status is `dismissed` — `animateTo(0.0)` would leave status as `completed`, breaking `_flip()`'s `isCompleted` check.
-- **TicketFront**: poster-only image filling the clipped ticket shape (uses `/w780` for higher-resolution share output)
-- **TicketBack**: cream background with "FINK MOVIE JOURNAL" header, movie details, emotions, date band, B&W scene image
-- **FilmStripClipper**: `CustomClipper<Path>` using `PathFillType.evenOdd` for film perforation holes
-- **Image capture helpers**: `_captureTicketAsBytes()` captures the `RepaintBoundary` to PNG `Uint8List`, `_captureTicketToFile(filename)` wraps it to write a temp file. All share/save methods use these helpers instead of duplicating capture logic.
-- **Save to gallery**: `_captureTicketAsBytes()` → `Gal.putImageBytes()` (saves to Camera Roll, no custom album) → `CustomToast.showSuccess`
-- **Data extraction**: director from `movie.credits.crew` (job == 'Director'), cast from top 3 `movie.credits.cast`, scene fallback to `movieImages.backdrops.first`
-- **Ticket number**: computed by `_computeTicketNumber()` — journal's chronological position (1-based), sorts all journals by `createdAt` ascending, finds the current journal's index by `id`, returns `index + 1`
-- **Share bottom sheet**: the bottom-row "Share" button opens `showModalBottomSheet` with drag indicator, "Copy text to post on Social" section (hidden when `thoughts` is empty) displaying `journal.thoughts` (maxLines: 10, ellipsis overflow), a "Copy Text" button using `Clipboard.setData()` + `CustomToast.showSuccess`, and a "Share Option" section with three buttons in a Row: Instagram Story, Threads, and Others
-- **Instagram Story sharing**: `_shareToInstagramStory()` uses `_captureTicketToFile()` to get a temp PNG, calls `AppinioSocialShare().shareToInstagramStory(appId, stickerImage: path)`. Requires Facebook App ID (stored as `_facebookAppId` constant). Shows toast if Instagram not installed.
-- **Threads sharing**: `_shareToThreads()` composes text via `_composeThreadsText()`, opens `https://www.threads.net/intent/post?text={encoded}` via `url_launcher` with `LaunchMode.externalApplication`. Shows toast if Threads not installed.
-- **Native share**: `_shareImageNatively()` uses `_captureTicketToFile()` to get a temp PNG, shares via `SharePlus.instance.share(ShareParams(files: [...]))`
-- **Platform config**: iOS `Info.plist` has `LSApplicationQueriesSchemes` for `instagram-stories` and `threads`, plus Facebook App ID in `CFBundleURLSchemes`, and `UIApplicationSceneManifest` for Flutter scene lifecycle. Android `AndroidManifest.xml` has `<queries>` for Instagram story intent and Threads URL, plus `FileProvider` config with `filepaths.xml`.
-- iOS requires `NSPhotoLibraryAddUsageDescription` in `Info.plist` for gallery save permission
-- **iOS engine lifecycle**: `AppDelegate.swift` uses `FlutterImplicitEngineDelegate` protocol — plugin registration happens in `didInitializeImplicitFlutterEngine` instead of `application:didFinishLaunchingWithOptions`
+Feature lives under `lib/features/share/`. Flow: callers → `TicketPosterPickerScreen` → `ShareTicketScreen`.
+
+- **`ShareTicketEntry` enum** (`journalContent` / `journalComplete`): identifies which screen opened the flow so the close button can route back correctly. `journalContent` pops twice; `journalComplete` uses `pushAndRemoveUntil` to `JournalContent` above Home (skipping the celebration screen).
+- **Ticket number**: `_computeTicketNumber()` = journal's chronological 1-based position. Sorts all journals by `createdAt` asc, finds current journal's index, returns `index + 1`.
+- **Poster picker language tabs**: after the movie detail loads, `_applyLanguageTabFilter()` drops any fixed-language tab whose base code matches the movie's `originalLanguage` to avoid duplicates (e.g. an English movie hides the "English" tab). 繁體中文 uses `zh-TW`.
+- **FlippableTicket peek animation**: `hintOnMount: true` triggers a 500ms-delayed peek (0 → 0.30 → 0) on mount. **Must use `animateBack(0.0)` for the return, not `animateTo(0.0)`** — `animateTo` leaves controller status as `completed`, which breaks `_flip()`'s `isCompleted` check. See the `flutter-animation-testing` skill for related pitfalls.
+- **Image capture**: `_captureTicketAsBytes()` → PNG `Uint8List` from `RepaintBoundary`; `_captureTicketToFile()` writes it to a temp file. All save/share paths route through these two helpers.
+- **Share destinations**: Instagram Story via `appinio_social_share` (requires Facebook App ID, stored as `_facebookAppId`), Threads via `url_launcher` to `threads.net/intent/post`, native share via `SharePlus`.
+- **Platform config (don't forget)**:
+  - iOS `Info.plist`: `LSApplicationQueriesSchemes` for `instagram-stories` + `threads`, Facebook App ID in `CFBundleURLSchemes`, `NSPhotoLibraryAddUsageDescription` for gallery save, `UIApplicationSceneManifest` for Flutter scene lifecycle.
+  - `AppDelegate.swift` uses `FlutterImplicitEngineDelegate` — register plugins in `didInitializeImplicitFlutterEngine`, **not** `application:didFinishLaunchingWithOptions`.
+  - Android `AndroidManifest.xml`: `<queries>` for Instagram + Threads intents, `FileProvider` with `filepaths.xml`.
 
 ### Working with Emotions
 - Emotion definitions in `lib/features/emotion/emotion.dart`
