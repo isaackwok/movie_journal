@@ -17,7 +17,7 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 
 ### Prerequisites
 
-- Flutter SDK `^3.7.2` 
+- Flutter 3.29+ (Dart SDK `^3.7.2`)
 - A [TMDB API](https://www.themoviedb.org/documentation/api) key
 - Firebase project with Authentication and Firestore enabled
 - Xcode (for iOS) / Android Studio (for Android)
@@ -39,13 +39,13 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 
 3. **Configure environment variables**
 
-   Create a `.env` file in the project root with your API keys:
+   Create a `.env` file in the project root:
 
    ```
-   TMDB_API_KEY=your_tmdb_api_key
-   QUESGEN_API_URL=your_review_api_url
-   QUESGEN_API_KEY=your_review_api_key
+   TMDB_ACCESS_TOKEN=your_tmdb_v4_access_token
    ```
+
+   The AI review service (quesgen) is preconfigured — its URL is hardcoded in `lib/core/network/quesgen_dio_client.dart` and it authenticates via the signed-in user's Firebase ID token, so no additional env vars are required.
 
 4. **Set up Firebase**
 
