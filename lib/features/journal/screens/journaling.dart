@@ -276,7 +276,23 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                         return Colors.white;
                       }),
                     ),
-                    child: Text('Save'),
+                    child: _isSaving
+                        ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: Center(
+                            child: SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                                backgroundColor: Colors.white.withAlpha(50),
+                              ),
+                            ),
+                          ),
+                        )
+                        : const Text('Save'),
                   ),
                 ),
               ],

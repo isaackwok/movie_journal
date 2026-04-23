@@ -76,96 +76,56 @@ class EmotionsSelectorButton extends StatelessWidget {
     }
   }
 
-  Widget _getButtonText(List selectedEmotions) {
+  static const _sentenceStyle = TextStyle(
+    color: Colors.white,
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    fontFamily: 'AvenirNext',
+  );
+
+  static const _emotionNameStyle = TextStyle(
+    fontWeight: FontWeight.w600,
+    fontFamily: 'AvenirNext',
+  );
+
+  // Separators between successive emotion names, indexed by selection count.
+  // For 2 selections: "A and B". For 3: "A, B and C".
+  static const _separatorsByCount = <List<String>>[
+    [],              // 0 emotions
+    [],              // 1 emotion
+    [' and '],       // 2 emotions
+    [', ', ' and '], // 3 emotions
+  ];
+
+  TextSpan _emotionName(String name) =>
+      TextSpan(text: name, style: _emotionNameStyle);
+
+  Widget _getButtonText(List<Emotion> selectedEmotions) {
     if (selectedEmotions.isEmpty) {
-      return Text(
+      return const Text(
         'What are your feelings about this movie?',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          fontFamily: 'AvenirNext',
-        ),
+        style: _sentenceStyle,
       );
     }
 
-    final emotionNames =
+    final names =
         selectedEmotions.map((e) => e.name.toLowerCase()).toList();
+    final separators = _separatorsByCount[names.length];
 
-    if (emotionNames.length == 1) {
-      return Text.rich(
-        TextSpan(
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            fontFamily: 'AvenirNext',
-          ),
-          children: [
-            TextSpan(text: 'You felt '),
-            TextSpan(
-              text: emotionNames[0],
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            TextSpan(text: ' by this movie.'),
+    return Text.rich(
+      TextSpan(
+        style: _sentenceStyle,
+        children: [
+          const TextSpan(text: 'You felt '),
+          _emotionName(names.first),
+          for (var i = 1; i < names.length; i++) ...[
+            TextSpan(text: separators[i - 1]),
+            _emotionName(names[i]),
           ],
-        ),
-      );
-    } else if (emotionNames.length == 2) {
-      return Text.rich(
-        TextSpan(
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            fontFamily: 'AvenirNext',
-          ),
-          children: [
-            TextSpan(text: 'You felt '),
-            TextSpan(
-              text: emotionNames[0],
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            TextSpan(text: ' and '),
-            TextSpan(
-              text: emotionNames[1],
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            TextSpan(text: ' by this movie.'),
-          ],
-        ),
-      );
-    } else {
-      // 3 emotions
-      return Text.rich(
-        TextSpan(
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            fontFamily: 'AvenirNext',
-          ),
-          children: [
-            TextSpan(text: 'You felt '),
-            TextSpan(
-              text: emotionNames[0],
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            TextSpan(text: ', '),
-            TextSpan(
-              text: emotionNames[1],
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            TextSpan(text: ' and '),
-            TextSpan(
-              text: emotionNames[2],
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            TextSpan(text: ' by this movie.'),
-          ],
-        ),
-      );
-    }
+          const TextSpan(text: ' by this movie.'),
+        ],
+      ),
+    );
   }
 
   @override
