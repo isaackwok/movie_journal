@@ -159,6 +159,9 @@ class _JournalCompleteScreenState extends State<JournalCompleteScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
+                        settings: const RouteSettings(
+                          name: kShareFlowRouteName,
+                        ),
                         builder: (context) => TicketPosterPickerScreen(
                           journal: widget.journal,
                           entry: ShareTicketEntry.journalComplete,

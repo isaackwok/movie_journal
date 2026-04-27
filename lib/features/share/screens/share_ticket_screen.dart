@@ -11,7 +11,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
-import 'package:movie_journal/features/journal/screens/journal_content.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/share/widgets/flippable_ticket.dart';
 import 'package:movie_journal/features/share/widgets/ticket_back.dart';
@@ -21,6 +20,26 @@ import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 
 enum ShareTicketEntry { journalContent, journalComplete }
+
+/// Route name applied to every screen pushed inside the share flow
+/// (poster picker + share ticket). Used by [closeShareFlow] to pop back
+/// past all in-flow routes regardless of how many sit on the stack.
+const String kShareFlowRouteName = 'share_flow';
+
+/// Closes the share flow and returns the user to the right place based on
+/// where they entered:
+///  - [ShareTicketEntry.journalComplete] (just-saved journal): back to home.
+///  - [ShareTicketEntry.journalContent] (sharing an existing journal): back
+///    to the journal content screen below the share flow.
+void closeShareFlow(BuildContext context, ShareTicketEntry entry) {
+  final nav = Navigator.of(context);
+  switch (entry) {
+    case ShareTicketEntry.journalComplete:
+      nav.popUntil((route) => route.isFirst);
+    case ShareTicketEntry.journalContent:
+      nav.popUntil((route) => route.settings.name != kShareFlowRouteName);
+  }
+}
 
 class ShareTicketScreen extends ConsumerStatefulWidget {
   final JournalState journal;
@@ -454,19 +473,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
   }
 
   void _onClose() {
-    final nav = Navigator.of(context);
-    switch (widget.entry) {
-      case ShareTicketEntry.journalContent:
-        nav.pop();
-        if (nav.canPop()) nav.pop();
-      case ShareTicketEntry.journalComplete:
-        nav.pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => JournalContent(journalId: widget.journal.id),
-          ),
-          (route) => route.isFirst,
-        );
-    }
+    closeShareFlow(context, widget.entry);
   }
 
   int _computeTicketNumber(
