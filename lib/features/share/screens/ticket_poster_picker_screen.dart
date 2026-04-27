@@ -5,7 +5,6 @@ import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/share/screens/share_ticket_screen.dart';
 import 'package:movie_journal/analytics_manager.dart';
-import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 
 class TicketPosterPickerScreen extends ConsumerStatefulWidget {
   final JournalState journal;
@@ -41,7 +40,6 @@ class _TicketPosterPickerScreenState
   late final PageController _pageController;
 
   int _selectedTabIndex = 0;
-  String? _selectedPosterPath;
   bool _loading = true;
 
   /// Cache of fetched posters per language code.
@@ -118,10 +116,7 @@ class _TicketPosterPickerScreenState
   Future<void> _fetchPostersForTab(int index) async {
     final langCode = _languageCodeForTab(index);
 
-    if (_posterCache.containsKey(langCode)) {
-      _autoSelectFirst(langCode);
-      return;
-    }
+    if (_posterCache.containsKey(langCode)) return;
 
     setState(() => _loading = true);
 
@@ -132,7 +127,6 @@ class _TicketPosterPickerScreenState
         language: langCode,
       );
       _posterCache[langCode] = images.posters;
-      _autoSelectFirst(langCode);
     } catch (e) {
       debugPrint('Failed to fetch posters: $e');
       _posterCache[langCode] = [];
@@ -140,15 +134,6 @@ class _TicketPosterPickerScreenState
 
     if (mounted) {
       setState(() => _loading = false);
-    }
-  }
-
-  void _autoSelectFirst(String langCode) {
-    final posters = _posterCache[langCode] ?? [];
-    if (posters.isNotEmpty && _selectedPosterPath == null) {
-      setState(() {
-        _selectedPosterPath = posters.first.filePath;
-      });
     }
   }
 
@@ -183,16 +168,13 @@ class _TicketPosterPickerScreenState
   }
 
   void _onPosterSelected(String path) {
-    setState(() => _selectedPosterPath = path);
-  }
-
-  void _onNext() {
     Navigator.push(
       context,
       MaterialPageRoute(
+        settings: const RouteSettings(name: kShareFlowRouteName),
         builder: (context) => ShareTicketScreen(
           journal: widget.journal,
-          posterPath: _selectedPosterPath,
+          posterPath: path,
           entry: widget.entry,
         ),
       ),
@@ -206,14 +188,7 @@ class _TicketPosterPickerScreenState
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leadingWidth: 56,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: CircledIconButton(
-            icon: Icons.arrow_back_ios_new,
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
+        automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text(
           'Choose a Ticket Poster',
@@ -226,42 +201,10 @@ class _TicketPosterPickerScreenState
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: ElevatedButton(
-              onPressed: _selectedPosterPath != null ? _onNext : null,
-              style: ButtonStyle(
-                shape: WidgetStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                padding: WidgetStateProperty.all(
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                textStyle: WidgetStateProperty.all(
-                  const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
-                ),
-                overlayColor: WidgetStateProperty.all(
-                  Theme.of(context).colorScheme.primary,
-                ),
-                backgroundColor: WidgetStateProperty.all(Colors.transparent),
-                side: WidgetStateProperty.all(
-                  BorderSide(
-                    color: _selectedPosterPath != null
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.white24,
-                    width: 1,
-                  ),
-                ),
-                foregroundColor: WidgetStateProperty.all(
-                  _selectedPosterPath != null ? Colors.white : Colors.white38,
-                ),
-              ),
-              child: const Text('Next'),
+            padding: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              onPressed: () => closeShareFlow(context, widget.entry),
+              icon: const Icon(Icons.close, color: Colors.white, size: 24),
             ),
           ),
         ],
@@ -355,47 +298,25 @@ class _TicketPosterPickerScreenState
                   itemCount: pagePosters.length,
                   itemBuilder: (context, index) {
                     final poster = pagePosters[index];
-                    final isSelected =
-                        poster.filePath == _selectedPosterPath;
                     return GestureDetector(
                       onTap: () => _onPosterSelected(poster.filePath),
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                'https://image.tmdb.org/t/p/w500${poster.filePath}',
-                                fit: BoxFit.cover,
-                                errorBuilder:
-                                    (context, error, stackTrace) =>
-                                        Container(
-                                  color: const Color(0xFF2C2C2E),
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.movie,
-                                      color: Colors.white54,
-                                      size: 48,
-                                    ),
-                                  ),
-                                ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          'https://image.tmdb.org/t/p/w500${poster.filePath}',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                            color: const Color(0xFF2C2C2E),
+                            child: const Center(
+                              child: Icon(
+                                Icons.movie,
+                                color: Colors.white54,
+                                size: 48,
                               ),
                             ),
                           ),
-                          if (isSelected)
-                            Positioned.fill(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius:
-                                      BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 3,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
+                        ),
                       ),
                     );
                   },

@@ -89,6 +89,9 @@ class _JournalContentState extends ConsumerState<JournalContent> {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
+                      settings: const RouteSettings(
+                        name: kShareFlowRouteName,
+                      ),
                       builder: (_) => TicketPosterPickerScreen(
                         journal: journal,
                         entry: ShareTicketEntry.journalContent,

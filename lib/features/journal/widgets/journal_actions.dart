@@ -33,6 +33,7 @@ void editJournal(BuildContext context, WidgetRef ref, JournalState journal) {
 void shareJournal(BuildContext context, JournalState journal) {
   Navigator.of(context).push(
     MaterialPageRoute(
+      settings: const RouteSettings(name: kShareFlowRouteName),
       builder: (_) => TicketPosterPickerScreen(
         journal: journal,
         entry: ShareTicketEntry.journalContent,

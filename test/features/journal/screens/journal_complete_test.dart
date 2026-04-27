@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_journal/features/home/widgets/journal_card.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_complete.dart';
+import 'package:movie_journal/features/share/screens/share_ticket_screen.dart';
 import 'package:movie_journal/features/share/screens/ticket_poster_picker_screen.dart';
 
 import '../../../helpers/test_journal.dart';
@@ -110,6 +111,30 @@ void main() {
       expect(find.byType(TicketPosterPickerScreen), findsOneWidget);
     });
 
+    testWidgets(
+      'Share Ticket pushes a route tagged with kShareFlowRouteName',
+      (tester) async {
+        // Tagging is load-bearing: closeShareFlow popUntil's predicate uses the
+        // route name to know where the share flow ends. If the tag is missing,
+        // the journalContent close path overshoots back past JournalContent.
+        final observer = _RouteSettingsObserver();
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              navigatorObservers: [observer],
+              home: JournalCompleteScreen(journal: journal),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Share Ticket'));
+        await tester.pumpAndSettle();
+
+        expect(observer.lastPushedName, kShareFlowRouteName);
+      },
+    );
+
     testWidgets('checkmark has filled white circle with dark icon',
         (tester) async {
       await tester.pumpWidget(buildSubject());
@@ -143,5 +168,63 @@ void main() {
       expect(find.text('Share Ticket'), findsOneWidget);
       expect(find.text('View Journal'), findsOneWidget);
     });
+
+    testWidgets('renders close (X) icon button', (tester) async {
+      await tester.pumpWidget(buildSubject());
+      // Close button is outside the FadeTransition group, so it's there
+      // immediately on first frame.
+      expect(find.byIcon(Icons.close), findsOneWidget);
+    });
+
+    testWidgets(
+      'tapping close pops back to the first route (home)',
+      (tester) async {
+        // JournalCompleteScreen reaches the user via pushAndRemoveUntil
+        // sitting on top of Home. Simulate that by pushing it onto a sentinel
+        // home route, then verify close pops back to that sentinel.
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: Builder(
+                builder: (context) => Scaffold(
+                  body: Center(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              JournalCompleteScreen(journal: journal),
+                        ),
+                      ),
+                      child: const Text('open-complete-sentinel'),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('open-complete-sentinel'));
+        await tester.pumpAndSettle();
+        expect(find.byType(JournalCompleteScreen), findsOneWidget);
+
+        await tester.tap(find.byIcon(Icons.close));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(JournalCompleteScreen), findsNothing);
+        expect(find.text('open-complete-sentinel'), findsOneWidget);
+      },
+    );
   });
+}
+
+class _RouteSettingsObserver extends NavigatorObserver {
+  String? lastPushedName;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPush(route, previousRoute);
+    lastPushedName = route.settings.name;
+  }
 }
