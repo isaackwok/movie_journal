@@ -12,6 +12,7 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 - **Shareable Movie Tickets** — Generate flippable movie ticket images with high-res poster front and details back, peek hint animation on entry. Tap the ticket to flip, then use the bottom action row to save to gallery or open the share sheet (Instagram Stories, Threads, or native share). The close (X) in the top-right is entry-aware: from the just-saved celebration screen it returns to home; when sharing an existing journal it returns to that journal's content page.
 - **Poster Picker** — Choose ticket posters in multiple languages (Original, English, 繁體中文, 日本語). Tapping a poster moves you straight to the ticket preview — no Next button — and the close (X) follows the same entry-aware navigation as the ticket screen.
 - **Account Management** — Sign in with Apple or Google, then pick a username during onboarding that appears on your home screen. Deleting your account performs a fresh re-authentication and then permanently removes all your journals and account data — no orphaned records left behind.
+- **Branded Cold Start** — On a cold launch while signed out, a 3-second branded splash plays (logo, wordmark, and tagline fade in/hold/fade out, with a blurred poster marquee scrolling in opposite directions in the bottom-right corner) before handing off to the login screen. The splash is one-shot per session — signing out within an active session goes straight to login, with no replay.
 
 ## Getting Started
 
@@ -72,7 +73,7 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 
 ```bash
 flutter analyze    # Static analysis
-flutter test       # Run 247 tests
+flutter test       # Run 252 tests
 flutter build apk  # Android build
 flutter build ios   # iOS build
 ```
