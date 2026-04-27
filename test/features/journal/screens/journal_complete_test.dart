@@ -168,6 +168,54 @@ void main() {
       expect(find.text('Share Ticket'), findsOneWidget);
       expect(find.text('View Journal'), findsOneWidget);
     });
+
+    testWidgets('renders close (X) icon button', (tester) async {
+      await tester.pumpWidget(buildSubject());
+      // Close button is outside the FadeTransition group, so it's there
+      // immediately on first frame.
+      expect(find.byIcon(Icons.close), findsOneWidget);
+    });
+
+    testWidgets(
+      'tapping close pops back to the first route (home)',
+      (tester) async {
+        // JournalCompleteScreen reaches the user via pushAndRemoveUntil
+        // sitting on top of Home. Simulate that by pushing it onto a sentinel
+        // home route, then verify close pops back to that sentinel.
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: Builder(
+                builder: (context) => Scaffold(
+                  body: Center(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              JournalCompleteScreen(journal: journal),
+                        ),
+                      ),
+                      child: const Text('open-complete-sentinel'),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('open-complete-sentinel'));
+        await tester.pumpAndSettle();
+        expect(find.byType(JournalCompleteScreen), findsOneWidget);
+
+        await tester.tap(find.byIcon(Icons.close));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(JournalCompleteScreen), findsNothing);
+        expect(find.text('open-complete-sentinel'), findsOneWidget);
+      },
+    );
   });
 }
 
