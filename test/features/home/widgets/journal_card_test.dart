@@ -110,5 +110,32 @@ void main() {
       );
       expect(menu.enableHapticFeedback, isTrue);
     });
+
+    // Padding/gap spec is mirrored by `nonPosterHeight` in journals_list.dart.
+    // If you change these values, update that constant too or the grid cells
+    // will leave a trailing gap or trip an overflow assertion.
+    group('layout spec', () {
+      testWidgets('outer container uses fromLTRB(8, 8, 8, 12) padding',
+          (tester) async {
+        await tester.pumpWidget(buildSubject());
+        final container = tester
+            .widgetList<Container>(find.byType(Container))
+            .firstWhere((c) =>
+                c.decoration is BoxDecoration &&
+                (c.decoration as BoxDecoration).color ==
+                    const Color(0xFF222222));
+        expect(container.padding, const EdgeInsets.fromLTRB(8, 8, 8, 12));
+      });
+
+      testWidgets('title and date have 4px horizontal inner padding',
+          (tester) async {
+        await tester.pumpWidget(buildSubject());
+        final titleFinder = find.text('Fight Club');
+        final padding = tester.widget<Padding>(find
+            .ancestor(of: titleFinder, matching: find.byType(Padding))
+            .first);
+        expect(padding.padding, const EdgeInsets.symmetric(horizontal: 4));
+      });
+    });
   });
 }

@@ -108,7 +108,7 @@ class _JournalCardVisual extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             color: Color(0xFF222222),
@@ -127,36 +127,39 @@ class _JournalCardVisual extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 12),
               Flexible(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      journal.movieTitle,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        height: 1.1,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        journal.movieTitle,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          height: 1.1,
+                        ),
+                        textAlign: TextAlign.start,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      textAlign: TextAlign.start,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      journal.updatedAt.format(pattern: 'MMM. do yyyy'),
-                      style: GoogleFonts.nothingYouCouldDo(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        height: 1.1,
+                      const SizedBox(height: 8),
+                      Text(
+                        journal.updatedAt.format(pattern: 'MMM. do yyyy'),
+                        style: GoogleFonts.nothingYouCouldDo(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          height: 1.1,
+                        ),
+                        textAlign: TextAlign.start,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      textAlign: TextAlign.start,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],

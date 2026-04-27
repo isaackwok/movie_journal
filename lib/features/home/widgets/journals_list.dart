@@ -59,19 +59,19 @@ class JournalsList extends ConsumerWidget {
                   // card's content with no empty trailing gap on any device.
                   //
                   // Layout inside JournalCard:
-                  //   - 12px top padding
+                  //   - 8px top padding
                   //   - Poster: AspectRatio(150/215) so height = innerWidth * 1.433
+                  //   - 12px SizedBox
+                  //   - Title (Inter 14, height: 1.1) → 15.4px, ceil 16
                   //   - 8px SizedBox
-                  //   - Title (Inter 18, height: 1.1) ≈ 22px
-                  //   - 4px SizedBox
-                  //   - Date (NothingYouCouldDo 12, height: 1.1) ≈ 16px
+                  //   - Date (NothingYouCouldDo 12, height: 1.1) → 13.2px, ceil 14
                   //   - 12px bottom padding
-                  // Non-poster vertical total = 12 + 8 + 22 + 4 + 16 + 12 ≈ 74
+                  // Non-poster vertical total = 8 + 12 + 16 + 8 + 14 + 12 = 70
                   const crossAxisCount = 2;
                   const crossAxisSpacing = 12.0;
-                  const horizontalPaddingPerCard = 12.0 * 2;
+                  const horizontalPaddingPerCard = 8.0 * 2;
                   const posterAspectFactor = 215.0 / 150.0;
-                  const nonPosterHeight = 74.0;
+                  const nonPosterHeight = 70.0;
 
                   final cellWidth = (constraints.maxWidth -
                           crossAxisSpacing * (crossAxisCount - 1)) /
