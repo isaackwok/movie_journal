@@ -9,6 +9,8 @@ import 'package:movie_journal/features/home/widgets/journals_list.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/login/screens/login.dart';
 import 'package:movie_journal/features/login/screens/create_user.dart';
+import 'package:movie_journal/features/onboarding/controllers/splash_shown.dart';
+import 'package:movie_journal/features/onboarding/screens/branding_splash.dart';
 import 'package:movie_journal/features/settings/screens/settings.dart';
 import 'package:movie_journal/firebase_manager.dart';
 import 'package:movie_journal/firestore_manager.dart';
@@ -51,9 +53,13 @@ class HomeScreen extends ConsumerWidget {
     // Show loading while checking auth state
     return authState.when(
       data: (user) {
-        // If user is not logged in, show LoginScreen
+        // If user is not logged in, show the branding splash on first
+        // visit per session, then LoginScreen.
         if (user == null) {
-          return const LoginScreen();
+          final splashShown = ref.watch(splashShownProvider);
+          return splashShown
+              ? const LoginScreen()
+              : const BrandingSplashScreen();
         }
 
         // Check if user document exists in Firestore

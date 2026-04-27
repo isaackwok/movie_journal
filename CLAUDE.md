@@ -101,6 +101,12 @@ The app follows a feature-based architecture where each feature is self-containe
 - **login/** - Authentication screens and user creation flows
   - `screens/` - LoginScreen, CreateUserScreen (username input with validation: alphanumeric/underscore/dot only, uniqueness check via Firestore, error toasts use `ToastGravity.TOP` to stay visible above the keyboard). `validateUsername()` is a top-level function for testability.
 
+- **onboarding/** - Branded splash shown on cold start when the user is unauthenticated
+  - `screens/` - BrandingSplashScreen — fade-in/hold/fade-out timeline (3s total) via a single `AnimationController` + `TweenSequence` (mirrors `journal_complete.dart`'s pattern). When the fade controller hits `completed`, calls `splashShownProvider.markShown()` so `HomeScreen` re-renders to `LoginScreen`. **No `Navigator.push`** — the splash plugs into `HomeScreen`'s stream-driven conditional at [home.dart:55](lib/features/home/screens/home.dart:55), gated by `splashShownProvider`.
+  - `widgets/` - PosterMarquee (two rows, blurred via `ImageFiltered` + `ImageFilter.blur`, tilted ~-0.18 rad, positioned bottom-right with negative offsets so it spills off the edge); MarqueeRow (doubles the URL list and uses `Transform.translate` driven by a linear-repeating `AnimationController` so the wrap-around is invisible).
+  - `controllers/` - `splashShownProvider` (session-scoped Riverpod `Notifier<bool>`, defaults to false; resets only on cold restart — **never invalidated on logout**, so signing out within a session goes straight to LoginScreen, no replay); `splashPostersProvider` (live TMDB `/movie/popular` via `MovieAPI().popularMovies()`, falls back to a small bundled poster URL list inside the provider's `catch` so widgets never see the error path). The splash pre-warms this fetch in `initState` via `ref.read(provider.future)` so posters likely arrive during fade-in; on late arrival, `AnimatedOpacity` fades them in gently.
+  - **Asset**: `assets/images/fink_logo.svg` — the "i + ticket-stub" mark (92×105 viewBox); the "Fink" wordmark below it is rendered via `GoogleFonts.nothingYouCouldDo()` so we can tune size/color without touching the SVG.
+
 - **settings/** - User settings and account management
   - `screens/` - SettingsScreen (displays username, sign out, delete account options). Logout and delete flows invalidate journal/username providers to prevent stale data on re-login.
 
@@ -163,6 +169,7 @@ Uses **Riverpod** for state management:
    - Select journal → JournalContent screen → View emotions, thoughts, scenes, reviews
 
 5. **Authentication**:
+   - Cold start while logged out → BrandingSplashScreen (3s, fade-in/hold/fade-out, blurred poster marquee in bottom-right) → LoginScreen. Splash is gated by the session-scoped `splashShownProvider` and **only plays once per cold start** — logging out within the same session goes straight to LoginScreen, no replay.
    - LoginScreen → Apple/Google Sign-In → Firebase Auth → Store user session
    - CreateUserScreen for new users → Set username → Store in Firestore
    - Journals synced by userId field in Firestore documents
