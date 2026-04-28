@@ -315,5 +315,12 @@ void main() {
       expect(movie.posterPath, isNull);
       expect(movie.backdropPath, isNull);
     });
+
+    test('handles null imdbId', () {
+      final movie = DetailedMovie.fromJson(
+        makeDetailedMovieJson(imdbId: null),
+      );
+      expect(movie.imdbId, isNull);
+    });
   });
 }

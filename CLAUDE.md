@@ -160,7 +160,7 @@ Uses **Riverpod** for state management:
 3. **Journal Editing**:
    - JournalContent → More menu → Edit → loads journal into `JournalController`, fetches movie images/details, navigates to `JournalingScreen(editJournalId: id)`
    - `JournalMode` provider (`journalModeProvider`) tracks create vs edit mode — any widget can read it without prop threading
-   - In edit mode: ThoughtsScreen hides Reviews FAB and "Add" card, review taps are no-ops, date shows `createdAt`
+   - In edit mode: ThoughtsScreen hides the sticky-bottom Reviews bar and "Add" card, review taps are no-ops, date shows `createdAt`
    - Save calls `update()` (Firestore `.update()`, preserves `createdAt`) → `popUntil(isFirst)` back to home
    - Navigation: Home → JournalContent → [Edit] → JournalingScreen → [Save] → popUntil Home
 
@@ -348,7 +348,7 @@ Tests mirror `lib/features/` under `test/features/`. Shared helpers live in `tes
 State lives in `lib/features/journal/controllers/`: `JournalState` (single) and `JournalsState` (list). See the `journal-data-access` skill for provider patterns.
 
 - **`JournalingScreen(editJournalId?)`**: single editor for both create and edit. `null` = create, non-null = edit. Sets `journalModeProvider` in `initState`, resets in `_cleanupState()`.
-- **Mode provider**: `journalModeProvider` (`JournalMode.create` / `edit`) — widgets like `ThoughtsScreen` read it to hide edit-inappropriate UI (Reviews FAB, "Add" card; review taps become no-ops in edit mode).
+- **Mode provider**: `journalModeProvider` (`JournalMode.create` / `edit`) — widgets like `ThoughtsScreen` read it to hide edit-inappropriate UI (sticky-bottom Reviews bar, "Add" card; review taps become no-ops in edit mode).
 - **Create flow**: `JournalController.save()` → captures `JournalState` → `pushAndRemoveUntil` to `JournalCompleteScreen` (keeps Home) → "View Journal" `pushReplacement` to `JournalContent`.
 - **Edit flow**: `JournalController.loadJournal()` → `JournalingScreen(editJournalId)` → `JournalController.update()` (Firestore `.update()`, preserves `createdAt`) → `popUntil(isFirst)`.
 - **Caption editor focus management**: `caption_editor.dart` owns `_captionFocusNodes` keyed by scene path. A `postFrameCallback` in `initState` focuses the initial scene's `TextField`; `_onPageChanged` re-focuses on every swipe so the keyboard stays up as the user captions multiple scenes.

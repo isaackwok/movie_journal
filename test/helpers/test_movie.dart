@@ -8,7 +8,7 @@ Map<String, dynamic> makeDetailedMovieJson({
   List<Map<String, dynamic>>? genres,
   String homepage = 'http://www.foxmovies.com/movies/fight-club',
   int id = 550,
-  String imdbId = 'tt0137523',
+  String? imdbId = 'tt0137523',
   List<String> originCountry = const ['US'],
   String originalLanguage = 'en',
   String originalTitle = 'Fight Club',

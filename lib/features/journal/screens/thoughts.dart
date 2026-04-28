@@ -80,7 +80,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
         AppBar().preferredSize.height + MediaQuery.of(context).padding.top;
     final visibleTop = appBarHeight;
     final visibleBottom =
-        viewportHeight - 100; // Account for floating action button
+        viewportHeight - 100; // Account for sticky bottom Reviews bar
 
     // Check if cursor is outside viewport
     if (cursorGlobalY < visibleTop || cursorGlobalY > visibleBottom) {
@@ -207,57 +207,75 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        controller: scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (selectedReferences.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: SizedBox(
-                  height: 175,
-                  child: _buildSelectedReviewsSection(
-                    selectedReferences,
-                    isEditMode: isEditMode,
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              controller: scrollController,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (selectedReferences.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: SizedBox(
+                        height: 175,
+                        child: _buildSelectedReviewsSection(
+                          selectedReferences,
+                          isEditMode: isEditMode,
+                        ),
+                      ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      key: textFieldKey,
+                      controller: thoughtsController,
+                      autofocus: true,
+                      onTapOutside:
+                          (event) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
+                      maxLines: null,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Enter your text here...',
+                        hintStyle: GoogleFonts.nothingYouCouldDo(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white.withAlpha(128),
+                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        fillColor: Colors.transparent,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
-                key: textFieldKey,
-                controller: thoughtsController,
-                autofocus: true,
-                onTapOutside:
-                    (event) => FocusManager.instance.primaryFocus?.unfocus(),
-                maxLines: null,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Enter your text here...',
-                  hintStyle: GoogleFonts.nothingYouCouldDo(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white.withAlpha(128),
-                  ),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  disabledBorder: InputBorder.none,
-                  errorBorder: InputBorder.none,
-                  focusedErrorBorder: InputBorder.none,
-                  fillColor: Colors.transparent,
+            ),
+          ),
+          if (!isEditMode)
+            Container(
+              width: double.infinity,
+              color: Theme.of(context).scaffoldBackgroundColor,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: SafeArea(
+                top: false,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: const ReviewsFloatingButton(),
                 ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
-      floatingActionButton: isEditMode ? null : const ReviewsFloatingButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
 }
