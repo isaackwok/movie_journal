@@ -85,6 +85,7 @@ The app follows a feature-based architecture where each feature is self-containe
 - **search_movie/** - Movie search interface integrating with TMDB API
   - `screens/` - SearchMovieScreen
   - `widgets/` - MovieSearchBar, MovieResultList
+    - `MovieSearchBar`: **search-as-you-type** with a 300ms debounce (`_kSearchDebounce`). A `TextEditingController` *listener* (not `SearchBar.onChanged`) schedules the debounced `search()` — chosen so programmatic edits fire it too, notably the clear (X) button, which debounce-resets to popular. The listener also `setState`s so the trailing clear/search icon stays in sync (a `FocusNode` listener does the same for focus). Auto-fired searches are **not** logged to analytics; only explicit submit (keyboard "search" action / tap) logs via `logMovieSearched` and cancels any pending timer before searching immediately. `dispose()` cancels the timer, removes both listeners, and disposes the `FocusNode`. Each `search()` swaps the list for skeletons (`AsyncLoading`), so a too-short debounce flickers — 300ms avoids it; the deeper fix for flicker is preserving results during reload, not a longer delay. Behavior pinned by `movie_search_bar_test.dart`.
 
 - **emotion/** - Emotion data model (24 emotions in 4 groups — see Working with Emotions section)
 

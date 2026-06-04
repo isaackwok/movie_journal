@@ -4,7 +4,7 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 
 ## Features
 
-- **Movie Search** — Search TMDB's database and view detailed movie information
+- **Movie Search** — Search TMDB's database and view detailed movie information. Results update as you type (300ms debounce), so there's no need to press a search button; clearing the field returns to popular picks.
 - **Emotion Journaling** — Choose from 24 curated emotions across 4 groups (Uplifting, Intense, Soothing, Quiet) to describe your experience
 - **Scene Selection** — Pick memorable scenes from movie stills
 - **Thoughts & Captions** — Write freeform reflections about the film. The caption editor auto-focuses the input on entry and keeps the keyboard attached as you swipe between scenes, so you can caption multiple scenes in a single pass.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,11 +13,43 @@ class MovieSearchBar extends ConsumerStatefulWidget {
   ConsumerState<MovieSearchBar> createState() => _MovieSearchBarState();
 }
 
+/// Delay between the last keystroke and the auto-fired search.
+const _kSearchDebounce = Duration(milliseconds: 300);
+
 class _MovieSearchBarState extends ConsumerState<MovieSearchBar> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
+  /// Pending debounced search; cancelled and rescheduled on every keystroke,
+  /// and cancelled outright when an explicit submit pre-empts it.
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listening on the controller (not SearchBar.onChanged) catches programmatic
+    // edits too — notably the clear (X) button — so emptying the field also
+    // debounce-resets to popular. The setState keeps the trailing icon in sync.
+    _controller.addListener(_onQueryChanged);
+    _focusNode.addListener(_onFocusChanged);
+  }
+
+  void _onFocusChanged() {
+    setState(() {});
+  }
+
+  void _onQueryChanged() {
+    setState(() {});
+    final query = _controller.text;
+    _debounce?.cancel();
+    _debounce = Timer(_kSearchDebounce, () {
+      ref.read(searchMovieControllerProvider.notifier).search(query);
+    });
+  }
+
   void _submit(String value) {
+    // An explicit submit wins over any in-flight debounce.
+    _debounce?.cancel();
     FocusScope.of(context).unfocus();
     if (value.isNotEmpty) {
       AnalyticsManager.logMovieSearched(query: value);
@@ -76,7 +110,11 @@ class _MovieSearchBarState extends ConsumerState<MovieSearchBar> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
+    _controller.removeListener(_onQueryChanged);
+    _focusNode.removeListener(_onFocusChanged);
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 }
