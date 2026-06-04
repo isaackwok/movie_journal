@@ -155,6 +155,10 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                             ),
                           ),
                           GestureDetector(
+                            // Opaque so the whole row width is tappable, not
+                            // just the centered icon+text glyphs (the default
+                            // deferToChild would ignore taps on the empty space).
+                            behavior: HitTestBehavior.opaque,
                             onTap: () {
                               Clipboard.setData(ClipboardData(text: thoughts));
                               CustomToast.showSuccess(
@@ -162,25 +166,30 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                                 'Copied to clipboard',
                               );
                             },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.copy,
-                                  size: 16,
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Copy Text',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
+                            child: Padding(
+                              // Vertical padding enlarges the touch target so it
+                              // matches the visible button area.
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.copy,
+                                    size: 16,
                                     color: Colors.white.withValues(alpha: 0.7),
-                                    fontFamily: 'AvenirNext',
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Copy Text',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white.withValues(alpha: 0.7),
+                                      fontFamily: 'AvenirNext',
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
