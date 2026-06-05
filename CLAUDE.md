@@ -112,7 +112,7 @@ The app follows a feature-based architecture where each feature is self-containe
   - `screens/` - SettingsScreen (displays username, sign out, delete account options). Logout and delete flows invalidate journal/username providers to prevent stale data on re-login.
 
 - **toast/** - Toast notification utilities
-  - `custom_toast.dart` - Custom toast implementation using fluttertoast
+  - `custom_toast.dart` - Custom toast built on `fluttertoast`. Three static entry points — `showSuccess(context, msg)`, `showError(msg)`, `showWarning(msg)` — all render the same dark bordered card via a private `_show({icon, statusColor, message})`; only the icon glyph + accent vary. The icon is a filled circle in the status color with a **plain black** inner glyph. Colors come from `StatusColors` in `themes.dart` (success = primary `#A8DADD`, error `#FF615D`, warning `#FF9F1C`) — the single source of truth. `showSuccess` keeps a `context` param for call-site compatibility but no longer uses it for styling. Call `CustomToast.init(context)` once before showing (idiom: init immediately before the show call). Status→color mapping pinned by `custom_toast_test.dart`.
 
 ### Core Infrastructure
 
@@ -255,6 +255,7 @@ feature_name/
 - Supports light and dark themes (default: dark mode)
 - Theme definitions in `lib/themes.dart`
 - Access colors via `Theme.of(context).colorScheme`
+- **Status colors**: `StatusColors` (in `themes.dart`) holds `success` (= primary `#A8DADD`), `error` (`#FF615D`), `warning` (`#FF9F1C`) as context-free constants — used as icon backgrounds (e.g. toasts), with a black inner glyph. They're constants rather than a `ThemeExtension` because consumers like `CustomToast.showError` run without a `BuildContext`.
 
 ### Loading States
 - Use **Skeletonizer** package for skeleton screens

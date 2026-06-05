@@ -6,6 +6,20 @@ const Color _darkPrimary = Color(0xFFA8DADD);
 const Color _darkOnPrimary = Colors.black;
 const String _defaultFontFamily = 'Inter';
 
+/// Single source of truth for status accent colors (toast icons, etc.).
+///
+/// These are context-free constants because some consumers — e.g.
+/// [CustomToast.showError] — run without a [BuildContext]. Used as icon
+/// *background* colors; the inner glyph is always plain black for contrast.
+class StatusColors {
+  StatusColors._();
+
+  /// Success — the app primary ([_darkPrimary], `#A8DADD`).
+  static const Color success = Color(0xFFA8DADD);
+  static const Color error = Color(0xFFFF615D);
+  static const Color warning = Color(0xFFFF9F1C);
+}
+
 class Themes {
   static ThemeData dark = ThemeData(
     useMaterial3: true,
