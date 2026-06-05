@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/movie/data/models/movie_image.dart';
+import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/shared_widgets/action_text_button.dart';
 
 class SceneButton extends StatelessWidget {
@@ -110,87 +111,82 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
         movieImagesAsync.hasValue
             ? movieImagesAsync.value!.backdrops
             : <MovieImage>[];
-    final isAtMaxLimit = _localSelectedScenes.length >= _maxSceneLimit;
-
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: SingleChildScrollView(
-          child: Column(
-            spacing: 8,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '${_localSelectedScenes.length} selected',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'AvenirNext',
-                        color: isAtMaxLimit ? Colors.red : Color(0xFFA0A0A0),
-                      ),
-                    ),
-                    if (isAtMaxLimit)
-                      TextSpan(
-                        text: ' (maximum limit)',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'AvenirNext',
-                          color: Colors.red,
-                        ),
-                      ),
-                  ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Sticky count header — stays visible while the grid scrolls.
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Select up to $_maxSceneLimit (${_localSelectedScenes.length}/$_maxSceneLimit)',
+                style: TextStyle(
+                  fontFamily: 'AvenirNext',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  height: 1.5,
+                  color: Colors.white.withAlpha(153),
                 ),
               ),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  mainAxisExtent: 123,
-                ),
-                itemCount: backdrops.length,
-                itemBuilder: (context, index) {
-                  final backdrop = backdrops[index];
-                  final isSelected = _localSelectedScenes.any(
-                    (scene) => scene.path == backdrop.filePath,
-                  );
-                  final selectedIndex = _localSelectedScenes.indexWhere(
-                    (scene) => scene.path == backdrop.filePath,
-                  );
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    mainAxisExtent: 123,
+                  ),
+                  itemCount: backdrops.length,
+                  itemBuilder: (context, index) {
+                    final backdrop = backdrops[index];
+                    final isSelected = _localSelectedScenes.any(
+                      (scene) => scene.path == backdrop.filePath,
+                    );
+                    final selectedIndex = _localSelectedScenes.indexWhere(
+                      (scene) => scene.path == backdrop.filePath,
+                    );
 
-                  return SceneButton(
-                    index: selectedIndex,
-                    imageUrl:
-                        'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
-                    isSelected: isSelected,
-                    onTap: () {
-                      setState(() {
+                    return SceneButton(
+                      index: selectedIndex,
+                      imageUrl:
+                          'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
+                      isSelected: isSelected,
+                      onTap: () {
                         if (isSelected) {
-                          _localSelectedScenes.removeWhere(
-                            (scene) => scene.path == backdrop.filePath,
+                          setState(() {
+                            _localSelectedScenes.removeWhere(
+                              (scene) => scene.path == backdrop.filePath,
+                            );
+                          });
+                          return;
+                        }
+                        if (_localSelectedScenes.length >= _maxSceneLimit) {
+                          CustomToast.init(context);
+                          CustomToast.showError(
+                            'You can select up to $_maxSceneLimit scenes',
                           );
-                        } else {
-                          if (_localSelectedScenes.length >= _maxSceneLimit) {
-                            return;
-                          }
+                          return;
+                        }
+                        setState(() {
                           _localSelectedScenes.add(
                             SceneItem(path: backdrop.filePath),
                           );
-                        }
-                      });
-                    },
-                  );
-                },
+                        });
+                      },
+                    );
+                  },
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       appBar: AppBar(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
+import 'package:movie_journal/features/toast/custom_toast.dart';
 
 class _AnimatedEmotionChip extends StatefulWidget {
   final Emotion emotion;
@@ -258,17 +259,23 @@ class _EmotionsSelectorBottomSheetState
   }
 
   void _handleEmotionTap(Emotion emotion) {
+    final isSelected = _tempSelectedEmotions.contains(emotion);
+
+    // Block (with feedback) when trying to exceed the cap.
+    if (!isSelected &&
+        _tempSelectedEmotions.length >= widget.maxSelectionLimit) {
+      CustomToast.init(context);
+      CustomToast.showError(
+        'You can select up to ${widget.maxSelectionLimit} emotions',
+      );
+      return;
+    }
+
     setState(() {
-      if (_tempSelectedEmotions.contains(emotion)) {
-        // Deselect
-        _tempSelectedEmotions =
-            _tempSelectedEmotions.where((e) => e != emotion).toList();
-      } else {
-        // Select if under limit
-        if (_tempSelectedEmotions.length < widget.maxSelectionLimit) {
-          _tempSelectedEmotions = [..._tempSelectedEmotions, emotion];
-        }
-      }
+      _tempSelectedEmotions =
+          isSelected
+              ? _tempSelectedEmotions.where((e) => e != emotion).toList()
+              : [..._tempSelectedEmotions, emotion];
     });
 
     // Re-measure heights after state change

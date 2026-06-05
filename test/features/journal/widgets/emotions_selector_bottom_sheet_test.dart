@@ -141,10 +141,16 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Select up to 3 (3/3)'), findsOneWidget);
 
-        // Try to select a 4th — counter should stay at 3/3
+        // Try to select a 4th — blocked: counter stays at 3/3 and a toast shows.
         await tester.tap(find.text('Funny'));
-        await tester.pumpAndSettle();
+        await tester.pump(); // build the toast overlay frame
         expect(find.text('Select up to 3 (3/3)'), findsOneWidget);
+        expect(find.text('You can select up to 3 emotions'), findsWidgets);
+
+        // Drain fluttertoast's chained timers (2s show + fade out) so none
+        // leak past teardown. One elapse past the whole chain fires them all.
+        await tester.pump(const Duration(seconds: 3));
+        await tester.pumpAndSettle();
       });
 
       testWidgets('tapping a selected emotion deselects it', (tester) async {
