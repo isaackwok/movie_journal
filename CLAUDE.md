@@ -182,10 +182,11 @@ Uses **Riverpod** for state management:
 
 - **flutter_riverpod** (3.0.3) - State management framework
 - **dio** (5.8.0+1) - HTTP client for API calls
-- **firebase_core** (4.2.0) - Firebase initialization
-- **firebase_auth** (6.1.1) - User authentication (Apple, Google)
-- **cloud_firestore** (6.1.0) - NoSQL cloud database
-- **firebase_analytics** (12.0.4) - Google Analytics for Firebase (screen views, custom events, user properties)
+- **firebase_core** (4.10.0) - Firebase initialization
+- **firebase_auth** (6.5.2) - User authentication (Apple, Google)
+- **cloud_firestore** (6.5.0) - NoSQL cloud database
+- **firebase_analytics** (12.4.2) - Google Analytics for Firebase (screen views, custom events, user properties)
+  - **Keep the FlutterFire suite version-aligned.** Each Firebase plugin pins a specific `flutterfire` Swift package version (tracking `firebase_core`). If `firebase_auth` / `cloud_firestore` / `firebase_analytics` drift to versions released against *different* `firebase_core` builds, `flutter build ipa` fails at "Adding Swift Package Manager integration" with `Could not resolve package dependencies` (mismatched `flutterfire` pins). Fix: `flutter pub upgrade firebase_core firebase_auth cloud_firestore firebase_analytics` to land a coordinated set.
 - **google_sign_in** (7.2.0) - Google authentication integration
 - **shared_preferences** (2.5.3) - Local key-value storage
 - **flutter_dotenv** (6.0.0) - Environment variables (API keys stored in `.env`)
