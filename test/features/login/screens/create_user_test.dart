@@ -139,6 +139,36 @@ void main() {
         expect(validateUsername('_john'), isNull);
       });
     });
+
+    // The ceiling mirrors the profiles_username_shape CHECK constraint
+    // (^[A-Za-z0-9_.]{1,30}$). These two boundary cases are what keep the
+    // client from accepting a name the database will then reject as an
+    // unhandled 23514 — createUser() maps only 23505.
+    group('length ceiling', () {
+      test('allows exactly 30 characters', () {
+        expect(validateUsername('a' * 30), isNull);
+      });
+
+      test('rejects 31 characters', () {
+        expect(
+          validateUsername('a' * 31),
+          'Username cannot be longer than 30 characters',
+        );
+      });
+
+      test('rejects a very long name that passes every other rule', () {
+        expect(
+          validateUsername('a' * 5000),
+          'Username cannot be longer than 30 characters',
+        );
+      });
+
+      // The DB constraint's lower bound is 1, not 2, precisely so this stays
+      // valid on both sides.
+      test('allows a single character', () {
+        expect(validateUsername('a'), isNull);
+      });
+    });
   });
 
   group('CreateUserScreen rendering', () {

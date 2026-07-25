@@ -11,7 +11,7 @@
 
 begin;
 -- Explicit count (not no_plan) so a test that silently stops running is caught.
-select plan(46);
+select plan(63);
 
 -- ---------------------------------------------------------------- fixtures
 -- Two users. Fixed UUIDs so failures are reproducible.
@@ -35,8 +35,13 @@ values ('aaaaaaaa-0000-0000-0000-000000000001', :'user_a', 550, 'Fight Club', 'f
 -- RLS only matters if the role holds the underlying table privilege at all.
 select ok(has_table_privilege('authenticated','public.journals','SELECT'),
           'authenticated has SELECT on journals (GRANT block applied)');
-select ok(has_table_privilege('authenticated','public.profiles','UPDATE'),
-          'authenticated has UPDATE on profiles');
+-- has_table_privilege is TABLE-level and went false when 20260725071500
+-- replaced the blanket grant with column grants. has_any_column_privilege is
+-- the question actually being asked: can this role update profiles at all.
+select ok(has_any_column_privilege('authenticated','public.profiles','UPDATE'),
+          'authenticated has UPDATE on some column of profiles');
+select ok(not has_table_privilege('authenticated','public.profiles','UPDATE'),
+          'authenticated has NO table-wide UPDATE on profiles (column grants only)');
 select ok(not has_table_privilege('authenticated','public.profiles','DELETE'),
           'authenticated has NO DELETE on profiles (deletion goes via edge function)');
 select ok(not has_table_privilege('authenticated','public.sync_tombstones','SELECT'),
@@ -70,6 +75,78 @@ select ok(not has_table_privilege('anon','public.__acl_probe','TRUNCATE'),
 select ok(not has_table_privilege('authenticated','public.__acl_probe','TRUNCATE'),
           'a newly created table does NOT re-inherit TRUNCATE for authenticated');
 drop table public.__acl_probe;
+
+-- The function equivalent cannot be delegated to the default ACL: on Supabase
+-- Postgres 17.6 `alter default privileges ... revoke execute on functions` is
+-- recorded but does not take effect (see 20260725071500 for the measurement),
+-- so a new function IS anon-executable until someone revokes it by hand.
+-- These two assertions are that safety net. A function added without its
+-- revoke fails here rather than shipping as an anon-callable RPC.
+--
+-- Trigger and event-trigger functions are excluded because Postgres refuses to
+-- invoke them directly ("trigger functions can only be called as triggers"),
+-- so they are not an API surface no matter what their ACL says.
+select is(
+  (select coalesce(string_agg(p.proname, ', ' order by p.proname), '')
+     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.prorettype not in ('trigger'::regtype, 'event_trigger'::regtype)
+      and has_function_privilege('anon', p.oid, 'EXECUTE')),
+  '',
+  'no callable function in public is executable by anon');
+
+select is(
+  (select coalesce(string_agg(p.proname, ', ' order by p.proname), '')
+     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.prosecdef
+      and p.prorettype not in ('trigger'::regtype, 'event_trigger'::regtype)
+      and has_function_privilege('authenticated', p.oid, 'EXECUTE')),
+  'claim_migrated_data, username_available',
+  'exactly the two intended SECURITY DEFINER functions are callable by authenticated');
+
+-- ------------------------------------------- column grants (20260725071500)
+-- RLS scopes rows, never columns. These columns belong to the delta-sync, and
+-- a table-wide UPDATE grant handed them to every signed-in user: rewriting
+-- journals.firestore_id and then deleting the row forges a tombstone against
+-- ANOTHER user's Firestore doc, which import_data.ts reads as "deleted in the
+-- new app" and skips for the rest of the window.
+select ok(not has_column_privilege('authenticated','public.journals','firestore_id','UPDATE'),
+          'authenticated cannot UPDATE journals.firestore_id (forges tombstones)');
+select ok(not has_column_privilege('authenticated','public.journals','firestore_id','INSERT'),
+          'authenticated cannot INSERT journals.firestore_id');
+select ok(not has_column_privilege('authenticated','public.journals','raw','UPDATE'),
+          'authenticated cannot UPDATE journals.raw');
+select ok(not has_column_privilege('authenticated','public.journals','migrated_updated_at','UPDATE'),
+          'authenticated cannot UPDATE journals.migrated_updated_at (sync conflict rule)');
+select ok(not has_column_privilege('authenticated','public.profiles','firebase_uid','UPDATE'),
+          'authenticated cannot UPDATE profiles.firebase_uid (claim_anonymous_data key)');
+select ok(not has_column_privilege('authenticated','public.profiles','firebase_uid','INSERT'),
+          'authenticated cannot INSERT profiles.firebase_uid');
+
+-- created_at is ungranted for UPDATE, which turns updateJournal()'s
+-- "preserves created_at" from a client convention into a DB guarantee.
+select ok(not has_column_privilege('authenticated','public.journals','created_at','UPDATE'),
+          'authenticated cannot UPDATE journals.created_at');
+select ok(has_column_privilege('authenticated','public.journals','created_at','INSERT'),
+          'authenticated CAN INSERT journals.created_at (addJournal sends it)');
+
+-- The counterintuitive one, and the reason a naive allowlist breaks the app:
+-- journalToRow() always includes user_id, even on update. WITH CHECK is what
+-- stops it pointing at another user -- not the grant.
+select ok(has_column_privilege('authenticated','public.journals','user_id','UPDATE'),
+          'authenticated CAN UPDATE journals.user_id (updateJournal sends it; WITH CHECK guards it)');
+
+-- Reads are deliberately unrestricted: it is all the caller's own data.
+select ok(has_column_privilege('authenticated','public.journals','firestore_id','SELECT'),
+          'authenticated can still SELECT firestore_id (read is not restricted)');
+
+-- Trigger functions: Postgres refuses to invoke these directly anyway, so this
+-- is advisor hygiene. The tombstone assertions further down are what prove the
+-- revoke did not break trigger firing (EXECUTE is checked at CREATE TRIGGER
+-- time, not at fire time).
+select ok(not has_function_privilege('anon','public.record_journal_tombstone()','EXECUTE'),
+          'anon cannot execute record_journal_tombstone');
 
 -- Every table has RLS armed.
 select ok((select relrowsecurity from pg_class where oid = 'public.journals'::regclass),  'journals RLS enabled');
@@ -129,6 +206,31 @@ select throws_ok(
   null,
   'A cannot INSERT a journal owned by B');
 
+-- Column grants, exercised rather than introspected. 42501 is
+-- insufficient_privilege: the write is refused outright, not silently dropped.
+select throws_ok(
+  $$update public.journals set firestore_id = 'fs_forged'
+    where user_id = '11111111-1111-1111-1111-111111111111'$$,
+  '42501',
+  null,
+  'A cannot rewrite firestore_id on their OWN journal (tombstone forgery)');
+
+select throws_ok(
+  $$update public.profiles set firebase_uid = 'fb_someone_else'
+    where id = '11111111-1111-1111-1111-111111111111'$$,
+  '42501',
+  null,
+  'A cannot rewrite firebase_uid on their OWN profile');
+
+-- 23514 is check_violation: validateUsername() lives in the Flutter client,
+-- and PostgREST does not run the Flutter client.
+select throws_ok(
+  $$update public.profiles set username = 'not a valid name'
+    where id = '11111111-1111-1111-1111-111111111111'$$,
+  '23514',
+  null,
+  'username shape is enforced by the database, not just the client');
+
 -- Privileged tables are unreachable even with RLS on (no grants at all).
 select throws_ok($$select 1 from public.sync_tombstones$$, '42501', null,
                  'authenticated denied on sync_tombstones');
@@ -148,10 +250,14 @@ delete from public.journals where id = 'aaaaaaaa-0000-0000-0000-000000000001';  
 
 -- A new-app journal (firestore_id null) must NOT produce a tombstone: there is
 -- nothing in Firestore to propagate the delete to.
-insert into public.journals (id, user_id, tmdb_id, firestore_id)
-values ('aaaaaaaa-0000-0000-0000-000000000009',
-        '11111111-1111-1111-1111-111111111111', 777, null);
-delete from public.journals where id = 'aaaaaaaa-0000-0000-0000-000000000009';
+--
+-- Neither `id` nor `firestore_id` is named here, and that is the point: since
+-- 20260725071500 the client cannot write either, so this fixture is built the
+-- only way the app can build one -- which is also exactly what a new-app
+-- journal is. firestore_id lands NULL by column default.
+insert into public.journals (user_id, tmdb_id)
+values ('11111111-1111-1111-1111-111111111111', 777);
+delete from public.journals where tmdb_id = 777;
 
 reset role;  -- back to postgres; authenticated holds no grant on sync_tombstones
 
