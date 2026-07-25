@@ -1,6 +1,52 @@
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter/foundation.dart';
+import 'package:movie_journal/analytics_manager.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+/// Every way [AnonymousBridge.attempt] can end, reported to analytics as the
+/// `outcome` param of `anonymous_bridge`.
+///
+/// The bridge runs on a device we cannot inspect and previously only
+/// `debugPrint`ed, which is invisible in release — so a failure surfaced only
+/// when someone said their journals were gone. These are the counters that make
+/// the remaining unclaimed accounts a number instead of an anecdote.
+///
+/// [wire] is stated explicitly rather than derived from `name`: these strings
+/// are dashboard keys, and a Dart-side rename must not silently split a metric.
+enum BridgeOutcome {
+  /// Journals recovered. Should total at most the size of the anonymous cohort.
+  claimed('claimed'),
+
+  /// Also success — a previous attempt's response was lost, not the claim.
+  alreadyClaimed('already_claimed'),
+
+  /// Reached the Edge Function; it had nothing for this uid.
+  nothingToClaim('nothing_to_claim'),
+
+  /// No Firebase session on the device. Expected for every genuinely new user,
+  /// and *indistinguishable from* a bridged user whose session was destroyed by
+  /// a reinstall — which is exactly why it is counted: a rise here around a
+  /// build rollout is the signal that people are being stranded.
+  noFirebaseSession('no_firebase_session'),
+
+  /// A Firebase session exists but is federated, so the old app's data is not
+  /// reachable this way. Should be ~0; anything else means the cohort was
+  /// mis-modelled.
+  notAnonymous('not_anonymous'),
+
+  /// Firebase refused to mint an ID token — usually a dead refresh token.
+  noIdToken('no_id_token'),
+
+  /// Network, Edge Function, or Supabase failure. Retryable next launch.
+  failed('failed'),
+
+  /// A Supabase session already existed, so there was nothing to bridge.
+  alreadySignedIn('already_signed_in');
+
+  const BridgeOutcome(this.wire);
+
+  final String wire;
+}
 
 /// Recovers journals belonging to pre-migration Firebase **anonymous** accounts
 /// (plan decision 10).
@@ -31,16 +77,27 @@ class AnonymousBridge {
 
     // Already signed in — nothing to bridge, and signing in anonymously again
     // would strand this session behind a second, empty one.
-    if (client.auth.currentUser != null) return false;
+    if (client.auth.currentUser != null) {
+      return _report(BridgeOutcome.alreadySignedIn, claimed: false);
+    }
 
     // Local-only check, so the overwhelmingly common case (no Firebase session
     // on this device) costs nothing and issues no network call.
     final fbUser = fb.FirebaseAuth.instance.currentUser;
-    if (fbUser == null || !fbUser.isAnonymous) return false;
+    if (fbUser == null) {
+      return _report(BridgeOutcome.noFirebaseSession, claimed: false);
+    }
+    if (!fbUser.isAnonymous) {
+      return _report(BridgeOutcome.notAnonymous, claimed: false);
+    }
 
+    BridgeOutcome outcome;
     try {
       final idToken = await fbUser.getIdToken();
-      if (idToken == null || idToken.isEmpty) return false;
+      if (idToken == null || idToken.isEmpty) {
+        // Nothing was signed in yet, so there is no session to clean up here.
+        return _report(BridgeOutcome.noIdToken, claimed: false);
+      }
 
       // A real auth.users row must exist before any journal can point at it:
       // journals.user_id is a FK to auth.users. Requires anonymous sign-ins to
@@ -56,10 +113,17 @@ class AnonymousBridge {
 
       // 'already_claimed' is a success: the previous attempt's response was
       // lost in transit, not the claim itself.
-      if (status == 'claimed' || status == 'already_claimed') return true;
+      if (status == 'claimed') {
+        return _report(BridgeOutcome.claimed, claimed: true);
+      }
+      if (status == 'already_claimed') {
+        return _report(BridgeOutcome.alreadyClaimed, claimed: true);
+      }
 
+      outcome = BridgeOutcome.nothingToClaim;
       debugPrint('AnonymousBridge: nothing to claim (status=$status)');
     } catch (e) {
+      outcome = BridgeOutcome.failed;
       debugPrint('AnonymousBridge: claim failed, falling back to login — $e');
     }
 
@@ -67,7 +131,17 @@ class AnonymousBridge {
     // signed in would send the user to CreateUserScreen and let them build a
     // profile on an account that cannot be signed back into after a reinstall.
     await _signOutQuietly(client);
-    return false;
+    return _report(outcome, claimed: false);
+  }
+
+  /// Single exit point for reporting, so no branch can be added without one.
+  ///
+  /// Returns [claimed] purely so call sites read as `return _report(...)` —
+  /// which is what makes an unreported early return visually obvious.
+  static bool _report(BridgeOutcome outcome, {required bool claimed}) {
+    debugPrint('AnonymousBridge: ${outcome.wire}');
+    AnalyticsManager.logAnonymousBridge(outcome: outcome.wire);
+    return claimed;
   }
 
   static Future<void> _signOutQuietly(SupabaseClient client) async {

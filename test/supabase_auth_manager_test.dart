@@ -8,13 +8,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// client, so they are covered by the Phase 7 real-device test instead. What
 /// is testable here is the logic that has no I/O — and both pieces below are
 /// load-bearing enough to be worth pinning.
-User makeUser({Map<String, dynamic> appMetadata = const {}}) {
+User makeUser({
+  Map<String, dynamic> appMetadata = const {},
+  bool isAnonymous = false,
+}) {
   return User(
     id: '11111111-1111-1111-1111-111111111111',
     appMetadata: appMetadata,
     userMetadata: const {},
     aud: 'authenticated',
     createdAt: '2026-07-25T00:00:00Z',
+    isAnonymous: isAnonymous,
   );
 }
 
@@ -49,6 +53,84 @@ void main() {
         ),
         isNull,
       );
+    });
+  });
+
+  group('needsIdentityLink', () {
+    test('true for an anonymous session', () {
+      // The bridged-user state: signed in, journals recovered, but no
+      // credential that could ever sign back in after a reinstall.
+      expect(
+        SupabaseAuthManager.needsIdentityLink(makeUser(isAnonymous: true)),
+        isTrue,
+      );
+    });
+
+    test('false once a provider identity is attached', () {
+      // What linkAppleIdentity/linkGoogleIdentity produce: linking flips
+      // is_anonymous server-side, so the banner clears itself.
+      expect(
+        SupabaseAuthManager.needsIdentityLink(
+          makeUser(appMetadata: const {'provider': 'apple'}),
+        ),
+        isFalse,
+      );
+    });
+
+    test('false for every normal sign-in', () {
+      // Nobody can pick an anonymous session from the login screen, so this is
+      // the answer for the entire non-bridged user base — the prompt and
+      // banner never build for them.
+      expect(SupabaseAuthManager.needsIdentityLink(makeUser()), isFalse);
+    });
+
+    test('false when signed out', () {
+      expect(SupabaseAuthManager.needsIdentityLink(null), isFalse);
+    });
+  });
+
+  group('isIdentityConflict', () {
+    test('recognises identity_already_exists', () {
+      expect(
+        SupabaseAuthManager.isIdentityConflict(
+          const AuthApiException(
+            'Identity is already linked to another user',
+            statusCode: '422',
+            code: 'identity_already_exists',
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('does not classify manual_linking_disabled as a conflict', () {
+      // That code means *Allow manual linking* got switched off on the
+      // project — a misconfiguration every user would hit, not one user's
+      // account clash. Swallowing it as a conflict would show 13 people a
+      // "your Apple account is taken" message that is simply false.
+      expect(
+        SupabaseAuthManager.isIdentityConflict(
+          const AuthApiException(
+            'Manual linking is disabled',
+            statusCode: '403',
+            code: 'manual_linking_disabled',
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    test('false for an auth error carrying no code', () {
+      expect(
+        SupabaseAuthManager.isIdentityConflict(
+          const AuthException('Network unreachable'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('false for a non-auth error', () {
+      expect(SupabaseAuthManager.isIdentityConflict(Exception('boom')), isFalse);
     });
   });
 

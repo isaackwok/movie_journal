@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/anonymous_bridge.dart';
+import 'package:movie_journal/features/account_link/widgets/secure_account_banner.dart';
 import 'package:movie_journal/features/home/widgets/add_movie_button.dart';
 import 'package:movie_journal/features/home/widgets/empty_placeholder.dart';
 import 'package:movie_journal/features/home/widgets/journals_list.dart';
@@ -236,16 +237,30 @@ class HomeScreen extends ConsumerWidget {
             ),
             centerTitle: false,
           ),
-          body:
-              journals.isEmpty
-                  ? const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: EmptyPlaceholder(),
-                  )
-                  : SingleChildScrollView(
-                    padding: EdgeInsets.only(left: 20, right: 20),
-                    child: const JournalsList(),
-                  ),
+          body: Column(
+            children: [
+              // Renders nothing unless this user came through the anonymous
+              // bridge and still holds a credential-less session.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SecureAccountBanner(journalCount: journals.length),
+              ),
+              // EmptyPlaceholder stays outside a scroll view: its LayoutBuilder
+              // needs a bounded height, which Expanded gives it and a
+              // SingleChildScrollView would not.
+              Expanded(
+                child: journals.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: EmptyPlaceholder(),
+                      )
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.only(left: 20, right: 20),
+                        child: const JournalsList(),
+                      ),
+              ),
+            ],
+          ),
         ));
       },
       loading: () => const LoadingScaffold(),

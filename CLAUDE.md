@@ -108,8 +108,12 @@ The app follows a feature-based architecture where each feature is self-containe
   - `controllers/` - `splashShownProvider` (session-scoped Riverpod `Notifier<bool>`, defaults to false; resets only on cold restart — **never invalidated on logout**, so signing out within a session goes straight to LoginScreen, no replay); `splashPostersProvider` (live TMDB `/movie/popular` via `MovieAPI().popularMovies()`, falls back to a small bundled poster URL list inside the provider's `catch` so widgets never see the error path). The splash pre-warms this fetch in `initState` via `ref.read(provider.future)` so posters likely arrive during fade-in; on late arrival, `AnimatedOpacity` fades them in gently.
   - **Asset**: `assets/images/fink_logo.svg` — the "i + ticket-stub" mark (92×105 viewBox); the "Fink" wordmark below it is rendered via `GoogleFonts.nothingYouCouldDo()` so we can tune size/color without touching the SVG.
 
+- **account_link/** - Attaches an Apple/Google identity to a bridged user's anonymous session (issue #22). Inert for everyone else: `needsAccountLinkProvider` is false for every user who signed in through LoginScreen, so nothing here builds.
+  - `controllers/account_link.dart` - `needsAccountLinkProvider` (derived from `authStateProvider`; true iff `user.isAnonymous` — see [The credential-less session](#the-credential-less-session)), `accountLinkPromptShownProvider` (session-scoped one-shot gate, mirrors `splashShownProvider`), and `AccountLinkService` behind `accountLinkServiceProvider` — a seam that exists purely so widget tests can fake the two link calls, including the conflict branch that would otherwise need two real provider accounts.
+  - `widgets/` - `SecureAccountSheet` (dismissible modal, `show(context, journalCount:)`; renders the conflict explanation **inline** rather than as a dialog so the untried provider's button stays visible beside it), `SecureAccountBanner` (persistent, non-dismissible, self-clearing; also owns the one-time auto-prompt, scheduled to a post-frame callback because both flipping the Riverpod gate and pushing a route are illegal mid-build).
+
 - **settings/** - User settings and account management
-  - `screens/` - SettingsScreen (displays username, sign out, delete account options). Logout and delete flows invalidate journal/username providers to prevent stale data on re-login.
+  - `screens/` - SettingsScreen (displays username, sign out, delete account options). Logout and delete flows invalidate journal/username providers to prevent stale data on re-login. When `needsAccountLinkProvider` is true it grows a warning-colored **Secure Account** item (the only entry point once the one-time prompt is gone) and the Logout dialog swaps in copy saying that getting back in depends on this device. Deliberately *not* "you will lose everything" — see [Logging out is recoverable](#logging-out-is-recoverable).
 
 - **toast/** - Toast notification utilities
   - `custom_toast.dart` - Custom toast built on `fluttertoast`. Three static entry points — `showSuccess(context, msg)`, `showError(msg)`, `showWarning(msg)` — all render the same dark bordered card via a private `_show({icon, statusColor, message})`; only the icon glyph + accent vary. The icon is a filled circle in the status color with a **plain black** inner glyph. Colors come from `StatusColors` in `themes.dart` (success = primary `#A8DADD`, error `#FF615D`, warning `#FF9F1C`) — the single source of truth. `showSuccess` keeps a `context` param for call-site compatibility but no longer uses it for styling. Call `CustomToast.init(context)` once before showing (idiom: init immediately before the show call). Status→color mapping pinned by `custom_toast_test.dart`.
@@ -128,6 +132,7 @@ The app follows a feature-based architecture where each feature is self-containe
 - `confirmation_dialog.dart` - Generic confirmation dialog widget
 - `circled_icon_button.dart` - Circular icon button with border styling, used for back buttons and action buttons across screens
   - Props: `icon` (required), `onPressed` (required), `iconSize` (default: 16), `iconColor`, `borderColor`, `outerPadding`, `size` (default: 36)
+- `provider_sign_in_button.dart` - `ProviderSignInButton`, the outlined Apple/Google button. Extracted from `login.dart`'s private `_SignInButton` when `SecureAccountSheet` needed the same control: both flows ask for the same credential through the same native prompt, so they must look identical. Only the label differs ("Sign in with…" vs "Continue with…").
 
 **Root-level managers:**
 - `analytics_manager.dart` - Firebase Analytics wrapper (screen views, user ID, custom events). Also exports `ScreenViewTracker` widget for wrapping ConsumerWidget screens
@@ -280,7 +285,15 @@ The data layer is migrating from Firebase (Firestore + Firebase Auth) to Supabas
 
 **`firebase_auth` is still a dependency, and that is deliberate.** It survives only for the anonymous-account bridge (see below); it is not part of the data layer and should not be reached for in new code. It gets removed at the Firestore freeze.
 
-**All pre-cutover blockers are cleared** (verified 2026-07-25): the Phase 7 real-device sign-in test passed, the Phase 6 quesgen dual-token build is live on Cloud Run with `SUPABASE_URL` set, and anonymous sign-ins are enabled on the hosted Supabase project. What remains is the cutover itself — ship the build, force TestFlight testers onto it, run a final `migration/sync.sh`, then freeze Firestore.
+The Phase 7 real-device sign-in test passed, the Phase 6 quesgen dual-token build is live on Cloud Run with `SUPABASE_URL` set, and anonymous sign-ins are enabled on the hosted Supabase project.
+
+**But the cutover is NOT ready, and an earlier version of this file wrongly said it was.** What is verified is the bridge's **server half** — the staged-placeholder test drove the deployed Edge Function. Its **client half has never run successfully on a device**: does the Firebase anonymous session survive the update, and does `AnonymousBridge.attempt()` fire.
+
+The first attempt (2026-07-25, an anonymous account created 2026-04-11 owning one journal) failed — login screen, Apple sign-in, CreateUserScreen, empty home — but **the install method invalidated the test**, so it is not evidence about the bridge either way. The new build was pushed with `flutter run --release` over a TestFlight install. Differing provenance makes that a *replace*, not an update, and iOS deletes an app's keychain items on removal, taking the Firebase session with them. See [The bridge is device-bound](#the-bridge-is-device-bound).
+
+**Never use `flutter run` to test the migration path** — it destroys the one credential the path depends on, and does so silently. Use TestFlight, which preserves the container (same team `3U9565WWM2`, same bundle id `com.isaackwok.moviejournal`). Until one anonymous account has come through a real TestFlight update, the bridge's real-world success rate is unknown; do not force testers onto the build before then.
+
+Also confirmed by that investigation: the Firebase auth export contains **zero `apple.com` identities** across all 26 users — the old app's population is 12 Google + 14 anonymous, and `firebase_identity_map` holds only `identity_map:google: 12`. So `claim_migrated_data()` is *dead code in practice*: it joins `auth.identities` against a map with no Apple rows, and the Google users it could serve are auto-linked by email before it ever runs. It is a fallback for a case that does not exist yet — do not rely on it as one.
 
 **The app is TestFlight-only, which is what makes a hard cutover possible.** Expiring the old build in App Store Connect stops it launching and forces every tester onto the new one, collapsing the dual-write window from months to days. Two constraints: expire only *after* the new build is available to testers, and tell testers to **update in place rather than delete and reinstall** — deleting the app destroys the Firebase anonymous session the bridge depends on, which is the one failure mode that cannot be repaired afterwards.
 
@@ -301,7 +314,48 @@ Two ordering rules make it correct, and both are easy to break:
 - `supabase/migrations/` — versioned schema (`profiles`, `journals`, `sync_tombstones`, `firebase_identity_map`), RLS on every table, tombstone triggers, and the `username_available` / `claim_migrated_data` RPCs. `supabase/tests/rls_smoke.sql` holds 34 pgTAP assertions; run with `supabase test db`.
 - `supabase/functions/delete-account/` — deletes the caller's account server-side. The `auth.users` delete cascades to profiles and journals, so unlike the old client-side flow there is no window where data is gone but the account remains.
 - `migration/` — export/import/validate scripts for the delta-sync. Run `migration/sync.sh`. **All data and secrets live outside this repo** under `$MIGRATION_DATA_DIR`; this is a public repo and nothing there may leak into the tree.
+- `migration/repair_anonymous_claim.ts` — by-hand equivalent of `claim_anonymous_data`, for a user the bridge could not reach: `node --env-file="$MIGRATION_DATA_DIR/.env" migration/repair_anonymous_claim.ts --firebase-uid <uid> --to <supabase user uuid>`. **Dry run unless `--confirm`.** Refuses to write if the target has no provider identity (repairing onto another credential-less session rebuilds the same problem), if the target already owns journals (it does not merge), if the target is itself a pre-created migration user, if the target profile carries a `firebase_uid` (deleting it would write a tombstone), or if a `kind='user'` tombstone already exists for the uid. Moves journals + profile in one transaction, verifies against the DB rather than trusting row counts, then deletes the placeholder auth user **after** the commit — the same ordering rule as the Edge Function, and the one step with no undo.
 - `migration/bridge_status.ts` — read-only cutover monitor, run on demand: `node --env-file="$MIGRATION_DATA_DIR/.env" migration/bridge_status.ts`. Lists the anonymous cohort split into **claimed** (with the date the bridge fired) and **unclaimed** — the latter being the number that decides when the bridge can be deleted. Cohort membership is defined by a `firebase_uid` having **no row in `firebase_identity_map`** (anonymous Firebase accounts have no provider identity); do not key it off the importer's `app_metadata.anonymous` marker, which lives on the placeholder auth user and is deleted by a successful claim, so it can only ever see the unclaimed half. Exits non-zero on two real misconfigurations: a `kind='user'` tombstone against a still-live profile, and Firebase's Anonymous provider being re-enabled. Unclaimed placeholders alone are the expected mid-window state and never fail the run. Not wired into `sync.sh` — that runs under `set -e`, so a non-zero exit here would mark a successful sync as failed.
+
+### The credential-less session
+
+A successful claim leaves the user holding a Supabase **anonymous** session — `AnonymousBridge.attempt()` calls `signInAnonymously()` because a real `auth.users` row must exist before any journal can point at it. That session has no row in `auth.identities` and no credential, so a reinstall, a wipe, or a lost phone loses the account for good: the Firebase anonymous session that was the only proof of ownership goes with it, and the bridge cannot rescue the same user twice. This is the state 46% of production data lands in.
+
+`lib/features/account_link/` fixes it by attaching a provider identity **to the current session**, via `SupabaseAuthManager.linkAppleIdentity()` / `linkGoogleIdentity()`.
+
+- **Nobody else is affected.** `signInAnonymously()` appears exactly once in `lib/`, inside the bridge; LoginScreen offers only Apple and Google. So `needsIdentityLink` is false for every non-bridged user and none of this UI ever builds for them.
+- **`linkIdentityWithIdToken`, never `linkIdentity()`.** The browser-OAuth variant shown in most Supabase docs needs an OAuth client secret this project deliberately never provisioned; probing it returns `"Unsupported provider: missing OAuth secret"`. The ID-token variant hits the same `/token?grant_type=id_token` endpoint as `signInWithIdToken` with `link_identity: true`, so it needs nothing new beyond **Allow manual linking** (Authentication → Sign In / Providers), enabled 2026-07-25. Turning that off breaks the flow with `manual_linking_disabled`, which is deliberately **not** classified as a conflict — it is a project misconfiguration hitting everyone, and reporting it as "your Apple account is taken" would be a lie.
+- **`auth.uid()` does not change**, so journals stay put and nothing needs re-pointing. That is the entire appeal over a sign-in-and-migrate flow.
+- **It self-heals.** Linking flips `is_anonymous` server-side and gotrue emits `userUpdated`, which flows through the existing `authStateChanges` stream into `needsAccountLinkProvider` — prompt and banner disappear with no invalidation anywhere.
+- **The conflict case is reported, not resolved.** If the chosen Apple/Google account already belongs to a different Supabase user, linking fails with `identity_already_exists`; the sheet explains it and points at the other provider. A merge would need a server-side journal move plus a rule for which profile survives, and reaching this state requires having signed up separately during the window *and* still holding the old Firebase session. `account_link_conflict` is logged to size that population before anyone builds the merge.
+- **Acceptance**: `claimed_still_on_anonymous_session` in `migration/bridge_status.ts` trends to zero. Do not delete the bridge until it does — the bridge is what recovers anyone who gets stranded.
+
+#### The bridge is device-bound
+
+`AnonymousBridge.attempt()` bails at [anonymous_bridge.dart:39](lib/anonymous_bridge.dart:39) when the device has no Firebase user or it is not anonymous. That token is the *only* proof of ownership an anonymous account has, so losing it — delete-and-reinstall, a wipe, a new phone — makes all three paths fail at once:
+
+- **email auto-link** — the placeholder's email is `syntheticEmail()`, `fb-<uid>@anon.migrated.invalid`, matching nothing
+- **`claim_migrated_data`** — joins `auth.identities`, which an anonymous user has none of
+- **`claim-anonymous`** — needs the token that no longer exists
+
+The user then signs in normally, gets a fresh Supabase user, and lands on CreateUserScreen. **Completing it is what makes the damage stick**: `claim_migrated_data()` and `claim_anonymous_data()` both short-circuit to `already_claimed` when the caller already has a profile, so from that point only `repair_anonymous_claim.ts` can fix it.
+
+This is why "update in place, never delete and reinstall" is load-bearing rather than advisory. It was violated on the very first attempt, by someone who knew the rule — because the violation did not look like one: `flutter run --release` over a TestFlight install replaces the app rather than updating it (differing provenance), and iOS deletes keychain items on removal. No prompt, no deletion, session gone. Assume the rule will be broken again in some equally non-obvious way, and prefer detecting the loss over documenting the rule harder.
+
+`AnonymousBridge` only `debugPrint`s, so a release build reports nothing about which branch it took. When diagnosing a stranded user, that absence of evidence is expected and is not itself a clue.
+
+#### Logging out is recoverable
+
+A bridged user cannot reach LoginScreen while holding their session — it is constructed in exactly one place ([home.dart:111](lib/features/home/screens/home.dart:111)) and only under `if (user == null)`. The single route there is Settings → Logout. And signing in with Apple from there creates a *new* user rather than linking, because `signInWithIdToken` resolves an identity to a user and ignores the current session; only `linkIdentityWithIdToken` attaches to it.
+
+That sounds fatal and is not, which is why the logout copy must not claim it is:
+
+- `claim_anonymous_data`'s `already_claimed` short-circuit keys on **the caller** already having a profile, so it only fires on a literal retry of the same call — not for a freshly minted anonymous user.
+- The lookup keys on `firebase_uid`, which the RPC deliberately *retains* on the profile row when it re-points it (`update profiles set id = …` leaves `firebase_uid` intact).
+
+So the next cold start after a logout re-runs the bridge, mints anonymous user #2, matches the profile by `firebase_uid`, moves journals and profile onto it, and returns `'claimed'`. The Edge Function then deletes the orphaned user #1 — cascading to nothing, and writing no tombstone, because the RPC moved its data away first. The user lands back in their account, still unlinked, so the banner reappears.
+
+**The genuine loss condition is unchanged and predates all of this: losing the *Firebase* anonymous session** — reinstall, wipe, new phone. `SupabaseAuthManager.signOut()` clears only the Supabase session, so logout does not cause it.
 
 ### Timestamps — the bug being retired
 
@@ -319,7 +373,9 @@ Existing Firestore timestamps are interpreted as **Asia/Taipei** on import (hard
 ### Authentication
 - `SupabaseAuthManager` wraps all auth operations. Auth state via the `authStateChanges` stream (`onAuthStateChange` mapped to `Stream<User?>`).
 - Apple and Google are **native-only** (`signInWithIdToken`): Supabase merely *verifies* a provider-signed token, so there is no client secret, no Apple Services ID, and no `.p8`. `kIsWeb` throws `UnsupportedError` deliberately — adding web later means adding all of that back.
-- `reauthenticate()` returns `bool` (`false` = user backed out) rather than throwing, so screens never import `sign_in_with_apple` / `google_sign_in` just to recognise a cancellation.
+- `reauthenticate()` returns `bool` (`false` = user backed out) rather than throwing, so screens never import `sign_in_with_apple` / `google_sign_in` just to recognise a cancellation. The classification itself lives in `_cancellable()`, shared with the link flows — it is the one place that knows `SignInWithAppleAuthorizationException` and `GoogleSignInException` both mean "dismissed".
+- `linkAppleIdentity()` / `linkGoogleIdentity()` attach a provider identity to the **current** session and return `IdentityLinkOutcome` (`linked` / `cancelled` / `alreadyLinkedToAnotherAccount`) — an enum, not exceptions, because two of the three are ordinary user choices. Real faults still throw. Token acquisition is shared with the sign-in paths (`_appleIdToken()`, `_googleAccount()`) so the Apple *raw* nonce is bound identically on both; diverging there fails the nonce check on one path only. See [The credential-less session](#the-credential-less-session) for why this exists and why `linkIdentity()` can't be used.
+- Google linking passes a best-effort `accessToken` from `authorizationForScopes`, which returns null instead of prompting when consent would be needed — linking must not turn into a second, unexplained permission dialog. GoTrue treats it as optional on the id_token grant (`signInWithGoogle` omits it entirely), so a null still links.
 - `deleteAccount()` calls the `delete-account` Edge Function, then signs out locally — the server deletes the user but cannot clear this device's session.
 
 ### Data access
@@ -368,6 +424,8 @@ Tests mirror `lib/features/` under `test/features/`. Shared helpers live in `tes
 
 ### Known Test Findings
 - `SceneItem.copyWith(caption: null)` does not clear an existing caption — `??` operator preserves the old value. Clearing a caption after one was set requires a different approach than passing empty string to `updateSceneCaption()`.
+- **Riverpod 3 auto-disposes by default, which makes async provider tests *hang* rather than fail.** `container.read(someStreamOrFutureProvider.future)` with nothing listening creates the element and tears it down in the same microtask, so the future never completes and the test sits until the 30s timeout — with a secondary `Bad state: … was disposed during loading state, yet no value could be emitted`. Attach `container.listen(provider, (_, _) {})` first (see `account_link_test.dart`'s `_containerFor`). Widgets never hit this because watching keeps the element alive. Five such tests turn a 12-second suite into a 20-minute one that looks like a slow compile.
+- **A visible toast blocks taps underneath it.** `fluttertoast` inserts an overlay entry over the whole screen, so a `tester.tap()` after an error/success toast can miss its target ("derived an Offset that would not hit test on the specified widget"). Drain the toast with `pump(3s)` + `pumpAndSettle()` *before* the next tap, not just before the test ends.
 
 ## Common Development Workflows
 
