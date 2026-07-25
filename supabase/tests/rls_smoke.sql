@@ -11,7 +11,7 @@
 
 begin;
 -- Explicit count (not no_plan) so a test that silently stops running is caught.
-select plan(34);
+select plan(46);
 
 -- ---------------------------------------------------------------- fixtures
 -- Two users. Fixed UUIDs so failures are reproducible.
@@ -165,6 +165,80 @@ delete from public.profiles where id = '22222222-2222-2222-2222-222222222222';
 select is((select count(*) from public.sync_tombstones
            where kind = 'user' and firestore_id = 'fb_b')::int, 1,
           'deleting a migrated profile writes a user tombstone');
+
+-- ------------------------------------ claim_anonymous_data (decision 10)
+-- This function takes a firebase_uid as an ASSERTION of identity. Whoever can
+-- call it can re-point that uid's journals to themselves, so the entire
+-- security of the anonymous bridge is "only the Edge Function may execute it".
+-- Verifying the Firebase ID token is what earns the call; these three
+-- assertions are what stop anyone skipping that step.
+select ok(not has_function_privilege('authenticated',
+            'public.claim_anonymous_data(text, uuid)', 'EXECUTE'),
+          'authenticated CANNOT execute claim_anonymous_data (identity is asserted, not proven)');
+select ok(not has_function_privilege('anon',
+            'public.claim_anonymous_data(text, uuid)', 'EXECUTE'),
+          'anon cannot execute claim_anonymous_data');
+select ok(has_function_privilege('service_role',
+            'public.claim_anonymous_data(text, uuid)', 'EXECUTE'),
+          'service_role can execute claim_anonymous_data');
+
+-- Fresh fixtures: a pre-created placeholder (P) holding a migrated anonymous
+-- user's data, and the real anonymous account (N) their device just created.
+\set user_p '33333333-3333-3333-3333-333333333333'
+\set user_n '44444444-4444-4444-4444-444444444444'
+
+insert into auth.users (id, email, aud, role)
+values (:'user_p', 'fb-anon1@anon.migrated.invalid', 'authenticated', 'authenticated'),
+       (:'user_n', null, 'authenticated', 'authenticated');
+
+insert into public.profiles (id, firebase_uid, username)
+values (:'user_p', 'fb_anon1', 'anon_user');
+
+insert into public.journals (id, user_id, tmdb_id, firestore_id)
+values ('cccccccc-0000-0000-0000-000000000001', :'user_p', 601, 'fs_p1'),
+       ('cccccccc-0000-0000-0000-000000000002', :'user_p', 602, 'fs_p2');
+
+create temp table claim_1 as
+select public.claim_anonymous_data('fb_anon1', :'user_n'::uuid) as r;
+
+select is((select r->>'status' from claim_1), 'claimed',
+          'claim_anonymous_data reports claimed');
+select is((select r->>'journals_moved' from claim_1), '2',
+          'both journals moved to the caller');
+select is((select count(*) from public.journals where user_id = :'user_n')::int, 2,
+          'journals are now owned by the real anonymous account');
+select is((select count(*) from public.profiles where id = :'user_n')::int, 1,
+          'profile was re-pointed to the caller');
+
+-- firebase_uid must survive the re-point, or the daily delta-sync loses track
+-- of which Firestore docs belong to this user for the rest of the window.
+select is((select firebase_uid from public.profiles where id = :'user_n'),
+          'fb_anon1',
+          'firebase_uid is preserved so delta-sync keeps matching this user');
+
+-- The subtle one. Re-pointing must not look like a deletion: a kind='user'
+-- tombstone here would tell the delta-sync this account was deleted in the new
+-- app, and it would then refuse to re-import their journals. This is why the
+-- profile is UPDATEd before the placeholder auth user is deleted, never after.
+select is((select count(*) from public.sync_tombstones
+           where kind = 'user' and firestore_id = 'fb_anon1')::int, 0,
+          'claiming writes NO user tombstone (would break delta-sync)');
+
+-- Idempotent: the app retries on every cold start until it gets a response.
+select is((select public.claim_anonymous_data('fb_anon1', :'user_n'::uuid)->>'status'),
+          'already_claimed',
+          'a second claim is a no-op, not an error');
+
+select is((select public.claim_anonymous_data('fb_unknown', :'user_n'::uuid)->>'status'),
+          'already_claimed',
+          'a caller who already has a profile short-circuits before any lookup');
+
+insert into auth.users (id, email, aud, role)
+values ('55555555-5555-5555-5555-555555555555', null, 'authenticated', 'authenticated');
+select is((select public.claim_anonymous_data('fb_nonexistent',
+             '55555555-5555-5555-5555-555555555555'::uuid)->>'status'),
+          'no_premigrated_profile',
+          'an unknown firebase_uid claims nothing');
 
 select * from finish();
 rollback;
