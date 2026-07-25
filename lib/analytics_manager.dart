@@ -53,6 +53,53 @@ class AnalyticsManager {
     return _safe(() => _analytics.logSignUp(signUpMethod: method));
   }
 
+  /// Which branch the pre-migration anonymous bridge took on this launch.
+  ///
+  /// One event with an `outcome` param rather than an event per branch, so the
+  /// whole thing reads as a single funnel in GA. [outcome] must come from
+  /// `BridgeOutcome.wire` — the values are dashboard keys, so renaming one
+  /// silently breaks history rather than erroring.
+  ///
+  /// Fires on signed-out cold starts only (that is the sole caller of
+  /// `AnonymousBridge.attempt()`), and analytics is off in debug builds — so
+  /// this is TestFlight/release volume on a ~26-user app, not a firehose.
+  static Future<void> logAnonymousBridge({required String outcome}) {
+    return _safe(
+      () => _analytics.logEvent(
+        name: 'anonymous_bridge',
+        parameters: {'outcome': outcome},
+      ),
+    );
+  }
+
+  /// A bridged user attached a provider identity to their anonymous session and
+  /// can now sign back in after a reinstall. Should trend up until
+  /// `claimed_still_on_anonymous_session` in `migration/bridge_status.ts` hits
+  /// zero, after which it should never fire again.
+  static Future<void> logAccountLinked({required String method}) {
+    return _safe(
+      () => _analytics.logEvent(
+        name: 'account_linked',
+        parameters: {'method': method},
+      ),
+    );
+  }
+
+  /// The chosen Apple/Google account already belongs to a different Fink
+  /// account — the one case the link flow cannot resolve on its own.
+  ///
+  /// Logged specifically to *size* that population: a merge needs a server-side
+  /// journal move plus a rule for which profile survives, and it is only worth
+  /// building if this fires more than a handful of times.
+  static Future<void> logAccountLinkConflict({required String method}) {
+    return _safe(
+      () => _analytics.logEvent(
+        name: 'account_link_conflict',
+        parameters: {'method': method},
+      ),
+    );
+  }
+
   static Future<void> logJournalCreated({
     required String movieTitle,
     required int tmdbId,

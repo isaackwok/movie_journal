@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/analytics_manager.dart';
+import 'package:movie_journal/features/account_link/controllers/account_link.dart';
+import 'package:movie_journal/features/account_link/widgets/secure_account_sheet.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/supabase_auth_manager.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
+import 'package:movie_journal/themes.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -80,6 +83,8 @@ class SettingsScreen extends ConsumerWidget {
 class _AccountSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final needsAccountLink = ref.watch(needsAccountLinkProvider);
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
@@ -103,10 +108,25 @@ class _AccountSection extends ConsumerWidget {
             ),
           ),
 
+          // A bridged user's only route back into this account, and the only
+          // place they can find it once the one-time prompt has been dismissed.
+          if (needsAccountLink) ...[
+            _SettingsItem(
+              title: 'Secure Account',
+              titleColor: StatusColors.warning,
+              onTap: () => SecureAccountSheet.show(context),
+            ),
+            Divider(height: 1, color: Colors.white.withValues(alpha: 0.1)),
+          ],
+
           // Logout option
           _SettingsItem(
             title: 'Logout',
-            onTap: () => _showLogoutConfirmation(context, ref),
+            onTap: () => _showLogoutConfirmation(
+              context,
+              ref,
+              isDeviceDependent: needsAccountLink,
+            ),
           ),
 
           Divider(height: 1, color: Colors.white.withValues(alpha: 0.1)),
@@ -123,13 +143,33 @@ class _AccountSection extends ConsumerWidget {
     );
   }
 
-  void _showLogoutConfirmation(BuildContext context, WidgetRef ref) {
+  /// [isDeviceDependent] marks the case where a bridged user has no credential
+  /// to sign back in with, so returning to this account depends entirely on
+  /// this device.
+  ///
+  /// Not phrased as "you will lose everything": logging out is in fact
+  /// recoverable. `AnonymousBridge` re-runs on the next cold start and
+  /// `claim_anonymous_data` matches the profile by its retained `firebase_uid`,
+  /// re-pointing the journals to the new session. What is unrecoverable is
+  /// losing the *Firebase* anonymous session — a reinstall or a new phone —
+  /// which signing out does not do. Overstating it would be a warning the user
+  /// can discover is false, which is worse than none.
+  void _showLogoutConfirmation(
+    BuildContext context,
+    WidgetRef ref, {
+    bool isDeviceDependent = false,
+  }) {
     showDialog(
       context: context,
       builder:
           (context) => ConfirmationDialog(
             title: 'Logout',
-            description: 'Are you sure you want to logout?',
+            description: isDeviceDependent
+                ? 'Your account has no Apple or Google sign-in attached yet, '
+                      'so getting back in depends on this device — and '
+                      'reinstalling the app would lose your journals for good. '
+                      'Secure your account first.'
+                : 'Are you sure you want to logout?',
             confirmText: 'Logout',
             confirmTextStyle: TextStyle(
               fontFamily: 'AvenirNext',

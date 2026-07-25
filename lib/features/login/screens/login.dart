@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:movie_journal/analytics_manager.dart';
+import 'package:movie_journal/shared_widgets/provider_sign_in_button.dart';
 import 'package:movie_journal/supabase_auth_manager.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -84,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 48),
               // Sign in with Google button
-              _SignInButton(
+              ProviderSignInButton(
                 disabled: _isLoading,
                 onPressed: _signInWithGoogle,
                 icon: SvgPicture.asset('assets/images/google_icon.svg'),
@@ -92,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
               // Sign in with Apple button
-              _SignInButton(
+              ProviderSignInButton(
                 disabled: _isLoading,
                 onPressed: _signInWithApple,
                 icon: const Icon(Icons.apple, color: Colors.white, size: 28),
@@ -115,66 +116,3 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-class _SignInButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final Widget icon;
-  final String label;
-  final bool disabled;
-
-  const _SignInButton({
-    required this.onPressed,
-    required this.icon,
-    required this.label,
-    required this.disabled,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: ElevatedButton(
-        onPressed: disabled ? null : onPressed,
-        style: ButtonStyle(
-          overlayColor: WidgetStateProperty.all(
-              Theme.of(context).colorScheme.primary),
-          backgroundColor: WidgetStateProperty.all(Colors.transparent),
-          side: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.disabled)) {
-              return BorderSide(
-                color: Theme.of(context).colorScheme.primary.withAlpha(76),
-                width: 1,
-              );
-            }
-            return BorderSide(
-                color: Theme.of(context).colorScheme.primary, width: 1);
-          }),
-          textStyle: WidgetStateProperty.all(
-            const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              fontFamily: 'AvenirNext',
-            ),
-          ),
-          foregroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.disabled)) {
-              return Colors.white.withAlpha(76);
-            }
-            return Colors.white;
-          }),
-          shape: WidgetStateProperty.all(
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          ),
-          padding: WidgetStateProperty.all(
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          ),
-          splashFactory: NoSplash.splashFactory,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [icon, const SizedBox(width: 12), Text(label)],
-        ),
-      ),
-    );
-  }
-}
