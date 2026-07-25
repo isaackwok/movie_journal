@@ -29,11 +29,19 @@ import { Report } from "./lib/report.ts";
 // for session mode (prepared statements, session-scoped temp tables). Nothing
 // here is stateful, so the transaction pooler is perfectly fine.
 
-type Placeholder = {
+type CohortRow = {
   username: string;
   firebase_uid: string;
   journals: number;
+  is_placeholder: boolean;
+  claimant_is_anonymous: boolean;
+  claimed_at: Date;
+  last_sign_in_at: Date | null;
 };
+
+function day(d: Date | null): string {
+  return d ? d.toISOString().slice(0, 10) : "—";
+}
 
 /**
  * Is Firebase's Anonymous provider still disabled?
@@ -93,38 +101,85 @@ async function main(): Promise<void> {
     report.count("journals_migrated", j.migrated);
     report.count("journals_created_in_new_app", j.native);
 
-    // ---- THE number. A placeholder still owning its own profile row means
-    // that user has not opened the new build, or their claim failed.
+    // ---- THE cohort. Membership is defined by the ABSENCE of a provider
+    // identity: firebase_identity_map is populated from providerUserInfo, and
+    // an anonymous Firebase account has none. That definition is what makes
+    // this script work after a claim -- the app_metadata.anonymous marker the
+    // importer set lives on the PLACEHOLDER auth user, which the Edge Function
+    // deletes on success, so anything keyed off it can only ever see the
+    // not-yet-claimed half.
     //
-    // Identified by app_metadata.anonymous, set by import_users.ts at
-    // pre-creation. A successful claim re-points profiles.id to the claimant's
-    // real (non-anonymous) auth user, so a claimed account drops out of this
-    // join automatically -- there is no separate "claimed" flag to maintain.
-    const { rows: placeholders } = await c.query<Placeholder>(`
+    // Claimed vs unclaimed then falls out of whether the profile still points
+    // at that placeholder. There is no "claimed" flag to maintain: a claim
+    // re-points profiles.id to the claimant, so the marker disappears as a
+    // consequence of the claim rather than as a separate write that could
+    // drift from reality.
+    const { rows: cohort } = await c.query<CohortRow>(`
       select p.username,
              p.firebase_uid,
-             (select count(*) from public.journals x where x.user_id = p.id)::int as journals
+             (select count(*) from public.journals x where x.user_id = p.id)::int as journals,
+             ((u.raw_app_meta_data ->> 'anonymous')::boolean is true) as is_placeholder,
+             u.is_anonymous    as claimant_is_anonymous,
+             -- No claim timestamp is stored. The claimant's auth row is created
+             -- by signInAnonymously() moments before the claim, so its
+             -- created_at is an accurate proxy for "when the bridge fired".
+             u.created_at      as claimed_at,
+             u.last_sign_in_at
         from public.profiles p
         join auth.users u on u.id = p.id
-       where (u.raw_app_meta_data ->> 'anonymous')::boolean is true
+       where p.firebase_uid is not null
+         and not exists (select 1 from public.firebase_identity_map m
+                          where m.firebase_uid = p.firebase_uid)
        order by journals desc, p.username`);
 
-    const stranded = placeholders.reduce((s, r) => s + r.journals, 0);
-    report.count("unclaimed_placeholders", placeholders.length);
-    report.count("unclaimed_journals", stranded);
+    const unclaimed = cohort.filter((r) => r.is_placeholder);
+    const claimed = cohort.filter((r) => !r.is_placeholder);
+    const sum = (rs: CohortRow[]) => rs.reduce((s, r) => s + r.journals, 0);
+
+    report.count("anonymous_cohort_total", cohort.length);
+    report.count("claimed_placeholders", claimed.length);
+    report.count("claimed_journals_recovered", sum(claimed));
+    report.count("unclaimed_placeholders", unclaimed.length);
+    report.count("unclaimed_journals", sum(unclaimed));
+
+    console.log(`\n--- claimed (bridge fired successfully) ---`);
+    if (claimed.length === 0) {
+      console.log("  none yet.");
+    } else {
+      for (const r of claimed) {
+        // A claimant who is still on a Supabase anonymous session has no
+        // credential to sign back in with: reinstalling loses the account
+        // again, exactly as it would have before the migration.
+        const fragile = r.claimant_is_anonymous ? "  anon-session" : "";
+        console.log(
+          `  ${r.username.padEnd(20)} ${String(r.journals).padStart(3)} journals   ` +
+            `claimed ${day(r.claimed_at)}   last seen ${day(r.last_sign_in_at)}${fragile}`,
+        );
+      }
+      console.log(`  ${claimed.length} accounts, ${sum(claimed)} journals recovered`);
+
+      const fragile = claimed.filter((r) => r.claimant_is_anonymous).length;
+      if (fragile > 0) {
+        report.count("claimed_still_on_anonymous_session", fragile);
+        console.log(
+          `  note: ${fragile} claimed via a Supabase anonymous session and hold no\n` +
+            `        sign-in credential — a reinstall would strand them again.`,
+        );
+      }
+    }
 
     console.log(`\n--- unclaimed anonymous placeholders ---`);
-    if (placeholders.length === 0) {
+    if (unclaimed.length === 0) {
       console.log("  none — every pre-migration anonymous account has been claimed.");
       console.log("  The bridge can be retired; see the post-migration cleanup issue.");
     } else {
-      for (const r of placeholders) {
+      for (const r of unclaimed) {
         console.log(
           `  ${r.username.padEnd(20)} ${String(r.journals).padStart(3)} journals   ` +
             `${r.firebase_uid.slice(0, 10)}…`,
         );
       }
-      console.log(`  ${placeholders.length} accounts holding ${stranded} journals`);
+      console.log(`  ${unclaimed.length} accounts holding ${sum(unclaimed)} journals`);
     }
 
     // ---- placeholder auth users whose profile is already gone.
@@ -149,20 +204,22 @@ async function main(): Promise<void> {
     );
     for (const t of tombs) report.count(`tombstones_${t.kind}`, t.n);
 
-    const { rows: conflict } = await c.query<{ firebase_uid: string }>(`
-      select p.firebase_uid
+    // Scoped to every live migrated profile, not just the anonymous cohort: a
+    // user tombstone against ANY of them has the same effect, and the pair
+    // should never coexist. A tombstone means "deleted in the new app", which
+    // is mutually exclusive with still having a profile row.
+    const { rows: conflict } = await c.query<{ firebase_uid: string; username: string }>(`
+      select p.firebase_uid, p.username
         from public.profiles p
-        join auth.users u on u.id = p.id
         join public.sync_tombstones t
-          on t.kind = 'user' and t.firestore_id = p.firebase_uid
-       where (u.raw_app_meta_data ->> 'anonymous')::boolean is true`);
+          on t.kind = 'user' and t.firestore_id = p.firebase_uid`);
     for (const r of conflict) {
       report.anomaly(
-        "TOMBSTONED_BUT_UNCLAIMED",
-        `${r.firebase_uid}: user tombstone exists for an unclaimed placeholder — ` +
-          `the delta-sync will refuse to re-import this user's journals. ` +
-          `Delete the tombstone before the next sync.`,
-        { firebase_uid: r.firebase_uid },
+        "TOMBSTONE_FOR_LIVE_PROFILE",
+        `${r.username} (${r.firebase_uid}): a user tombstone exists for a profile that ` +
+          `is still live — the delta-sync reads it as "deleted in the new app" and will ` +
+          `refuse to re-import this user's journals. Delete the tombstone before the next sync.`,
+        { firebase_uid: r.firebase_uid, username: r.username },
       );
     }
 
