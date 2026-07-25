@@ -280,7 +280,9 @@ The data layer is migrating from Firebase (Firestore + Firebase Auth) to Supabas
 
 **`firebase_auth` is still a dependency, and that is deliberate.** It survives only for the anonymous-account bridge (see below); it is not part of the data layer and should not be reached for in new code. It gets removed at the Firestore freeze.
 
-Remaining before cutover: the Phase 7 real-device sign-in test, the Phase 6 quesgen dual-token deploy, and enabling **anonymous sign-ins** on the hosted Supabase project.
+**All pre-cutover blockers are cleared** (verified 2026-07-25): the Phase 7 real-device sign-in test passed, the Phase 6 quesgen dual-token build is live on Cloud Run with `SUPABASE_URL` set, and anonymous sign-ins are enabled on the hosted Supabase project. What remains is the cutover itself — ship the build, force TestFlight testers onto it, run a final `migration/sync.sh`, then freeze Firestore.
+
+**The app is TestFlight-only, which is what makes a hard cutover possible.** Expiring the old build in App Store Connect stops it launching and forces every tester onto the new one, collapsing the dual-write window from months to days. Two constraints: expire only *after* the new build is available to testers, and tell testers to **update in place rather than delete and reinstall** — deleting the app destroys the Firebase anonymous session the bridge depends on, which is the one failure mode that cannot be repaired afterwards.
 
 ### The anonymous-account bridge
 
@@ -291,6 +293,10 @@ Remaining before cutover: the Phase 7 real-device sign-in test, the Phase 6 ques
 Two ordering rules make it correct, and both are easy to break:
 - The Edge Function re-points the profile **before** deleting the placeholder auth user. Deleting first would cascade the profile away, and the `AFTER DELETE` trigger would write a `kind='user'` tombstone — which the delta-sync reads as "deleted in the new app" and would then refuse to re-import that user's journals for the rest of the window.
 - `claim_anonymous_data(text, uuid)` takes the firebase_uid as an *assertion*, so `EXECUTE` is granted to `service_role` **only**. Granting it to `authenticated` would let any user re-point anyone's journals to themselves. Pinned by `rls_smoke.sql`.
+
+**Verified end-to-end against the live stack on 2026-07-25**, by staging a throwaway placeholder shaped exactly like the importer's and driving the deployed Edge Function through it: claim succeeds, journal and profile re-point to the claimant, `firebase_uid` survives, the placeholder auth user is deleted, **no tombstone is written** (confirming the ordering rule above), and a second call returns `already_claimed` without duplicating anything.
+
+**Firebase's Anonymous provider is disabled on the project, and that is fine — do not re-enable it.** Disabling blocks `accounts:signUp`, but *not* the `securetoken` refresh path, so the 14 existing devices can still exchange their stored refresh tokens for the ID token the bridge needs (tested). Re-enabling would let old builds mint fresh anonymous accounts during the cutover window, creating new orphans. It also means the bridge can't be re-tested via `signInAnonymously()` — mint an anonymous-shaped token with the Admin SDK (`createUser({})` + `createCustomToken` + `signInWithCustomToken`) instead. `claim-anonymous` checks `iss`/`aud`/RS256/`sub` and never reads `firebase.sign_in_provider`, so such a token exercises the identical path.
 
 - `supabase/migrations/` — versioned schema (`profiles`, `journals`, `sync_tombstones`, `firebase_identity_map`), RLS on every table, tombstone triggers, and the `username_available` / `claim_migrated_data` RPCs. `supabase/tests/rls_smoke.sql` holds 34 pgTAP assertions; run with `supabase test db`.
 - `supabase/functions/delete-account/` — deletes the caller's account server-side. The `auth.users` delete cascades to profiles and journals, so unlike the old client-side flow there is no window where data is gone but the account remains.

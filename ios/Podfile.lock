@@ -14,11 +14,14 @@ PODS:
   - Flutter (1.0.0)
   - fluttertoast (0.0.2):
     - Flutter
+  - sign_in_with_apple (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - appinio_social_share (from `.symlinks/plugins/appinio_social_share/ios`)
   - Flutter (from `Flutter`)
   - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
+  - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
 
 SPEC REPOS:
   trunk:
@@ -34,6 +37,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   fluttertoast:
     :path: ".symlinks/plugins/fluttertoast/ios"
+  sign_in_with_apple:
+    :path: ".symlinks/plugins/sign_in_with_apple/ios"
 
 SPEC CHECKSUMS:
   appinio_social_share: 25605b916b5a35606a7f2ba8153d0218a4c0282e
@@ -43,7 +48,8 @@ SPEC CHECKSUMS:
   FBSDKShareKit: e7ec3bed8e82dabc04e56f3cf44ef99a1864309e
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   fluttertoast: 2c67e14dce98bbdb200df9e1acf610d7a6264ea1
+  sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
 
 PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.17.0
