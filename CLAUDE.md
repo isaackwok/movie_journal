@@ -268,7 +268,30 @@ feature_name/
 - Use `MediaQuery` for responsive breakpoints
 - Support both mobile and web platforms
 
+## Supabase Migration (in progress)
+
+The data layer is migrating from Firebase (Firestore + Firebase Auth) to Supabase (Postgres + Supabase Auth). **Analytics stays on Firebase** — `firebase_core` and `firebase_analytics` are permanent, not transitional.
+
+**Current state: managers landed, call sites not yet swapped.** `lib/supabase_auth_manager.dart` and `lib/supabase_db_manager.dart` exist and are unit-tested, but nothing imports them yet — the app still runs entirely on `firebase_manager.dart` / `firestore_manager.dart`. They were added additively on purpose: dropping `firebase_auth`/`cloud_firestore` breaks all 8 call sites simultaneously and the app stops compiling mid-migration. `pubspec.yaml` therefore carries both stacks until the swap commit.
+
+- `supabase/migrations/` — versioned schema (`profiles`, `journals`, `sync_tombstones`, `firebase_identity_map`), RLS on every table, tombstone triggers, and the `username_available` / `claim_migrated_data` RPCs. `supabase/tests/rls_smoke.sql` holds 34 pgTAP assertions; run with `supabase test db`.
+- `supabase/functions/delete-account/` — deletes the caller's account server-side. The `auth.users` delete cascades to profiles and journals, so unlike the old client-side flow there is no window where data is gone but the account remains.
+- `migration/` — export/import/validate scripts for the delta-sync. Run `migration/sync.sh`. **All data and secrets live outside this repo** under `$MIGRATION_DATA_DIR`; this is a public repo and nothing there may leak into the tree.
+
+### Timestamps — the bug being retired
+
+Journals currently store `Jiffy.toString()`, a **naive local** string with no zone. Postgres stores `timestamptz`, so the boundary must convert both ways, and `SupabaseDbManager` is the only place that happens:
+
+- **Write**: `jiffyToUtcIso()` → absolute UTC. Never `jiffy.toString()` — Postgres would read that as UTC and shift every timestamp by 8 hours.
+- **Read**: `pgTimestampToLocalNaive()` → local wall time. `JournalState.fromJson` feeds the value straight into `Jiffy.parse`, so handing it a UTC instant would render every journal 8 hours early. Pinned by `test/supabase_db_manager_test.dart`.
+
+Existing Firestore timestamps are interpreted as **Asia/Taipei** on import (hardcoded in `migration/lib/transform.ts`, deliberately not an env var).
+
+`JournalState` stays untouched — `toMap()`/`fromJson()` remain the serialization seam, and all snake_case ↔ camelCase translation happens in the manager layer.
+
 ## Firebase Integration
+
+> Being replaced — see **Supabase Migration** above. Analytics is staying.
 
 ### Authentication
 - `FirebaseManager` provides wrappers for auth operations

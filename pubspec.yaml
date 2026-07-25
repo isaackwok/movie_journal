@@ -49,6 +49,13 @@ dependencies:
   google_sign_in: ^7.2.0
   cloud_firestore: ^6.1.0
   firebase_analytics: ^12.0.4
+  # Supabase migration (plan Phase 5). Added alongside firebase_auth /
+  # cloud_firestore rather than replacing them: dropping those breaks all 8
+  # call sites at once and the app stops compiling mid-migration. They are
+  # removed in the call-site swap commit, once nothing imports them.
+  supabase_flutter: ^2.8.0
+  sign_in_with_apple: ^6.1.3
+  crypto: ^3.0.6
   gal: ^2.3.0
   share_plus: ^12.0.1
   appinio_social_share: ^0.3.2
