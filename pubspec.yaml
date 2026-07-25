@@ -45,14 +45,16 @@ dependencies:
   uuid: ^4.5.1
   shared_preferences: ^2.5.3
   firebase_core: ^4.2.0
+  # Permanent: Analytics stays on Firebase (plan decision 6).
+  firebase_analytics: ^12.0.4
+  # TRANSITIONAL, not permanent. Kept solely for the anonymous-account bridge
+  # (plan decision 10): 14 pre-migration users can only prove ownership of
+  # their journals with the Firebase ID token their device still holds, and
+  # minting one requires this package. See lib/anonymous_bridge.dart.
+  # Remove at the Firestore freeze, together with the bridge itself.
   firebase_auth: ^6.1.1
   google_sign_in: ^7.2.0
-  cloud_firestore: ^6.1.0
-  firebase_analytics: ^12.0.4
-  # Supabase migration (plan Phase 5). Added alongside firebase_auth /
-  # cloud_firestore rather than replacing them: dropping those breaks all 8
-  # call sites at once and the app stops compiling mid-migration. They are
-  # removed in the call-site swap commit, once nothing imports them.
+  # Supabase — the data layer as of the Phase 5 call-site swap.
   supabase_flutter: ^2.8.0
   sign_in_with_apple: ^6.1.3
   crypto: ^3.0.6

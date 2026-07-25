@@ -1,11 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
-import 'package:movie_journal/firebase_manager.dart';
-import 'package:movie_journal/firestore_manager.dart';
+import 'package:movie_journal/supabase_auth_manager.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
@@ -142,9 +140,12 @@ class _AccountSection extends ConsumerWidget {
             ),
             onCancel: () => Navigator.of(context).pop(),
             onConfirm: () async {
-              await FirebaseManager.signOut();
+              await SupabaseAuthManager.signOut();
               ref.invalidate(journalsControllerProvider);
               ref.invalidate(currentUsernameProvider);
+              // Otherwise the next sign-in reuses this user's cached
+              // profile-existence answer and can skip CreateUserScreen.
+              ref.invalidate(hasProfileProvider);
               if (context.mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -173,57 +174,40 @@ class _AccountSection extends ConsumerWidget {
   }
 
   Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
-    final firebaseManager = FirebaseManager();
-    final userId = firebaseManager.currentUser?.uid;
-    if (userId == null) return;
+    if (SupabaseAuthManager.currentUser == null) return;
 
-    // 1. Re-authenticate before any destructive action. This guarantees that
-    //    the subsequent auth-account deletion won't fail with
-    //    `requires-recent-login`, which would otherwise leave us with deleted
-    //    Firestore data but a still-existing auth account.
+    // 1. Confirm presence before anything destructive. Supabase has no
+    //    `requires-recent-login`, so unlike the Firebase flow this is no
+    //    longer load-bearing for correctness — it is kept because backing out
+    //    of the provider prompt must still cancel the deletion.
     try {
-      await firebaseManager.reauthenticate();
-    } on FirebaseAuthException catch (e) {
-      // User backed out of the provider prompt — silently abort.
-      const cancelCodes = {
-        'canceled',
-        'cancelled',
-        'sign-in-cancelled',
-        'popup-closed-by-user',
-        'web-context-canceled',
-      };
-      if (cancelCodes.contains(e.code)) return;
-
+      final confirmed = await SupabaseAuthManager.reauthenticate();
+      if (!confirmed) return; // user backed out of the prompt
+    } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Re-authentication required: ${e.message ?? e.code}',
-            ),
+            content: Text('Re-authentication required: $e'),
             backgroundColor: Colors.red,
           ),
         );
       }
       return;
-    } catch (_) {
-      // Non-Firebase errors (e.g. GoogleSignIn cancellation) — abort without
-      // touching data. We don't surface a SnackBar because we can't reliably
-      // distinguish cancellation from a real error here.
-      return;
     }
 
-    // 2. Delete Firestore data and log analytics for each removed journal.
+    // 2. A single server-side call. Deleting the auth user cascades to the
+    //    profile and journals and fires the tombstone triggers, so there is no
+    //    longer a window where data is gone but the account still exists —
+    //    the half-deleted state the old ordering existed to avoid.
     try {
-      final deletedJournalIds = await FirestoreManager().deleteUser(userId);
+      final deletedJournalIds = await SupabaseAuthManager.deleteAccount();
       for (final id in deletedJournalIds) {
         AnalyticsManager.logJournalDeleted(journalId: id);
       }
 
-      // 3. Delete the auth account (safe — re-auth was just performed).
-      await firebaseManager.deleteAccount();
-
       ref.invalidate(journalsControllerProvider);
       ref.invalidate(currentUsernameProvider);
+      ref.invalidate(hasProfileProvider);
 
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(

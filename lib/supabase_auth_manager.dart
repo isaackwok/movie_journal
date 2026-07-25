@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -33,9 +34,13 @@ class SupabaseAuthManager {
 
   /// Which provider the current user signed in with, for analytics parity with
   /// the old `sign_in_method` property.
-  static String? get signInMethod {
-    final meta = currentUser?.appMetadata;
-    final provider = meta?['provider'];
+  static String? get signInMethod => providerOf(currentUser);
+
+  /// Same, for a `User` already in hand. Auth-state listeners should prefer
+  /// this over [signInMethod]: they receive the user with the event, whereas
+  /// `currentUser` is read back off the client and can lag the emission.
+  static String? providerOf(User? user) {
+    final provider = user?.appMetadata['provider'];
     return provider is String ? provider : null;
   }
 
@@ -99,14 +104,20 @@ class SupabaseAuthManager {
   /// `clientId` is the iOS OAuth client, `serverClientId` the web one. Supabase
   /// validates the token's `aud` against the Client IDs configured on the
   /// provider, so both must be listed there.
+  ///
+  /// Both ids default to `.env`; they stay injectable so the flow can be
+  /// exercised in tests without loading dotenv.
   static Future<AuthResponse> signInWithGoogle({
-    required String iosClientId,
-    required String webClientId,
+    String? iosClientId,
+    String? webClientId,
   }) async {
     _assertNative('Google');
 
     final signIn = GoogleSignIn.instance;
-    await signIn.initialize(clientId: iosClientId, serverClientId: webClientId);
+    await signIn.initialize(
+      clientId: iosClientId ?? dotenv.env['GOOGLE_IOS_CLIENT_ID']!,
+      serverClientId: webClientId ?? dotenv.env['GOOGLE_WEB_CLIENT_ID']!,
+    );
     final account = await signIn.authenticate();
 
     final idToken = account.authentication.idToken;
@@ -128,23 +139,41 @@ class SupabaseAuthManager {
   /// technically required before deletion. It is kept because the confirm-your-
   /// presence UX is the point, and because cancelling must abort the delete —
   /// matching the existing Firebase flow exactly.
-  static Future<void> reauthenticate({
-    required String iosClientId,
-    required String webClientId,
+  /// Returns `true` if the user re-authenticated, `false` if they backed out
+  /// of the provider prompt. Real failures still throw.
+  ///
+  /// Callers get a bool rather than having to catch provider exceptions
+  /// themselves: the native flow throws SDK-specific types
+  /// (`SignInWithAppleAuthorizationException`, `GoogleSignInException`) where
+  /// the old Firebase flow threw one `FirebaseAuthException` for both. Widening
+  /// that here keeps both SDKs out of the UI layer.
+  static Future<bool> reauthenticate({
+    String? iosClientId,
+    String? webClientId,
   }) async {
     final provider = signInMethod;
-    switch (provider) {
-      case 'apple':
-        await signInWithApple();
-      case 'google':
-        await signInWithGoogle(
-          iosClientId: iosClientId,
-          webClientId: webClientId,
-        );
-      default:
-        // Anonymous/migrated accounts have no provider to re-auth against.
-        return;
+    try {
+      switch (provider) {
+        case 'apple':
+          await signInWithApple();
+        case 'google':
+          await signInWithGoogle(
+            iosClientId: iosClientId,
+            webClientId: webClientId,
+          );
+        default:
+          // Anonymous/migrated accounts have no provider to re-auth against,
+          // so there is nothing to confirm — treat as already confirmed.
+          return true;
+      }
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) return false;
+      rethrow;
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) return false;
+      rethrow;
     }
+    return true;
   }
 
   /// Deletes the account server-side. Returns the deleted journal ids so the
@@ -156,9 +185,15 @@ class SupabaseAuthManager {
   static Future<List<String>> deleteAccount() async {
     final res = await _client.functions.invoke('delete-account');
     final data = res.data;
-    if (data is Map && data['deletedJournalIds'] is List) {
-      return (data['deletedJournalIds'] as List).cast<String>();
-    }
-    return const [];
+    final ids = (data is Map && data['deletedJournalIds'] is List)
+        ? (data['deletedJournalIds'] as List).cast<String>()
+        : const <String>[];
+
+    // The function deletes the user server-side, but this device still holds
+    // the issued session. Firebase's client-side `currentUser.delete()` used
+    // to clear it as a side effect; here it must be explicit, or the app keeps
+    // believing it is signed in as a user that no longer exists.
+    await signOut();
+    return ids;
   }
 }
