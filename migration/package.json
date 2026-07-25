@@ -1,0 +1,14 @@
+{
+  "name": "movie-journal-migration",
+  "private": true,
+  "type": "module",
+  "description": "Firestore -> Supabase migration and delta-sync scripts. Run with `node --env-file=\"$MIGRATION_DATA_DIR/.env\" migration/<script>.ts` -- Node >= 22 strips TypeScript types natively, so there is no build step.",
+  "engines": {
+    "node": ">=22.6.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.58.0",
+    "firebase-admin": "^13.6.0",
+    "pg": "^8.16.3"
+  }
+}
