@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Flutter movie journal application that allows users to search for movies, view movie details, and create journal entries with emotions, thoughts, and AI-curated reviews about watched movies. The app integrates with The Movie Database (TMDB) API and uses Firebase for authentication and data storage.
+This is a Flutter movie journal application that allows users to search for movies, view movie details, and create journal entries with emotions, thoughts, and AI-curated reviews about watched movies. The app integrates with The Movie Database (TMDB) API, uses **Supabase** (Postgres + Supabase Auth) for authentication and data storage, and Firebase for analytics only.
 
 ## Development Commands
 
@@ -72,7 +72,7 @@ The app follows a feature-based architecture where each feature is self-containe
 
 - **journal/** - Core journaling features with full workflow from movie selection to saving
   - `controllers/` - JournalState (single journal), JournalsState (list of journals), JournalMode enum + JournalModeNotifier (create/edit mode)
-  - `screens/` - Journaling (main editor), JournalComplete (post-save success screen), JournalContent (view saved journal), MoviePreview, ThoughtsEditor, CaptionEditor
+  - `screens/` - Journaling (main editor), JournalComplete (post-save success screen), JournalContent (view saved journal), MoviePreview, ThoughtsScreen (`thoughts.dart`), CaptionEditor. Note `ThoughtsScreen` (screen) and `ThoughtsEditor` (widget, below) are different classes — don't confuse them.
   - `widgets/` - EmotionsSelectorButton, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, ReviewItem, ReviewsBottomSheet, ThoughtsEditor, PosterPreviewModal, AiReferencesAccordion, JournalContentMoreMenu, and `journal_actions.dart` — a set of shared helper functions (`editJournal`, `shareJournal`, `confirmDeleteJournal`, `deleteJournal`) that encapsulate the domain actions a journal can undergo. Reused by both the more-menu on `JournalContent` and the long-press menu on `JournalCard`. The helpers own the *domain action* (load state / navigate to editor, confirm dialog, Supabase delete + toast, navigate to `TicketPosterPickerScreen`) but intentionally leave post-action navigation (e.g. popping after delete) to the caller, since that depends on which screen initiated the action.
 
 - **movie/** - Movie data management with repository pattern
@@ -96,24 +96,24 @@ The app follows a feature-based architecture where each feature is self-containe
   - `api.dart` - API integration (GET `/generate/{movieId}`) returning `{ reviews: [{ text, source }] }`
 
 - **share/** - Share ticket feature for saving/sharing movie ticket images
-  - `screens/` - ShareTicketScreen (ticket preview with save-to-gallery)
+  - `screens/` - TicketPosterPickerScreen (**flow entry point** — poster selection), ShareTicketScreen (ticket preview with save-to-gallery). See [Working with Share Ticket](#working-with-share-ticket) for the close/route-tagging rules.
   - `widgets/` - FlippableTicket (3D flip animation), TicketFront (poster side), TicketBack (details side), FilmStripClipper (perforation CustomClipper)
 
 - **login/** - Authentication screens and user creation flows
   - `screens/` - LoginScreen, CreateUserScreen (username input with validation: alphanumeric/underscore/dot only, uniqueness check via the `username_available` RPC, error toasts use `ToastGravity.TOP` to stay visible above the keyboard). `validateUsername()` is a top-level function for testability.
 
 - **onboarding/** - Branded splash shown on cold start when the user is unauthenticated
-  - `screens/` - BrandingSplashScreen — fade-in/hold/fade-out timeline (3s total) via a single `AnimationController` + `TweenSequence` (mirrors `journal_complete.dart`'s pattern). When the fade controller hits `completed`, calls `splashShownProvider.markShown()` so `HomeScreen` re-renders to `LoginScreen`. **No `Navigator.push`** — the splash plugs into `HomeScreen`'s stream-driven conditional at [home.dart:55](lib/features/home/screens/home.dart:55), gated by `splashShownProvider`.
+  - `screens/` - BrandingSplashScreen — fade-in/hold/fade-out timeline (3s total) via a single `AnimationController` + `TweenSequence` (mirrors `journal_complete.dart`'s pattern). When the fade controller hits `completed`, calls `splashShownProvider.markShown()` so `HomeScreen` re-renders to `LoginScreen`. **No `Navigator.push`** — the splash plugs into `HomeScreen`'s stream-driven conditional in `home.dart` (the `splashShown ? LoginScreen : BrandingSplashScreen` branch), gated by `splashShownProvider`.
   - `widgets/` - PosterMarquee (two rows, blurred via `ImageFiltered` + `ImageFilter.blur`, tilted ~-0.18 rad, positioned bottom-right with negative offsets so it spills off the edge); MarqueeRow (doubles the URL list and uses `Transform.translate` driven by a linear-repeating `AnimationController` so the wrap-around is invisible).
   - `controllers/` - `splashShownProvider` (session-scoped Riverpod `Notifier<bool>`, defaults to false; resets only on cold restart — **never invalidated on logout**, so signing out within a session goes straight to LoginScreen, no replay); `splashPostersProvider` (live TMDB `/movie/popular` via `MovieAPI().popularMovies()`, falls back to a small bundled poster URL list inside the provider's `catch` so widgets never see the error path). The splash pre-warms this fetch in `initState` via `ref.read(provider.future)` so posters likely arrive during fade-in; on late arrival, `AnimatedOpacity` fades them in gently.
   - **Asset**: `assets/images/fink_logo.svg` — the "i + ticket-stub" mark (92×105 viewBox); the "Fink" wordmark below it is rendered via `GoogleFonts.nothingYouCouldDo()` so we can tune size/color without touching the SVG.
 
 - **account_link/** - Attaches an Apple/Google identity to a bridged user's anonymous session (issue #22). Inert for everyone else: `needsAccountLinkProvider` is false for every user who signed in through LoginScreen, so nothing here builds.
-  - `controllers/account_link.dart` - `needsAccountLinkProvider` (derived from `authStateProvider`; true iff `user.isAnonymous` — see [The credential-less session](#the-credential-less-session)), `accountLinkPromptShownProvider` (session-scoped one-shot gate, mirrors `splashShownProvider`), and `AccountLinkService` behind `accountLinkServiceProvider` — a seam that exists purely so widget tests can fake the two link calls, including the conflict branch that would otherwise need two real provider accounts.
+  - `controllers/account_link.dart` - `needsAccountLinkProvider` (derived from `authStateProvider`; wraps `SupabaseAuthManager.needsIdentityLink()`, true iff `user.isAnonymous` — see the `supabase-migration` skill for why), `accountLinkPromptShownProvider` (session-scoped one-shot gate, mirrors `splashShownProvider`), and `AccountLinkService` behind `accountLinkServiceProvider` — a seam that exists purely so widget tests can fake the two link calls, including the conflict branch that would otherwise need two real provider accounts.
   - `widgets/` - `SecureAccountSheet` (dismissible modal, `show(context, journalCount:)`; renders the conflict explanation **inline** rather than as a dialog so the untried provider's button stays visible beside it), `SecureAccountBanner` (persistent, non-dismissible, self-clearing; also owns the one-time auto-prompt, scheduled to a post-frame callback because both flipping the Riverpod gate and pushing a route are illegal mid-build).
 
 - **settings/** - User settings and account management
-  - `screens/` - SettingsScreen (displays username, sign out, delete account options). Logout and delete flows invalidate journal/username providers to prevent stale data on re-login. When `needsAccountLinkProvider` is true it grows a warning-colored **Secure Account** item (the only entry point once the one-time prompt is gone) and the Logout dialog swaps in copy saying that getting back in depends on this device. Deliberately *not* "you will lose everything" — see [Logging out is recoverable](#logging-out-is-recoverable).
+  - `screens/` - SettingsScreen (displays username, sign out, delete account options). Logout and delete flows invalidate journal/username providers to prevent stale data on re-login. When `needsAccountLinkProvider` is true it grows a warning-colored **Secure Account** item (the only entry point once the one-time prompt is gone) and the Logout dialog swaps in copy saying that getting back in depends on this device. Deliberately *not* "you will lose everything" — logging out is recoverable; see the `supabase-migration` skill.
 
 - **toast/** - Toast notification utilities
   - `custom_toast.dart` - Custom toast built on `fluttertoast`. Three static entry points — `showSuccess(context, msg)`, `showError(msg)`, `showWarning(msg)` — all render the same dark bordered card via a private `_show({icon, statusColor, message})`; only the icon glyph + accent vary. The icon is a filled circle in the status color with a **plain black** inner glyph. Colors come from `StatusColors` in `themes.dart` (success = primary `#A8DADD`, error `#FF615D`, warning `#FF9F1C`) — the single source of truth. `showSuccess` keeps a `context` param for call-site compatibility but no longer uses it for styling. Call `CustomToast.init(context)` once before showing (idiom: init immediately before the show call). Status→color mapping pinned by `custom_toast_test.dart`.
@@ -273,106 +273,32 @@ feature_name/
 - Use `Skeleton.leaf()` for individual loading elements
 
 ### Responsive Design
-- Web builds are constrained to 400px width (mobile-like experience)
+- **Web is not a supported target.** `main.dart`'s `_buildRunnableApp(isWeb:, webAppWidth: 400)` still constrains web builds to 400px, so the app *renders* on web — but `SupabaseAuthManager._assertNative()` throws `UnsupportedError` under `kIsWeb`, so **sign-in dead-ends at the login screen**. The throw is deliberate (decision 9): web auth would need an Apple Services ID, a `.p8`, and the OAuth redirect flow. Treat the 400px shell as vestigial, not as web support.
 - Use `MediaQuery` for responsive breakpoints
-- Support both mobile and web platforms
+- Mobile (iOS/Android) is the only functional platform
 
-## Supabase Migration (in progress)
+## Supabase Migration (transitional)
 
-The data layer is migrating from Firebase (Firestore + Firebase Auth) to Supabase (Postgres + Supabase Auth). **Analytics stays on Firebase** — `firebase_core` and `firebase_analytics` are permanent, not transitional.
+The Firebase→Supabase migration is **in progress and not yet cut over.** The full
+runbook — the anonymous-account bridge, the credential-less session it creates, the
+device-bound failure mode, and the `migration/` scripts — lives in the
+**`supabase-migration` skill**, which loads on demand.
 
-**Current state: call sites swapped; the app runs on Supabase.** `firebase_manager.dart` and `firestore_manager.dart` are deleted and `cloud_firestore` is out of `pubspec.yaml`. All data and auth go through `lib/supabase_auth_manager.dart` and `lib/supabase_db_manager.dart`.
+**Read that skill before** touching `lib/anonymous_bridge.dart`,
+`lib/features/account_link/`, `supabase/functions/claim-anonymous/`, or anything under
+`migration/` — and before testing any migration path on a device.
 
-**`firebase_auth` is still a dependency, and that is deliberate.** It survives only for the anonymous-account bridge (see below); it is not part of the data layer and should not be reached for in new code. It gets removed at the Firestore freeze.
+Two rules are here because breaking them is unrecoverable and the cost is not obvious:
 
-The Phase 7 real-device sign-in test passed, the Phase 6 quesgen dual-token build is live on Cloud Run with `SUPABASE_URL` set, and anonymous sign-ins are enabled on the hosted Supabase project.
+- **Never use `flutter run` to test the migration path.** Pushing a build over a
+  TestFlight install is a *replace*, not an update; iOS deletes the app's keychain
+  items, destroying the Firebase anonymous session the bridge depends on. Silent, no
+  prompt. Use TestFlight.
+- **`firebase_auth` is a dependency solely for that bridge.** Not for auth in new
+  code. It goes away at the Firestore freeze.
 
-**But the cutover is NOT ready, and an earlier version of this file wrongly said it was.** What is verified is the bridge's **server half** — the staged-placeholder test drove the deployed Edge Function. Its **client half has never run successfully on a device**: does the Firebase anonymous session survive the update, and does `AnonymousBridge.attempt()` fire.
-
-The first attempt (2026-07-25, an anonymous account created 2026-04-11 owning one journal) failed — login screen, Apple sign-in, CreateUserScreen, empty home — but **the install method invalidated the test**, so it is not evidence about the bridge either way. The new build was pushed with `flutter run --release` over a TestFlight install. Differing provenance makes that a *replace*, not an update, and iOS deletes an app's keychain items on removal, taking the Firebase session with them. See [The bridge is device-bound](#the-bridge-is-device-bound).
-
-**Never use `flutter run` to test the migration path** — it destroys the one credential the path depends on, and does so silently. Use TestFlight, which preserves the container (same team `3U9565WWM2`, same bundle id `com.isaackwok.moviejournal`). Until one anonymous account has come through a real TestFlight update, the bridge's real-world success rate is unknown; do not force testers onto the build before then.
-
-Also confirmed by that investigation: the Firebase auth export contains **zero `apple.com` identities** across all 26 users — the old app's population is 12 Google + 14 anonymous, and `firebase_identity_map` holds only `identity_map:google: 12`. So `claim_migrated_data()` is *dead code in practice*: it joins `auth.identities` against a map with no Apple rows, and the Google users it could serve are auto-linked by email before it ever runs. It is a fallback for a case that does not exist yet — do not rely on it as one.
-
-**The app is TestFlight-only, which is what makes a hard cutover possible.** Expiring the old build in App Store Connect stops it launching and forces every tester onto the new one, collapsing the dual-write window from months to days. Two constraints: expire only *after* the new build is available to testers, and tell testers to **update in place rather than delete and reinstall** — deleting the app destroys the Firebase anonymous session the bridge depends on, which is the one failure mode that cannot be repaired afterwards.
-
-### The anonymous-account bridge
-
-14 pre-migration accounts were created by the old `signInAnonymously()` call (now removed) and own **54 journals — 46% of production data**. They have no email and no provider identity, so both normal linking paths structurally cannot find them: email auto-linking has nothing to match on, and `claim_migrated_data()` joins on `auth.identities`, which an anonymous user has none of.
-
-`lib/anonymous_bridge.dart` trades the Firebase ID token still held on their device — unforgeable proof of that uid — for the pre-created placeholder row's data, via the `claim-anonymous` Edge Function. `hasProfileProvider`/`anonymousBridgeProvider` in `home.dart` run it once per app start before the login screen is offered.
-
-Two ordering rules make it correct, and both are easy to break:
-- The Edge Function re-points the profile **before** deleting the placeholder auth user. Deleting first would cascade the profile away, and the `AFTER DELETE` trigger would write a `kind='user'` tombstone — which the delta-sync reads as "deleted in the new app" and would then refuse to re-import that user's journals for the rest of the window.
-- `claim_anonymous_data(text, uuid)` takes the firebase_uid as an *assertion*, so `EXECUTE` is granted to `service_role` **only**. Granting it to `authenticated` would let any user re-point anyone's journals to themselves. Pinned by `rls_smoke.sql`.
-
-**Verified end-to-end against the live stack on 2026-07-25**, by staging a throwaway placeholder shaped exactly like the importer's and driving the deployed Edge Function through it: claim succeeds, journal and profile re-point to the claimant, `firebase_uid` survives, the placeholder auth user is deleted, **no tombstone is written** (confirming the ordering rule above), and a second call returns `already_claimed` without duplicating anything.
-
-**Firebase's Anonymous provider is disabled on the project, and that is fine — do not re-enable it.** Disabling blocks `accounts:signUp`, but *not* the `securetoken` refresh path, so the 14 existing devices can still exchange their stored refresh tokens for the ID token the bridge needs (tested). Re-enabling would let old builds mint fresh anonymous accounts during the cutover window, creating new orphans. It also means the bridge can't be re-tested via `signInAnonymously()` — mint an anonymous-shaped token with the Admin SDK (`createUser({})` + `createCustomToken` + `signInWithCustomToken`) instead. `claim-anonymous` checks `iss`/`aud`/RS256/`sub` and never reads `firebase.sign_in_provider`, so such a token exercises the identical path.
-
-- `supabase/migrations/` — versioned schema (`profiles`, `journals`, `sync_tombstones`, `firebase_identity_map`), RLS on every table, tombstone triggers, and the `username_available` / `claim_migrated_data` RPCs. `supabase/tests/rls_smoke.sql` holds 63 pgTAP assertions; run with `supabase test db`.
-- **RLS scopes rows; GRANTs scope columns.** A policy like `journals_update_own` proves `auth.uid() = user_id` and says nothing about *which columns* the UPDATE touches — that is the GRANT's job, and `grant update on table` means all of them. `20260725071500_lock_migration_control_columns.sql` therefore replaces the blanket INSERT/UPDATE grants with **column allowlists that mirror `lib/supabase_db_manager.dart` exactly**. Consequences worth knowing before you debug a 403:
-  - **Adding a column to `journalToRow()` (or the profiles writers) without adding it to that migration makes the write fail with 403**, not silently drop the column.
-  - `user_id` *is* in the journals UPDATE allowlist — `journalToRow()` always sends it, even on edit. `WITH CHECK` is what stops it pointing at another user; the grant never was.
-  - `created_at` is *not* in the journals UPDATE allowlist, so "an edit preserves `created_at`" is now a database guarantee rather than a client convention.
-  - Ungranted to clients on both tables: `firestore_id`, `migrated_updated_at`, `raw`, `firebase_uid`, `journals.id`. These belong to the delta-sync. The reason is not tidiness: a client that could set its own `firestore_id` and then delete the row would make the `AFTER DELETE` trigger write a tombstone against **another user's** Firestore doc, and `import_data.ts` reads `sync_tombstones` as "deleted in the new app" and skips it for the rest of the window.
-- **`alter default privileges … revoke execute on functions` does not work on Supabase Postgres 17.6** (measured; the table equivalent in `20260725033216` does). New functions still come out `proacl = NULL`, i.e. EXECUTE to PUBLIC, i.e. anon-callable. So **every new function in `public` needs an explicit `revoke execute … from public, anon`**. `rls_smoke.sql` enforces this: one assertion fails if any callable function is anon-executable, another pins the exact set callable by `authenticated`. Both name the offending function in the failure output.
-- `supabase/functions/delete-account/` — deletes the caller's account server-side. The `auth.users` delete cascades to profiles and journals, so unlike the old client-side flow there is no window where data is gone but the account remains.
-- `migration/` — export/import/validate scripts for the delta-sync. Run `migration/sync.sh`. **All data and secrets live outside this repo** under `$MIGRATION_DATA_DIR`; this is a public repo and nothing there may leak into the tree.
-- `migration/repair_anonymous_claim.ts` — by-hand equivalent of `claim_anonymous_data`, for a user the bridge could not reach: `node --env-file="$MIGRATION_DATA_DIR/.env" migration/repair_anonymous_claim.ts --firebase-uid <uid> --to <supabase user uuid>`. **Dry run unless `--confirm`.** Refuses to write if the target has no provider identity (repairing onto another credential-less session rebuilds the same problem), if the target already owns journals (it does not merge), if the target is itself a pre-created migration user, if the target profile carries a `firebase_uid` (deleting it would write a tombstone), or if a `kind='user'` tombstone already exists for the uid. Moves journals + profile in one transaction, verifies against the DB rather than trusting row counts, then deletes the placeholder auth user **after** the commit — the same ordering rule as the Edge Function, and the one step with no undo.
-- `migration/bridge_status.ts` — read-only cutover monitor, run on demand: `node --env-file="$MIGRATION_DATA_DIR/.env" migration/bridge_status.ts`. Lists the anonymous cohort split into **claimed** (with the date the bridge fired) and **unclaimed** — the latter being the number that decides when the bridge can be deleted. Cohort membership is defined by a `firebase_uid` having **no row in `firebase_identity_map`** (anonymous Firebase accounts have no provider identity); do not key it off the importer's `app_metadata.anonymous` marker, which lives on the placeholder auth user and is deleted by a successful claim, so it can only ever see the unclaimed half. Exits non-zero on two real misconfigurations: a `kind='user'` tombstone against a still-live profile, and Firebase's Anonymous provider being re-enabled. Unclaimed placeholders alone are the expected mid-window state and never fail the run. Not wired into `sync.sh` — that runs under `set -e`, so a non-zero exit here would mark a successful sync as failed.
-
-### The credential-less session
-
-A successful claim leaves the user holding a Supabase **anonymous** session — `AnonymousBridge.attempt()` calls `signInAnonymously()` because a real `auth.users` row must exist before any journal can point at it. That session has no row in `auth.identities` and no credential, so a reinstall, a wipe, or a lost phone loses the account for good: the Firebase anonymous session that was the only proof of ownership goes with it, and the bridge cannot rescue the same user twice. This is the state 46% of production data lands in.
-
-`lib/features/account_link/` fixes it by attaching a provider identity **to the current session**, via `SupabaseAuthManager.linkAppleIdentity()` / `linkGoogleIdentity()`.
-
-- **Nobody else is affected.** `signInAnonymously()` appears exactly once in `lib/`, inside the bridge; LoginScreen offers only Apple and Google. So `needsIdentityLink` is false for every non-bridged user and none of this UI ever builds for them.
-- **`linkIdentityWithIdToken`, never `linkIdentity()`.** The browser-OAuth variant shown in most Supabase docs needs an OAuth client secret this project deliberately never provisioned; probing it returns `"Unsupported provider: missing OAuth secret"`. The ID-token variant hits the same `/token?grant_type=id_token` endpoint as `signInWithIdToken` with `link_identity: true`, so it needs nothing new beyond **Allow manual linking** (Authentication → Sign In / Providers), enabled 2026-07-25. Turning that off breaks the flow with `manual_linking_disabled`, which is deliberately **not** classified as a conflict — it is a project misconfiguration hitting everyone, and reporting it as "your Apple account is taken" would be a lie.
-- **`auth.uid()` does not change**, so journals stay put and nothing needs re-pointing. That is the entire appeal over a sign-in-and-migrate flow.
-- **It self-heals.** Linking flips `is_anonymous` server-side and gotrue emits `userUpdated`, which flows through the existing `authStateChanges` stream into `needsAccountLinkProvider` — prompt and banner disappear with no invalidation anywhere.
-- **The conflict case is reported, not resolved.** If the chosen Apple/Google account already belongs to a different Supabase user, linking fails with `identity_already_exists`; the sheet explains it and points at the other provider. A merge would need a server-side journal move plus a rule for which profile survives, and reaching this state requires having signed up separately during the window *and* still holding the old Firebase session. `account_link_conflict` is logged to size that population before anyone builds the merge.
-- **Acceptance**: `claimed_still_on_anonymous_session` in `migration/bridge_status.ts` trends to zero. Do not delete the bridge until it does — the bridge is what recovers anyone who gets stranded.
-
-#### The bridge is device-bound
-
-`AnonymousBridge.attempt()` bails at [anonymous_bridge.dart:39](lib/anonymous_bridge.dart:39) when the device has no Firebase user or it is not anonymous. That token is the *only* proof of ownership an anonymous account has, so losing it — delete-and-reinstall, a wipe, a new phone — makes all three paths fail at once:
-
-- **email auto-link** — the placeholder's email is `syntheticEmail()`, `fb-<uid>@anon.migrated.invalid`, matching nothing
-- **`claim_migrated_data`** — joins `auth.identities`, which an anonymous user has none of
-- **`claim-anonymous`** — needs the token that no longer exists
-
-The user then signs in normally, gets a fresh Supabase user, and lands on CreateUserScreen. **Completing it is what makes the damage stick**: `claim_migrated_data()` and `claim_anonymous_data()` both short-circuit to `already_claimed` when the caller already has a profile, so from that point only `repair_anonymous_claim.ts` can fix it.
-
-This is why "update in place, never delete and reinstall" is load-bearing rather than advisory. It was violated on the very first attempt, by someone who knew the rule — because the violation did not look like one: `flutter run --release` over a TestFlight install replaces the app rather than updating it (differing provenance), and iOS deletes keychain items on removal. No prompt, no deletion, session gone. Assume the rule will be broken again in some equally non-obvious way, and prefer detecting the loss over documenting the rule harder.
-
-`AnonymousBridge` only `debugPrint`s, so a release build reports nothing about which branch it took. When diagnosing a stranded user, that absence of evidence is expected and is not itself a clue.
-
-#### Logging out is recoverable
-
-A bridged user cannot reach LoginScreen while holding their session — it is constructed in exactly one place ([home.dart:111](lib/features/home/screens/home.dart:111)) and only under `if (user == null)`. The single route there is Settings → Logout. And signing in with Apple from there creates a *new* user rather than linking, because `signInWithIdToken` resolves an identity to a user and ignores the current session; only `linkIdentityWithIdToken` attaches to it.
-
-That sounds fatal and is not, which is why the logout copy must not claim it is:
-
-- `claim_anonymous_data`'s `already_claimed` short-circuit keys on **the caller** already having a profile, so it only fires on a literal retry of the same call — not for a freshly minted anonymous user.
-- The lookup keys on `firebase_uid`, which the RPC deliberately *retains* on the profile row when it re-points it (`update profiles set id = …` leaves `firebase_uid` intact).
-
-So the next cold start after a logout re-runs the bridge, mints anonymous user #2, matches the profile by `firebase_uid`, moves journals and profile onto it, and returns `'claimed'`. The Edge Function then deletes the orphaned user #1 — cascading to nothing, and writing no tombstone, because the RPC moved its data away first. The user lands back in their account, still unlinked, so the banner reappears.
-
-**The genuine loss condition is unchanged and predates all of this: losing the *Firebase* anonymous session** — reinstall, wipe, new phone. `SupabaseAuthManager.signOut()` clears only the Supabase session, so logout does not cause it.
-
-### Timestamps — the bug being retired
-
-Journals currently store `Jiffy.toString()`, a **naive local** string with no zone. Postgres stores `timestamptz`, so the boundary must convert both ways, and `SupabaseDbManager` is the only place that happens:
-
-- **Write**: `jiffyToUtcIso()` → absolute UTC. Never `jiffy.toString()` — Postgres would read that as UTC and shift every timestamp by 8 hours.
-- **Read**: `pgTimestampToLocalNaive()` → local wall time. `JournalState.fromJson` feeds the value straight into `Jiffy.parse`, so handing it a UTC instant would render every journal 8 hours early. Pinned by `test/supabase_db_manager_test.dart`.
-
-Existing Firestore timestamps are interpreted as **Asia/Taipei** on import (hardcoded in `migration/lib/transform.ts`, deliberately not an env var).
-
-`JournalState` stays untouched — `toMap()`/`fromJson()` remain the serialization seam, and all snake_case ↔ camelCase translation happens in the manager layer.
+Permanent Supabase behavior — schema, RLS/GRANT column rules, timestamp conversion —
+is under [Supabase Integration](#supabase-integration) below, not in the skill.
 
 ## Supabase Integration
 
@@ -380,7 +306,7 @@ Existing Firestore timestamps are interpreted as **Asia/Taipei** on import (hard
 - `SupabaseAuthManager` wraps all auth operations. Auth state via the `authStateChanges` stream (`onAuthStateChange` mapped to `Stream<User?>`).
 - Apple and Google are **native-only** (`signInWithIdToken`): Supabase merely *verifies* a provider-signed token, so there is no client secret, no Apple Services ID, and no `.p8`. `kIsWeb` throws `UnsupportedError` deliberately — adding web later means adding all of that back.
 - `reauthenticate()` returns `bool` (`false` = user backed out) rather than throwing, so screens never import `sign_in_with_apple` / `google_sign_in` just to recognise a cancellation. The classification itself lives in `_cancellable()`, shared with the link flows — it is the one place that knows `SignInWithAppleAuthorizationException` and `GoogleSignInException` both mean "dismissed".
-- `linkAppleIdentity()` / `linkGoogleIdentity()` attach a provider identity to the **current** session and return `IdentityLinkOutcome` (`linked` / `cancelled` / `alreadyLinkedToAnotherAccount`) — an enum, not exceptions, because two of the three are ordinary user choices. Real faults still throw. Token acquisition is shared with the sign-in paths (`_appleIdToken()`, `_googleAccount()`) so the Apple *raw* nonce is bound identically on both; diverging there fails the nonce check on one path only. See [The credential-less session](#the-credential-less-session) for why this exists and why `linkIdentity()` can't be used.
+- `linkAppleIdentity()` / `linkGoogleIdentity()` attach a provider identity to the **current** session and return `IdentityLinkOutcome` (`linked` / `cancelled` / `alreadyLinkedToAnotherAccount`) — an enum, not exceptions, because two of the three are ordinary user choices. Real faults still throw. Token acquisition is shared with the sign-in paths (`_appleIdToken()`, `_googleAccount()`) so the Apple *raw* nonce is bound identically on both; diverging there fails the nonce check on one path only. See the `supabase-migration` skill for why this exists and why `linkIdentity()` can't be used.
 - Google linking passes a best-effort `accessToken` from `authorizationForScopes`, which returns null instead of prompting when consent would be needed — linking must not turn into a second, unexplained permission dialog. GoTrue treats it as optional on the id_token grant (`signInWithGoogle` omits it entirely), so a null still links.
 - `deleteAccount()` calls the `delete-account` Edge Function, then signs out locally — the server deletes the user but cannot clear this device's session.
 
@@ -388,6 +314,26 @@ Existing Firestore timestamps are interpreted as **Asia/Taipei** on import (hard
 - `SupabaseDbManager` handles `profiles` / `journals` CRUD, mirroring the old `FirestoreManager` method-for-method.
 - Ownership is enforced by RLS in the database; the `.eq('user_id', …)` filters are belt-and-braces, not the security boundary.
 - Username availability goes through the `username_available` RPC, because RLS stops clients from scanning `profiles`. It compares **case-insensitively**, matching the `lower(username)` unique index.
+
+### Schema, RLS, and grants
+
+- `supabase/migrations/` — versioned schema (`profiles`, `journals`, `sync_tombstones`, `firebase_identity_map`), RLS on every table, tombstone triggers, and the `username_available` / `claim_migrated_data` RPCs. `supabase/tests/rls_smoke.sql` holds 63 pgTAP assertions; run with `supabase test db`.
+- `supabase/functions/delete-account/` — deletes the caller's account server-side. The `auth.users` delete cascades to profiles and journals, so unlike the old client-side flow there is no window where data is gone but the account remains.
+- **RLS scopes rows; GRANTs scope columns.** A policy like `journals_update_own` proves `auth.uid() = user_id` and says nothing about *which columns* the UPDATE touches — that is the GRANT's job, and `grant update on table` means all of them. `20260725071500_lock_migration_control_columns.sql` therefore replaces the blanket INSERT/UPDATE grants with **column allowlists that mirror `lib/supabase_db_manager.dart` exactly**. Consequences worth knowing before you debug a 403:
+  - **Adding a column to `journalToRow()` (or the profiles writers) without adding it to that migration makes the write fail with 403**, not silently drop the column.
+  - `user_id` *is* in the journals UPDATE allowlist — `journalToRow()` always sends it, even on edit. `WITH CHECK` is what stops it pointing at another user; the grant never was.
+  - `created_at` is *not* in the journals UPDATE allowlist, so "an edit preserves `created_at`" is now a database guarantee rather than a client convention.
+  - Ungranted to clients on both tables: `firestore_id`, `migrated_updated_at`, `raw`, `firebase_uid`, `journals.id`. These belong to the delta-sync. The reason is not tidiness: a client that could set its own `firestore_id` and then delete the row would make the `AFTER DELETE` trigger write a tombstone against **another user's** Firestore doc, and `import_data.ts` reads `sync_tombstones` as "deleted in the new app" and skips it for the rest of the window.
+- **`alter default privileges … revoke execute on functions` does not work on Supabase Postgres 17.6** (measured; the table equivalent in `20260725033216` does). New functions still come out `proacl = NULL`, i.e. EXECUTE to PUBLIC, i.e. anon-callable. So **every new function in `public` needs an explicit `revoke execute … from public, anon`**. `rls_smoke.sql` enforces this: one assertion fails if any callable function is anon-executable, another pins the exact set callable by `authenticated`. Both name the offending function in the failure output.
+
+### Timestamps
+
+Journals store `Jiffy.toString()`, a **naive local** string with no zone. Postgres stores `timestamptz`, so the boundary must convert both ways, and `SupabaseDbManager` is the only place that happens:
+
+- **Write**: `jiffyToUtcIso()` → absolute UTC. Never `jiffy.toString()` — Postgres would read that as UTC and shift every timestamp by 8 hours.
+- **Read**: `pgTimestampToLocalNaive()` → local wall time. `JournalState.fromJson` feeds the value straight into `Jiffy.parse`, so handing it a UTC instant would render every journal 8 hours early. Pinned by `test/supabase_db_manager_test.dart`.
+
+`JournalState` stays untouched — `toMap()`/`fromJson()` remain the serialization seam, and all snake_case ↔ camelCase translation happens in the manager layer.
 
 ### Initialization
 - `main.dart` calls `WidgetsFlutterBinding.ensureInitialized()` **first** — `Supabase.initialize` persists sessions over platform channels and needs a live binding. Then dotenv, then `Firebase.initializeApp` (analytics), then `Supabase.initialize`.
@@ -526,8 +472,12 @@ Feature lives under `lib/features/share/`. Flow: callers → `TicketPosterPicker
     │   ├── SKILL.md                 # Riverpod patterns for journal CRUD
     │   └── references/
     │       └── journal-state-model.md  # JournalState fields and Postgres schema
-    └── flutter-animation-testing/
-        └── SKILL.md                 # Animation test pitfalls and patterns
+    ├── flutter-animation-testing/
+    │   └── SKILL.md                 # Animation test pitfalls and patterns
+    ├── deploy/
+    │   └── SKILL.md                 # App Store Connect / TestFlight deploy flow
+    └── supabase-migration/
+        └── SKILL.md                 # Firebase→Supabase bridge + cutover runbook
 ```
 
 ### Hooks
@@ -539,3 +489,5 @@ Feature lives under `lib/features/share/`. Flow: callers → `TicketPosterPicker
 ### Skills
 - **journal-data-access** — Documents the Riverpod provider architecture for journal data. Covers the three core providers (`journalControllerProvider`, `journalsControllerProvider`, `journalModeProvider`), `ref.watch` vs `ref.read` patterns, CRUD operations, create vs edit mode, and AsyncValue handling. Reference file includes full JournalState fields and the Postgres `journals` schema.
 - **flutter-animation-testing** — Pitfalls and patterns for testing Flutter animations. Covers: (1) `animateTo` vs `animateBack` status corruption (`animateTo(0.0)` leaves `isCompleted=true`), (2) `pumpAndSettle` not advancing past `Future.delayed` timers, (3) `pumpAndSettle` exiting between chained async animations. Includes a checklist and explicit-pump patterns.
+- **deploy** — The App Store Connect / TestFlight deploy flow (`./deploy.sh`), its one-time credential setup, and upload troubleshooting.
+- **supabase-migration** — The transitional Firebase→Supabase runbook: the anonymous-account bridge, the credential-less session, the device-bound failure mode, the `migration/` scripts, and the order to delete it all in. Extracted from CLAUDE.md so it loads only when the migration is actually in play. **Delete at the Firestore freeze.**
