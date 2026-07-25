@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:movie_journal/supabase_auth_manager.dart';
 
 final quesgenDioClient = Dio(
   BaseOptions(
@@ -8,9 +8,12 @@ final quesgenDioClient = Dio(
 )..interceptors.add(
     QueuedInterceptorsWrapper(
       onRequest: (options, handler) async {
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          final token = await user.getIdToken();
+        // supabase_flutter refreshes the session in the background, so the
+        // access token is read synchronously here rather than awaited as the
+        // Firebase `getIdToken()` call was. The quesgen service verifies both
+        // issuers during the migration window (plan Phase 6).
+        final token = SupabaseAuthManager.currentSession?.accessToken;
+        if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }
         handler.next(options);

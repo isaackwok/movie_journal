@@ -5,11 +5,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/shared_preferences_manager.dart';
+import 'package:movie_journal/supabase_auth_manager.dart';
 import 'package:movie_journal/themes.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
+  // Must precede every plugin call below. Supabase.initialize persists the
+  // session over platform channels, so it needs a live binding; this used to
+  // sit after SharedPreferencesManager.init(), which happened to work only
+  // because that call tolerates a late binding.
+  WidgetsFlutterBinding.ensureInitialized();
+
   await dotenv.load(fileName: '.env');
   final runnableApp = _buildRunnableApp(
     isWeb: kIsWeb,
@@ -20,8 +28,17 @@ Future<void> main() async {
   // Initialize shared preferences with default values
   await SharedPreferencesManager.init();
 
-  WidgetsFlutterBinding.ensureInitialized();
+  // Firebase stays initialized for Analytics (permanent, per plan decision 6)
+  // and for the anonymous-account bridge, which reads the device's existing
+  // Firebase session to prove ownership of pre-migration data.
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    // Publishable, not secret: RLS is the security boundary. `anonKey` is the
+    // deprecated spelling of this parameter.
+    publishableKey: dotenv.env['SUPABASE_PUBLISHABLE_KEY']!,
+  );
 
   // Disable analytics in debug builds to keep production data clean
   await AnalyticsManager.setAnalyticsCollectionEnabled(!kDebugMode);
@@ -58,12 +75,15 @@ class _MyAppState extends ConsumerState<MyApp> {
     // Set/clear analytics user ID on auth state changes
     ref.listenManual(authStateProvider, (_, next) {
       next.whenData((user) {
-        AnalyticsManager.setUserId(user?.uid);
+        // Now the Supabase UUID rather than the Firebase UID. This is an
+        // accepted analytics-continuity break: migrated users appear as new
+        // ids from the cutover onward.
+        AnalyticsManager.setUserId(user?.id);
         if (user != null) {
-          final providerId = user.providerData.isNotEmpty
-              ? user.providerData.first.providerId
-              : 'unknown';
-          AnalyticsManager.setUserProperty('sign_in_method', providerId);
+          AnalyticsManager.setUserProperty(
+            'sign_in_method',
+            SupabaseAuthManager.providerOf(user) ?? 'unknown',
+          );
         }
       });
     }, fireImmediately: true);

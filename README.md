@@ -20,7 +20,8 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 
 - Flutter 3.29+ (Dart SDK `^3.7.2`)
 - A [TMDB API](https://www.themoviedb.org/documentation/api) key
-- Firebase project with Authentication and Firestore enabled
+- Supabase project (Postgres + Auth), with Apple and Google providers configured
+- Firebase project — for Analytics
 - Xcode (for iOS) / Android Studio (for Android)
 
 ### Setup
@@ -44,15 +45,32 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 
    ```
    TMDB_ACCESS_TOKEN=your_tmdb_v4_access_token
+   SUPABASE_URL=https://<project-ref>.supabase.co
+   SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+   GOOGLE_IOS_CLIENT_ID=<ios-oauth-client>.apps.googleusercontent.com
+   GOOGLE_WEB_CLIENT_ID=<web-oauth-client>.apps.googleusercontent.com
    ```
 
-   The AI review service (quesgen) is preconfigured — its URL is hardcoded in `lib/core/network/quesgen_dio_client.dart` and it authenticates via the signed-in user's Firebase ID token, so no additional env vars are required.
+   The publishable key is meant to ship in the client — row-level security is the boundary that protects data, not the key. Never put the Supabase **secret** key here.
 
-4. **Set up Firebase**
+   The AI review service (quesgen) is preconfigured — its URL is hardcoded in `lib/core/network/quesgen_dio_client.dart` and it authenticates via the signed-in user's Supabase access token, so no additional env vars are required.
+
+4. **Set up Supabase**
+
+   ```bash
+   supabase link --project-ref <project-ref>
+   supabase db push          # applies supabase/migrations/
+   supabase functions deploy delete-account
+   supabase functions deploy claim-anonymous
+   ```
+
+   Both Google OAuth client IDs must also be listed as authorized Client IDs on the Supabase Google provider — Supabase validates the ID token's `aud` against that list.
+
+5. **Set up Firebase** (Analytics)
 
    Follow the [FlutterFire setup guide](https://firebase.google.com/docs/flutter/setup) to generate `lib/firebase_options.dart` for your project.
 
-5. **Run the app**
+6. **Run the app**
 
    ```bash
    flutter run
@@ -64,7 +82,8 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 |-------|-----------|
 | Framework | Flutter |
 | State Management | Riverpod 3.x |
-| Backend | Firebase Auth + Cloud Firestore + Analytics |
+| Backend | Supabase — Auth (native Apple/Google) + Postgres with RLS + Edge Functions |
+| Analytics | Firebase Analytics |
 | Networking | Dio |
 | Movie Data | TMDB API |
 | AI Reviews | Custom review generation API |

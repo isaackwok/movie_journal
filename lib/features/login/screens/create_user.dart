@@ -1,11 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/shared_preferences_manager.dart';
+import 'package:movie_journal/supabase_auth_manager.dart';
+import 'package:movie_journal/supabase_db_manager.dart';
 
 /// Validate username with the following rules:
 /// 1. Only alphabets (a-z), numbers (0-9), underscore (_) and fullstop (.) allowed
@@ -47,7 +47,7 @@ class CreateUserScreen extends ConsumerStatefulWidget {
 
 class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
   final TextEditingController _usernameController = TextEditingController();
-  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+  final SupabaseDbManager _db = SupabaseDbManager();
   bool _isLoading = false;
 
   @override
@@ -62,17 +62,16 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
     super.dispose();
   }
 
-  /// Check if username already exists in Firestore
-  Future<bool> _checkUsernameExists(String username) async {
+  /// Check whether the username is free.
+  ///
+  /// RLS stops clients from scanning `profiles`, so this goes through the
+  /// `username_available` SECURITY DEFINER RPC, which leaks only a boolean.
+  /// It compares case-insensitively, matching the `lower(username)` unique
+  /// index — the old Firestore equality query did not, so "Isaac" could pass
+  /// this check while "isaac" already existed.
+  Future<bool> _checkUsernameAvailable(String username) async {
     try {
-      final querySnapshot =
-          await _firestore
-              .collection('users')
-              .where('username', isEqualTo: username)
-              .limit(1)
-              .get();
-
-      return querySnapshot.docs.isNotEmpty;
+      return await _db.usernameAvailable(username);
     } catch (e) {
       throw Exception('Failed to check username availability: $e');
     }
@@ -98,8 +97,8 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
 
     try {
       // Check if username already exists
-      final exists = await _checkUsernameExists(username);
-      if (exists) {
+      final available = await _checkUsernameAvailable(username);
+      if (!available) {
         if (mounted) {
           Fluttertoast.showToast(
             msg: 'Username already taken. Please choose another one.',
@@ -112,14 +111,18 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
       }
 
       // All checks passed - create user
-      var newUserDoc = await _createUser(username);
-      await _uploadLocalJournals(newUserDoc);
-      // The provider was evaluated at app startup (before this doc existed)
+      final userId = await _createUser(username);
+      await _uploadLocalJournals(userId);
+      // The provider was evaluated at app startup (before this row existed)
       // and cached the 'User' fallback — invalidate so HomeScreen re-fetches.
       ref.invalidate(currentUsernameProvider);
-      final providerId = FirebaseAuth.instance.currentUser?.providerData
-          .firstOrNull?.providerId ?? 'unknown';
-      AnalyticsManager.logSignUp(method: providerId);
+      // Likewise this cached `false` a moment ago, which is what routed us to
+      // this screen. Without invalidating, HomeScreen re-renders straight back
+      // to CreateUserScreen and signup appears to do nothing.
+      ref.invalidate(hasProfileProvider);
+      AnalyticsManager.logSignUp(
+        method: SupabaseAuthManager.signInMethod ?? 'unknown',
+      );
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -142,41 +145,28 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
     }
   }
 
-  /// Create user function (to be implemented)
-  Future<DocumentReference<Map<String, dynamic>>> _createUser(
-    String username,
-  ) async {
-    var firebaseUser = FirebaseAuth.instance.currentUser;
-    if (firebaseUser == null) {
-      throw Exception('No authenticated Firebase user found.');
+  /// Creates the caller's `profiles` row and returns their user id.
+  ///
+  /// The row's id must equal `auth.uid()` — the insert policy enforces it — so
+  /// unlike the Firestore version there is no way to write a profile for
+  /// anyone else, and no separate `userId` field to keep in sync.
+  Future<String> _createUser(String username) async {
+    final user = SupabaseAuthManager.currentUser;
+    if (user == null) {
+      throw Exception('No authenticated user found.');
     }
-    // create user in Firestore
-    var newUserDoc = _firestore.collection('users').doc(firebaseUser.uid);
-    await newUserDoc.set({
-      'username': username,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-
-    return newUserDoc;
-
-    // Fluttertoast.showToast(
-    //   msg: 'Username "$username" is available! Creating user...',
-    //   backgroundColor: Colors.green,
-    // );
+    await _db.createUser(userId: user.id, username: username);
+    return user.id;
   }
 
-  Future<void> _uploadLocalJournals(
-    DocumentReference<Map<String, dynamic>> userDoc,
-  ) async {
-    // upload existing journals in SharedPreferences to Firestore under this user
-    var journals = SharedPreferencesManager.getJournals();
-    WriteBatch batch = _firestore.batch();
-    for (var journal in journals) {
-      Map<String, dynamic> newJournalData = journal.toMap();
-      newJournalData['userId'] = userDoc.id;
-      batch.set(_firestore.collection('journals').doc(), newJournalData);
-    }
-    await batch.commit();
+  /// Upload journals written before signup (held in SharedPreferences).
+  ///
+  /// One bulk insert replaces the Firestore `WriteBatch`: same all-or-nothing
+  /// guarantee, one round trip instead of N.
+  Future<void> _uploadLocalJournals(String userId) async {
+    final journals = SharedPreferencesManager.getJournals();
+    if (journals.isEmpty) return;
+    await _db.addJournalsToCollection(userId, journals);
   }
 
   @override

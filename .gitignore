@@ -46,3 +46,17 @@ app.*.map.json
 
 *.env
 .claude/worktrees
+
+# Firestore -> Supabase migration.
+# Insurance only: all secrets and user data live OUTSIDE this repo, in
+# $MIGRATION_DATA_DIR (~/development/movie-journal-migration). Nothing
+# sensitive should ever be written under migration/ in the first place.
+# Note the `*.env` glob above requires the name to *end* in .env, so it does
+# NOT match .env.local / .env.production -- hence the explicit .env* below.
+migration/.env*
+migration/exports/
+migration/reports/
+migration/node_modules/
+
+# firebase CLI installer log. `*.log` above does not match a .txt suffix.
+firepit-log.txt
