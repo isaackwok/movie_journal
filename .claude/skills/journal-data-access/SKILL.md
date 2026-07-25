@@ -23,7 +23,7 @@ Three providers manage all journal state:
 | Provider | Type | State | Purpose |
 |---|---|---|---|
 | `journalControllerProvider` | `NotifierProvider` | `JournalState` | Single journal being created or edited |
-| `journalsControllerProvider` | `AsyncNotifierProvider` | `JournalsState` | All journals for the current user (from Firestore) |
+| `journalsControllerProvider` | `AsyncNotifierProvider` | `JournalsState` | All journals for the current user (from Supabase) |
 | `journalModeProvider` | `NotifierProvider` | `JournalMode` | Tracks whether the user is in create or edit mode |
 
 All providers are defined in `lib/features/journal/controllers/`.
@@ -95,8 +95,8 @@ ref.read(journalControllerProvider.notifier).updateSceneCaption(path, caption);
 await ref.read(journalControllerProvider.notifier).save();
 // save() internally:
 //   1. Sets createdAt and updatedAt
-//   2. Writes to Firestore via FirestoreManager.addJournal()
-//   3. Updates state with Firestore-generated doc ID
+//   2. Writes to Supabase via SupabaseDbManager.addJournal()
+//   3. Updates state with the server-generated row id
 //   4. Calls journalsControllerProvider.notifier.refreshJournals()
 ```
 
@@ -106,7 +106,7 @@ await ref.read(journalControllerProvider.notifier).save();
 await ref.read(journalControllerProvider.notifier).update();
 // update() internally:
 //   1. Sets updatedAt only (preserves createdAt)
-//   2. Calls FirestoreManager.updateJournal()
+//   2. Calls SupabaseDbManager.updateJournal()
 //   3. Calls journalsControllerProvider.notifier.refreshJournals()
 ```
 
@@ -115,7 +115,7 @@ await ref.read(journalControllerProvider.notifier).update();
 ```dart
 await ref.read(journalsControllerProvider.notifier).removeJournal(journalId);
 // removeJournal() internally:
-//   1. Calls FirestoreManager.deleteJournal()
+//   1. Calls SupabaseDbManager.deleteJournal()
 //   2. Filters the journal out of local state
 ```
 
@@ -172,4 +172,4 @@ final journals = journalsAsync.value?.journals ?? [];
 ### Reference Files
 
 For detailed information, consult:
-- **`references/journal-state-model.md`** — Full `JournalState` fields, serialization format, and Firestore document structure
+- **`references/journal-state-model.md`** — Full `JournalState` fields, serialization format, and the Postgres `journals` schema
