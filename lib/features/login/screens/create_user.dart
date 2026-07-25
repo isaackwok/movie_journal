@@ -11,6 +11,13 @@ import 'package:movie_journal/supabase_db_manager.dart';
 /// 1. Only alphabets (a-z), numbers (0-9), underscore (_) and fullstop (.) allowed
 /// 2. Cannot contain only (_) and (.)
 /// 3. Cannot end with _ or .
+/// 4. At most 30 characters
+///
+/// Rule 4 mirrors the `profiles_username_shape` CHECK constraint. It exists so
+/// the ceiling is reported here, with a message, rather than by Postgres as an
+/// unhandled 23514 — `createUser()` maps only 23505. The other three rules are
+/// deliberately stricter than the constraint: this function owns the product
+/// rule, the database only owns the backstop.
 ///
 /// Returns an error message string if invalid, or null if valid.
 String? validateUsername(String username) {
@@ -33,6 +40,12 @@ String? validateUsername(String username) {
   // Rule 3: Cannot end with _ or .
   if (username.endsWith('.') || username.endsWith('_')) {
     return 'Username cannot end with _ or .';
+  }
+
+  // Rule 4: length ceiling — must not exceed profiles_username_shape,
+  // or the DB rejects it as an unhandled 23514.
+  if (username.length > 30) {
+    return 'Username cannot be longer than 30 characters';
   }
 
   return null; // Valid
