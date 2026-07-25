@@ -11,7 +11,7 @@
 
 begin;
 -- Explicit count (not no_plan) so a test that silently stops running is caught.
-select plan(28);
+select plan(34);
 
 -- ---------------------------------------------------------------- fixtures
 -- Two users. Fixed UUIDs so failures are reproducible.
@@ -50,6 +50,26 @@ select ok(not has_table_privilege('anon','public.journals','INSERT'),  'anon can
 select ok(not has_table_privilege('anon','public.profiles','SELECT'),  'anon cannot SELECT profiles');
 select ok(not has_table_privilege('anon','public.firebase_identity_map','SELECT'),
           'anon cannot SELECT firebase_identity_map');
+
+-- Incidental privileges revoked (20260725033216). TRUNCATE matters most: it
+-- bypasses RLS entirely, so a stray grant would undo every policy below.
+select ok(not has_table_privilege('anon','public.journals','TRUNCATE'),
+          'anon cannot TRUNCATE journals (TRUNCATE bypasses RLS)');
+select ok(not has_table_privilege('authenticated','public.journals','TRUNCATE'),
+          'authenticated cannot TRUNCATE journals');
+select ok(not has_table_privilege('service_role','public.journals','TRUNCATE'),
+          'service_role cannot TRUNCATE journals');
+select ok(not has_table_privilege('anon','public.profiles','REFERENCES'),
+          'anon has no REFERENCES on profiles');
+
+-- The default ACL must be fixed too, else the *next* migration's table
+-- silently re-inherits Dxtm. Prove it against a table created right here.
+create table public.__acl_probe (id int);
+select ok(not has_table_privilege('anon','public.__acl_probe','TRUNCATE'),
+          'a newly created table does NOT re-inherit TRUNCATE for anon');
+select ok(not has_table_privilege('authenticated','public.__acl_probe','TRUNCATE'),
+          'a newly created table does NOT re-inherit TRUNCATE for authenticated');
+drop table public.__acl_probe;
 
 -- Every table has RLS armed.
 select ok((select relrowsecurity from pg_class where oid = 'public.journals'::regclass),  'journals RLS enabled');
