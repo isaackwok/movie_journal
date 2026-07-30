@@ -86,7 +86,8 @@ class SceneButton extends StatelessWidget {
 }
 
 class ScenesSelectSheet extends ConsumerStatefulWidget {
-  const ScenesSelectSheet({super.key});
+  const ScenesSelectSheet({super.key, required this.movieId});
+  final int movieId;
 
   @override
   ConsumerState<ScenesSelectSheet> createState() => _ScenesSelectSheetState();
@@ -106,7 +107,9 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final movieImagesAsync = ref.watch(movieImagesControllerProvider);
+    final movieImagesAsync = ref.watch(
+      movieImagesControllerProvider(widget.movieId),
+    );
     final backdrops =
         movieImagesAsync.hasValue
             ? movieImagesAsync.value!.backdrops
@@ -137,8 +140,7 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
                 child: GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,

@@ -12,20 +12,20 @@ import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
 void editJournal(BuildContext context, WidgetRef ref, JournalState journal) {
   ref.read(journalControllerProvider.notifier).loadJournal(journal);
   ref
-      .read(movieImagesControllerProvider.notifier)
-      .getMovieImages(id: journal.tmdbId);
-  ref
-      .read(movieDetailControllerProvider.notifier)
-      .fetchMovieDetails(journal.tmdbId);
+      .read(movieImagesControllerProvider(journal.tmdbId).notifier)
+      .getMovieImages();
+  // Warm the per-movie detail cache for the editor screens.
+  ref.read(movieDetailControllerProvider(journal.tmdbId));
 
   Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (context) => JournalingScreen(
-        movieTitle: journal.movieTitle,
-        moviePosterUrl: journal.moviePoster,
-        editJournalId: journal.id,
-      ),
+      builder:
+          (context) => JournalingScreen(
+            movieTitle: journal.movieTitle,
+            moviePosterUrl: journal.moviePoster,
+            editJournalId: journal.id,
+          ),
     ),
   );
 }
@@ -34,10 +34,11 @@ void shareJournal(BuildContext context, JournalState journal) {
   Navigator.of(context).push(
     MaterialPageRoute(
       settings: const RouteSettings(name: kShareFlowRouteName),
-      builder: (_) => TicketPosterPickerScreen(
-        journal: journal,
-        entry: ShareTicketEntry.journalContent,
-      ),
+      builder:
+          (_) => TicketPosterPickerScreen(
+            journal: journal,
+            entry: ShareTicketEntry.journalContent,
+          ),
     ),
   );
 }
@@ -45,14 +46,15 @@ void shareJournal(BuildContext context, JournalState journal) {
 Future<bool> confirmDeleteJournal(BuildContext context) async {
   final shouldDelete = await showDialog<bool>(
     context: context,
-    builder: (context) => ConfirmationDialog(
-      title: 'Delete Journal',
-      description: 'Are you sure you want to delete this journal?',
-      cancelText: 'Cancel',
-      confirmText: 'Delete',
-      onCancel: () => Navigator.pop(context, false),
-      onConfirm: () => Navigator.pop(context, true),
-    ),
+    builder:
+        (context) => ConfirmationDialog(
+          title: 'Delete Journal',
+          description: 'Are you sure you want to delete this journal?',
+          cancelText: 'Cancel',
+          confirmText: 'Delete',
+          onCancel: () => Navigator.pop(context, false),
+          onConfirm: () => Navigator.pop(context, true),
+        ),
   );
   return shouldDelete == true;
 }
@@ -64,7 +66,9 @@ Future<void> deleteJournal(
 ) async {
   try {
     CustomToast.init(context);
-    await ref.read(journalsControllerProvider.notifier).removeJournal(journalId);
+    await ref
+        .read(journalsControllerProvider.notifier)
+        .removeJournal(journalId);
 
     if (!context.mounted) return;
     CustomToast.showSuccess('Journal deleted successfully');

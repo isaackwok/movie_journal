@@ -8,7 +8,6 @@ import 'package:movie_journal/features/journal/screens/journal_complete.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector_button.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
 import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
-import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
@@ -55,8 +54,9 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
     _scrollController.addListener(_onScroll);
     CustomToast.init(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(journalModeProvider.notifier).set(
-          _isEditMode ? JournalMode.edit : JournalMode.create);
+      ref
+          .read(journalModeProvider.notifier)
+          .set(_isEditMode ? JournalMode.edit : JournalMode.create);
     });
   }
 
@@ -111,9 +111,11 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final movieAsync = ref.watch(movieDetailControllerProvider);
-    final movieId = movieAsync.hasValue ? movieAsync.value!.id : 0;
     final journal = ref.watch(journalControllerProvider);
+    // Both create (setMovie before push) and edit (loadJournal) set tmdbId
+    // before this screen builds, so the journal is the id's source of truth —
+    // no need to wait on the movie-detail fetch.
+    final movieId = journal.tmdbId;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -191,16 +193,17 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                                     CustomToast.showSuccess(
                                       'Your journal has been updated.',
                                     );
-                                    Navigator.of(context).popUntil(
-                                      (route) => route.isFirst,
-                                    );
+                                    Navigator.of(
+                                      context,
+                                    ).popUntil((route) => route.isFirst);
                                   }
                                 } else {
                                   await ref
                                       .read(journalControllerProvider.notifier)
                                       .save();
-                                  final savedJournal =
-                                      ref.read(journalControllerProvider);
+                                  final savedJournal = ref.read(
+                                    journalControllerProvider,
+                                  );
                                   if (context.mounted) {
                                     Navigator.pushAndRemoveUntil(
                                       context,
@@ -274,23 +277,24 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                         return Colors.white;
                       }),
                     ),
-                    child: _isSaving
-                        ? SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: Center(
-                            child: SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                                backgroundColor: Colors.white.withAlpha(50),
+                    child:
+                        _isSaving
+                            ? SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: Center(
+                                child: SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                    backgroundColor: Colors.white.withAlpha(50),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        )
-                        : const Text('Save'),
+                            )
+                            : const Text('Save'),
                   ),
                 ),
               ],
@@ -316,7 +320,9 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                           ),
                           Text(
                             _isEditMode
-                                ? journal.createdAt.format(pattern: 'MMM do yyyy')
+                                ? journal.createdAt.format(
+                                  pattern: 'MMM do yyyy',
+                                )
                                 : Jiffy.now().format(pattern: 'MMM do yyyy'),
                             style: TextStyle(
                               fontSize: 12,

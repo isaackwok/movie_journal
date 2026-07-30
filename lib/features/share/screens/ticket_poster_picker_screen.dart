@@ -73,14 +73,15 @@ class _TicketPosterPickerScreenState
   }
 
   Future<void> _initAndFetch() async {
-    final notifier = ref.read(movieDetailControllerProvider.notifier);
-    await notifier.fetchMovieDetails(widget.journal.tmdbId);
-
-    final asyncMovie = ref.read(movieDetailControllerProvider);
-    final movie = asyncMovie.hasValue ? asyncMovie.value : null;
-    if (movie != null) {
+    try {
+      final movie = await ref.read(
+        movieDetailControllerProvider(widget.journal.tmdbId).future,
+      );
       _resolvedOriginalLanguage = movie.originalLanguage;
       _applyLanguageTabFilter();
+    } catch (_) {
+      // Same fallback as before the .family conversion: without the detail
+      // fetch, keep the default tabs and fall back to 'en' for tab 0.
     }
 
     await _fetchPostersForTab(0);
@@ -93,11 +94,12 @@ class _TicketPosterPickerScreenState
     final original = _resolvedOriginalLanguage;
     if (original == null) return;
     final originalBase = original.split('-').first.toLowerCase();
-    final filtered = _allLanguageTabs.where((tab) {
-      final code = tab.$2;
-      if (code == null) return true;
-      return code.split('-').first.toLowerCase() != originalBase;
-    }).toList();
+    final filtered =
+        _allLanguageTabs.where((tab) {
+          final code = tab.$2;
+          if (code == null) return true;
+          return code.split('-').first.toLowerCase() != originalBase;
+        }).toList();
     if (filtered.length == _languageTabs.length) return;
     if (!mounted) return;
     setState(() {
@@ -172,11 +174,12 @@ class _TicketPosterPickerScreenState
       context,
       MaterialPageRoute(
         settings: const RouteSettings(name: kShareFlowRouteName),
-        builder: (context) => ShareTicketScreen(
-          journal: widget.journal,
-          posterPath: path,
-          entry: widget.entry,
-        ),
+        builder:
+            (context) => ShareTicketScreen(
+              journal: widget.journal,
+              posterPath: path,
+              entry: widget.entry,
+            ),
       ),
     );
   }
@@ -231,14 +234,16 @@ class _TicketPosterPickerScreenState
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? Colors.white.withAlpha(179) // 70%
-                            : Colors.white.withAlpha(38), // 15%
+                        color:
+                            isSelected
+                                ? Colors.white.withAlpha(179) // 70%
+                                : Colors.white.withAlpha(38), // 15%
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isSelected
-                              ? Colors.white.withAlpha(230) // 90%
-                              : Colors.transparent,
+                          color:
+                              isSelected
+                                  ? Colors.white.withAlpha(230) // 90%
+                                  : Colors.transparent,
                         ),
                       ),
                       child: Text(
@@ -288,8 +293,7 @@ class _TicketPosterPickerScreenState
 
                 return GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio: 2 / 3,
                     crossAxisSpacing: 12,
@@ -305,17 +309,17 @@ class _TicketPosterPickerScreenState
                         child: Image.network(
                           'https://image.tmdb.org/t/p/w500${poster.filePath}',
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                            color: const Color(0xFF2C2C2E),
-                            child: const Center(
-                              child: Icon(
-                                Icons.movie,
-                                color: Colors.white54,
-                                size: 48,
+                          errorBuilder:
+                              (context, error, stackTrace) => Container(
+                                color: const Color(0xFF2C2C2E),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.movie,
+                                    color: Colors.white54,
+                                    size: 48,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
                         ),
                       ),
                     );

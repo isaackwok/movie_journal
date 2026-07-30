@@ -11,7 +11,9 @@ import '../../../helpers/widget_test_setup.dart';
 /// Serves a fixed set of backdrops synchronously so the sheet renders its grid
 /// without any network call (the real controller stays in AsyncLoading forever).
 class _FakeMovieImagesController extends MovieImagesController {
-  _FakeMovieImagesController(this._backdrops);
+  // The family-wide override is argless, so pin an arbitrary movie id; the
+  // overridden build() never touches it.
+  _FakeMovieImagesController(this._backdrops) : super(0);
 
   final List<MovieImage> _backdrops;
 
@@ -42,7 +44,7 @@ void main() {
   Widget buildSubject(ProviderContainer container) {
     return UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(home: ScenesSelectSheet()),
+      child: const MaterialApp(home: ScenesSelectSheet(movieId: 550)),
     );
   }
 

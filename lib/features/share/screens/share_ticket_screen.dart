@@ -69,12 +69,11 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
     super.initState();
     AnalyticsManager.logScreenView('ShareTicket');
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Warm the per-movie detail cache; build() fetches on first read.
+      ref.read(movieDetailControllerProvider(widget.journal.tmdbId));
       ref
-          .read(movieDetailControllerProvider.notifier)
-          .fetchMovieDetails(widget.journal.tmdbId);
-      ref
-          .read(movieImagesControllerProvider.notifier)
-          .getMovieImages(id: widget.journal.tmdbId);
+          .read(movieImagesControllerProvider(widget.journal.tmdbId).notifier)
+          .getMovieImages();
     });
   }
 
@@ -182,7 +181,9 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
-                                      color: Colors.white.withValues(alpha: 0.7),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.7,
+                                      ),
                                       fontFamily: 'AvenirNext',
                                     ),
                                   ),
@@ -485,8 +486,12 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final asyncMovie = ref.watch(movieDetailControllerProvider);
-    final asyncImages = ref.watch(movieImagesControllerProvider);
+    final asyncMovie = ref.watch(
+      movieDetailControllerProvider(widget.journal.tmdbId),
+    );
+    final asyncImages = ref.watch(
+      movieImagesControllerProvider(widget.journal.tmdbId),
+    );
     final journalsLoading = ref.watch(
       journalsControllerProvider.select((s) => s.isLoading),
     );
