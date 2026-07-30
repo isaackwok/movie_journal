@@ -7,6 +7,7 @@ import 'package:movie_journal/features/home/widgets/journal_card.dart';
 
 import '../../../helpers/test_journal.dart';
 import '../../../helpers/widget_test_setup.dart';
+import 'package:movie_journal/themes.dart';
 
 void main() {
   setUpAll(() => setUpWidgetTests());
@@ -24,11 +25,7 @@ void main() {
     );
 
     return ProviderScope(
-      child: MaterialApp(
-        home: Scaffold(
-          body: JournalCard(journal: journal),
-        ),
-      ),
+      child: MaterialApp(home: Scaffold(body: JournalCard(journal: journal))),
     );
   }
 
@@ -39,9 +36,9 @@ void main() {
     });
 
     testWidgets('displays formatted date', (tester) async {
-      await tester.pumpWidget(buildSubject(
-        updatedAt: Jiffy.parseFromDateTime(DateTime(2024, 3, 15)),
-      ));
+      await tester.pumpWidget(
+        buildSubject(updatedAt: Jiffy.parseFromDateTime(DateTime(2024, 3, 15))),
+      );
       // Jiffy formats 'MMM. do yyyy' → "Mar. 15th 2024"
       expect(find.textContaining('Mar'), findsOneWidget);
     });
@@ -59,8 +56,9 @@ void main() {
       expect(image.fit, BoxFit.cover);
     });
 
-    testWidgets('poster is locked to the 150:215 portrait aspect ratio',
-        (tester) async {
+    testWidgets('poster is locked to the 150:215 portrait aspect ratio', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildSubject());
       final aspectRatio = tester.widget<AspectRatio>(find.byType(AspectRatio));
       expect(aspectRatio.aspectRatio, 150 / 215);
@@ -72,36 +70,45 @@ void main() {
     });
 
     testWidgets('truncates long movie titles with ellipsis', (tester) async {
-      await tester.pumpWidget(buildSubject(
-        movieTitle:
-            'The Lord of the Rings: The Return of the King Extended Edition',
-      ));
-      final text = tester.widget<Text>(find.text(
-        'The Lord of the Rings: The Return of the King Extended Edition',
-      ));
+      await tester.pumpWidget(
+        buildSubject(
+          movieTitle:
+              'The Lord of the Rings: The Return of the King Extended Edition',
+        ),
+      );
+      final text = tester.widget<Text>(
+        find.text(
+          'The Lord of the Rings: The Return of the King Extended Edition',
+        ),
+      );
       expect(text.maxLines, 1);
       expect(text.overflow, TextOverflow.ellipsis);
     });
 
     testWidgets('has rounded container decoration', (tester) async {
       await tester.pumpWidget(buildSubject());
-      final containers = tester
-          .widgetList<Container>(find.byType(Container))
-          .where((c) =>
-              c.decoration is BoxDecoration &&
-              (c.decoration as BoxDecoration).borderRadius != null)
-          .toList();
+      final containers =
+          tester
+              .widgetList<Container>(find.byType(Container))
+              .where(
+                (c) =>
+                    c.decoration is BoxDecoration &&
+                    (c.decoration as BoxDecoration).borderRadius != null,
+              )
+              .toList();
 
       expect(containers, isNotEmpty);
       final decoration = containers.first.decoration as BoxDecoration;
-      expect(decoration.color, const Color(0xFF222222));
+      expect(decoration.color, DarkSurfaces.tile);
     });
 
-    testWidgets('wraps the card in a CupertinoContextMenu (iOS-style preview)',
-        (tester) async {
-      await tester.pumpWidget(buildSubject());
-      expect(find.byType(CupertinoContextMenu), findsOneWidget);
-    });
+    testWidgets(
+      'wraps the card in a CupertinoContextMenu (iOS-style preview)',
+      (tester) async {
+        await tester.pumpWidget(buildSubject());
+        expect(find.byType(CupertinoContextMenu), findsOneWidget);
+      },
+    );
 
     testWidgets('enables haptic feedback on the context menu', (tester) async {
       await tester.pumpWidget(buildSubject());
@@ -115,25 +122,28 @@ void main() {
     // If you change these values, update that constant too or the grid cells
     // will leave a trailing gap or trip an overflow assertion.
     group('layout spec', () {
-      testWidgets('outer container uses fromLTRB(8, 8, 8, 12) padding',
-          (tester) async {
+      testWidgets('outer container uses fromLTRB(8, 8, 8, 12) padding', (
+        tester,
+      ) async {
         await tester.pumpWidget(buildSubject());
         final container = tester
             .widgetList<Container>(find.byType(Container))
-            .firstWhere((c) =>
-                c.decoration is BoxDecoration &&
-                (c.decoration as BoxDecoration).color ==
-                    const Color(0xFF222222));
+            .firstWhere(
+              (c) =>
+                  c.decoration is BoxDecoration &&
+                  (c.decoration as BoxDecoration).color == DarkSurfaces.tile,
+            );
         expect(container.padding, const EdgeInsets.fromLTRB(8, 8, 8, 12));
       });
 
-      testWidgets('title and date have 4px horizontal inner padding',
-          (tester) async {
+      testWidgets('title and date have 4px horizontal inner padding', (
+        tester,
+      ) async {
         await tester.pumpWidget(buildSubject());
         final titleFinder = find.text('Fight Club');
-        final padding = tester.widget<Padding>(find
-            .ancestor(of: titleFinder, matching: find.byType(Padding))
-            .first);
+        final padding = tester.widget<Padding>(
+          find.ancestor(of: titleFinder, matching: find.byType(Padding)).first,
+        );
         expect(padding.padding, const EdgeInsets.symmetric(horizontal: 4));
       });
     });

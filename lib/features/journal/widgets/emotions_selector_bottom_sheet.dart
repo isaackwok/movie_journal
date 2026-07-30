@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
+import 'package:movie_journal/themes.dart';
 
 class _AnimatedEmotionChip extends StatefulWidget {
   final Emotion emotion;
@@ -301,7 +302,7 @@ class _EmotionsSelectorBottomSheetState
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF1C1C1E),
+        color: DarkSurfaces.sheetSecondary,
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: SafeArea(

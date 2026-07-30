@@ -21,6 +21,33 @@ class StatusColors {
   static const Color warning = Color(0xFFFF9F1C);
 }
 
+/// The named dark-surface ramp.
+///
+/// These greys used to be re-hardcoded per widget and had started to drift
+/// (six near-identical values). Pick the closest existing step; don't add a
+/// new hex without adding it here first.
+class DarkSurfaces {
+  DarkSurfaces._();
+
+  /// Dialog / toast / bordered-card background; also filled text fields.
+  static const Color card = Color(0xFF151515);
+
+  /// Bottom-sheet background (reviews sheet).
+  static const Color sheet = Color(0xFF171717);
+
+  /// iOS dark secondary-surface tone used by the selector sheets.
+  static const Color sheetSecondary = Color(0xFF1C1C1E);
+
+  /// Raised card sitting on a sheet (review cards, the "Add" card).
+  static const Color raisedCard = Color(0xFF202020);
+
+  /// Journal tile on the home grid.
+  static const Color tile = Color(0xFF222222);
+
+  /// Placeholder behind posters while the image loads.
+  static const Color imagePlaceholder = Color(0xFF2C2C2E);
+}
+
 class Themes {
   static ThemeData dark = ThemeData(
     useMaterial3: true,

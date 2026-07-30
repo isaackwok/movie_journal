@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/themes.dart';
 
 class SceneCard extends StatefulWidget {
   final String imagePath;
@@ -93,7 +94,7 @@ class _SceneCardState extends State<SceneCard> {
               fontFamily: 'AvenirNext',
             ),
             filled: true,
-            fillColor: const Color(0xFF151515),
+            fillColor: DarkSurfaces.card,
             border: const OutlineInputBorder(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(8),
@@ -175,7 +176,7 @@ class _SceneCardState extends State<SceneCard> {
         final isOverflowing = textPainter.didExceedMaxLines;
 
         return Container(
-          color: const Color(0xFF151515),
+          color: DarkSurfaces.card,
           padding: EdgeInsets.symmetric(
             horizontal: horizontalPadding,
             vertical: 8,

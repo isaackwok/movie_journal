@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/quesgen/review.dart';
+import 'package:movie_journal/themes.dart';
 
 class ReviewItem extends StatelessWidget {
   const ReviewItem({
@@ -26,7 +27,7 @@ class ReviewItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 12),
         decoration: BoxDecoration(
-          color: transparent ? Colors.transparent : const Color(0xFF202020),
+          color: transparent ? Colors.transparent : DarkSurfaces.raisedCard,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color:
