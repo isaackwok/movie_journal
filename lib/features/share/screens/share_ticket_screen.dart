@@ -11,6 +11,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
+import 'package:movie_journal/features/share/controllers/ticket_number.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/share/widgets/flippable_ticket.dart';
 import 'package:movie_journal/features/share/widgets/ticket_back.dart';
@@ -482,29 +483,17 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
     closeShareFlow(context, widget.entry);
   }
 
-  int _computeTicketNumber(
-    AsyncValue<JournalsState> asyncJournals,
-    String journalId,
-  ) {
-    if (!asyncJournals.hasValue) return 0;
-    final journals = asyncJournals.value?.journals;
-    if (journals == null || journals.isEmpty) return 0;
-    final sorted = [...journals]..sort(
-      (a, b) => a.createdAt.dateTime.compareTo(b.createdAt.dateTime),
-    );
-    final index = sorted.indexWhere((j) => j.id == journalId);
-    return index == -1 ? 0 : index + 1;
-  }
-
   @override
   Widget build(BuildContext context) {
     final asyncMovie = ref.watch(movieDetailControllerProvider);
     final asyncImages = ref.watch(movieImagesControllerProvider);
-    final asyncJournals = ref.watch(journalsControllerProvider);
+    final journalsLoading = ref.watch(
+      journalsControllerProvider.select((s) => s.isLoading),
+    );
 
     final journal = widget.journal;
     final isLoading =
-        asyncMovie.isLoading || asyncImages.isLoading || asyncJournals.isLoading;
+        asyncMovie.isLoading || asyncImages.isLoading || journalsLoading;
 
     // Extract movie details
     final movie = asyncMovie.hasValue ? asyncMovie.value : null;
@@ -527,7 +516,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                 ? asyncImages.value?.backdrops.firstOrNull?.filePath
                 : null);
 
-    final ticketNumber = _computeTicketNumber(asyncJournals, journal.id);
+    final ticketNumber = ref.watch(ticketNumberProvider(journal.id));
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
