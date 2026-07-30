@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 
 import '../../../helpers/test_journal.dart';
@@ -43,6 +44,44 @@ void main() {
 
       expect(original.journals.length, 1);
       expect(updated.journals.length, 2);
+    });
+  });
+
+  group('JournalsState value equality', () {
+    test('same journals (by value) → equal, same hashCode', () {
+      final t = Jiffy.parse('2026-07-30 10:00:00');
+      final a = JournalsState(
+        journals: [makeJournal(id: 'j1', createdAt: t, updatedAt: t)],
+      );
+      final b = JournalsState(
+        journals: [makeJournal(id: 'j1', createdAt: t, updatedAt: t)],
+      );
+      expect(identical(a.journals, b.journals), isFalse);
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('empty states → equal', () {
+      expect(JournalsState(), equals(JournalsState()));
+    });
+
+    test('different journals → not equal', () {
+      final t = Jiffy.parse('2026-07-30 10:00:00');
+      final a = JournalsState(
+        journals: [makeJournal(id: 'j1', createdAt: t, updatedAt: t)],
+      );
+      final b = JournalsState(
+        journals: [makeJournal(id: 'j2', createdAt: t, updatedAt: t)],
+      );
+      expect(a, isNot(equals(b)));
+    });
+
+    test('different length → not equal', () {
+      final t = Jiffy.parse('2026-07-30 10:00:00');
+      final journal = makeJournal(id: 'j1', createdAt: t, updatedAt: t);
+      final a = JournalsState(journals: [journal]);
+      final b = JournalsState(journals: [journal, journal]);
+      expect(a, isNot(equals(b)));
     });
   });
 }

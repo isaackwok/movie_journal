@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class BriefMovie {
   final int id;
   final bool adult;
@@ -55,4 +57,44 @@ class BriefMovie {
             ? json['release_date'].substring(0, 4)
             : 'Unknown',
   );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BriefMovie &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          adult == other.adult &&
+          title == other.title &&
+          originalTitle == other.originalTitle &&
+          originalLanguage == other.originalLanguage &&
+          overview == other.overview &&
+          backdropPath == other.backdropPath &&
+          posterPath == other.posterPath &&
+          listEquals(genreIds, other.genreIds) &&
+          popularity == other.popularity &&
+          releaseDate == other.releaseDate &&
+          video == other.video &&
+          voteAverage == other.voteAverage &&
+          voteCount == other.voteCount &&
+          year == other.year;
+
+  @override
+  int get hashCode => Object.hash(
+        id,
+        adult,
+        title,
+        originalTitle,
+        originalLanguage,
+        overview,
+        backdropPath,
+        posterPath,
+        genreIds == null ? null : Object.hashAll(genreIds!),
+        popularity,
+        releaseDate,
+        video,
+        voteAverage,
+        voteCount,
+        year,
+      );
 }

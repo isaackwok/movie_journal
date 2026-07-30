@@ -28,4 +28,28 @@ class MovieImage {
       voteCount: json['vote_count'],
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MovieImage &&
+          runtimeType == other.runtimeType &&
+          filePath == other.filePath &&
+          aspectRatio == other.aspectRatio &&
+          height == other.height &&
+          width == other.width &&
+          iso6391 == other.iso6391 &&
+          voteAverage == other.voteAverage &&
+          voteCount == other.voteCount;
+
+  @override
+  int get hashCode => Object.hash(
+        filePath,
+        aspectRatio,
+        height,
+        width,
+        iso6391,
+        voteAverage,
+        voteCount,
+      );
 }

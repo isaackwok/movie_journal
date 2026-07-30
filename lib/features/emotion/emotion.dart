@@ -10,6 +10,19 @@ class Emotion {
     required this.group,
     required this.energyLevel,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Emotion &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          group == other.group &&
+          energyLevel == other.energyLevel;
+
+  @override
+  int get hashCode => Object.hash(id, name, group, energyLevel);
 }
 
 enum EmotionType {

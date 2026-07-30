@@ -23,4 +23,32 @@ void main() {
       expect(image.voteCount, 4);
     });
   });
+
+  group('MovieImage value equality', () {
+    MovieImage buildImage({String filePath = '/abc123.jpg'}) {
+      return MovieImage(
+        filePath: filePath,
+        aspectRatio: 0.667,
+        height: 3000,
+        width: 2000,
+        iso6391: 'en',
+        voteAverage: 5.312,
+        voteCount: 4,
+      );
+    }
+
+    test('same fields → equal, same hashCode', () {
+      final a = buildImage();
+      final b = buildImage();
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('different filePath → not equal', () {
+      expect(
+        buildImage(filePath: '/a.jpg'),
+        isNot(equals(buildImage(filePath: '/b.jpg'))),
+      );
+    });
+  });
 }

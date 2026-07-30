@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/data/data_sources/movie_api.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
@@ -41,6 +42,21 @@ class SearchMovieState {
               : SearchMovieMode.search),
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SearchMovieState &&
+          runtimeType == other.runtimeType &&
+          listEquals(movies, other.movies) &&
+          query == other.query &&
+          page == other.page &&
+          hasMore == other.hasMore &&
+          mode == other.mode;
+
+  @override
+  int get hashCode =>
+      Object.hash(Object.hashAll(movies), query, page, hasMore, mode);
 }
 
 bool movieIntegrityChecker(BriefMovie movie) =>

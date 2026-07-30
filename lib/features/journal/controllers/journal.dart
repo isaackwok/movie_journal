@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/analytics_manager.dart';
@@ -43,37 +44,73 @@ class SceneItem {
       caption: caption ?? this.caption,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SceneItem &&
+          runtimeType == other.runtimeType &&
+          path == other.path &&
+          caption == other.caption;
+
+  @override
+  int get hashCode => Object.hash(path, caption);
 }
 
 class JournalState {
-  String id = '';
-  int tmdbId = 0;
-  String movieTitle = '';
-  String moviePoster = '';
-  List<Emotion> emotions = [];
-  List<SceneItem> selectedScenes = [];
-  List<Review> selectedRefs = [];
-  String thoughts = '';
-  late Jiffy createdAt;
-  late Jiffy updatedAt;
+  final String id;
+  final int tmdbId;
+  final String movieTitle;
+  final String moviePoster;
+  final List<Emotion> emotions;
+  final List<SceneItem> selectedScenes;
+  final List<Review> selectedRefs;
+  final String thoughts;
+  final Jiffy createdAt;
+  final Jiffy updatedAt;
 
-  JournalState({
+  // A factory so updatedAt can default to the *resolved* createdAt — with a
+  // plain initializer list both would get their own Jiffy.now() and drift by
+  // a few microseconds.
+  factory JournalState({
     String? id,
-    this.tmdbId = 0,
-    this.movieTitle = '',
-    this.moviePoster = '',
-    this.emotions = const [],
-    this.selectedScenes = const [],
+    int tmdbId = 0,
+    String movieTitle = '',
+    String moviePoster = '',
+    List<Emotion> emotions = const [],
+    List<SceneItem> selectedScenes = const [],
     List<Review>? selectedRefs,
-    this.thoughts = '',
+    String thoughts = '',
     Jiffy? createdAt,
     Jiffy? updatedAt,
   }) {
-    this.id = id ?? Uuid().v4();
-    this.selectedRefs = selectedRefs ?? [];
-    this.createdAt = createdAt ?? Jiffy.now();
-    this.updatedAt = updatedAt ?? this.createdAt;
+    final resolvedCreatedAt = createdAt ?? Jiffy.now();
+    return JournalState._(
+      id: id ?? Uuid().v4(),
+      tmdbId: tmdbId,
+      movieTitle: movieTitle,
+      moviePoster: moviePoster,
+      emotions: emotions,
+      selectedScenes: selectedScenes,
+      selectedRefs: selectedRefs ?? [],
+      thoughts: thoughts,
+      createdAt: resolvedCreatedAt,
+      updatedAt: updatedAt ?? resolvedCreatedAt,
+    );
   }
+
+  JournalState._({
+    required this.id,
+    required this.tmdbId,
+    required this.movieTitle,
+    required this.moviePoster,
+    required this.emotions,
+    required this.selectedScenes,
+    required this.selectedRefs,
+    required this.thoughts,
+    required this.createdAt,
+    required this.updatedAt,
+  });
 
   JournalState copyWith({
     String? id,
@@ -100,6 +137,39 @@ class JournalState {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  // Value equality: Riverpod's default updateShouldNotify compares with ==,
+  // so equal states produced by no-op copyWith calls stop notifying
+  // listeners, and .select() on list fields works as expected.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is JournalState &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          tmdbId == other.tmdbId &&
+          movieTitle == other.movieTitle &&
+          moviePoster == other.moviePoster &&
+          listEquals(emotions, other.emotions) &&
+          listEquals(selectedScenes, other.selectedScenes) &&
+          listEquals(selectedRefs, other.selectedRefs) &&
+          thoughts == other.thoughts &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt;
+
+  @override
+  int get hashCode => Object.hash(
+        id,
+        tmdbId,
+        movieTitle,
+        moviePoster,
+        Object.hashAll(emotions),
+        Object.hashAll(selectedScenes),
+        Object.hashAll(selectedRefs),
+        thoughts,
+        createdAt,
+        updatedAt,
+      );
 
   Map<String, dynamic> toMap() {
     return {

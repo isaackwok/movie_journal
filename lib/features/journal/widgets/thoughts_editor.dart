@@ -10,8 +10,14 @@ class ThoughtsEditor extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final journal = ref.watch(journalControllerProvider);
-    final selectedRefs = journal.selectedRefs;
+    // Field-level selects: this widget only cares about thoughts and
+    // selectedRefs, so scene/emotion edits shouldn't rebuild it.
+    final thoughts = ref.watch(
+      journalControllerProvider.select((j) => j.thoughts),
+    );
+    final selectedRefs = ref.watch(
+      journalControllerProvider.select((j) => j.selectedRefs),
+    );
     return InkWell(
       splashColor: Colors.transparent,
       onTap:
@@ -40,11 +46,9 @@ class ThoughtsEditor extends ConsumerWidget {
           Container(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Text(
-              journal.thoughts.isNotEmpty
-                  ? journal.thoughts
-                  : 'Enter your text here...',
+              thoughts.isNotEmpty ? thoughts : 'Enter your text here...',
               style:
-                  journal.thoughts.isNotEmpty
+                  thoughts.isNotEmpty
                       ? GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
@@ -70,4 +71,20 @@ class MovieImagesState {
       backdrops: backdrops ?? this.backdrops,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MovieImagesState &&
+          runtimeType == other.runtimeType &&
+          listEquals(posters, other.posters) &&
+          listEquals(logos, other.logos) &&
+          listEquals(backdrops, other.backdrops);
+
+  @override
+  int get hashCode => Object.hash(
+        Object.hashAll(posters),
+        Object.hashAll(logos),
+        Object.hashAll(backdrops),
+      );
 }

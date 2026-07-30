@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
@@ -12,6 +13,16 @@ class JournalsState {
   JournalsState copyWith({List<JournalState>? journals}) {
     return JournalsState(journals: journals ?? this.journals);
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is JournalsState &&
+          runtimeType == other.runtimeType &&
+          listEquals(journals, other.journals);
+
+  @override
+  int get hashCode => Object.hashAll(journals);
 }
 
 // AsyncNotifier for loading journals from Supabase
