@@ -7,8 +7,8 @@ import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/shared_widgets/action_text_button.dart';
 
-class SceneButton extends StatelessWidget {
-  const SceneButton({
+class SceneGridTile extends StatelessWidget {
+  const SceneGridTile({
     super.key,
     required this.index,
     required this.imageUrl,
@@ -154,7 +154,7 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
                       (scene) => scene.path == backdrop.filePath,
                     );
 
-                    return SceneButton(
+                    return SceneGridTile(
                       index: selectedIndex,
                       imageUrl:
                           'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',

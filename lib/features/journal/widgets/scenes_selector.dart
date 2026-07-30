@@ -6,8 +6,8 @@ import 'package:movie_journal/features/journal/widgets/scenes_select_sheet.dart'
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 
-class SceneButton extends StatelessWidget {
-  const SceneButton({
+class SelectedSceneCard extends StatelessWidget {
+  const SelectedSceneCard({
     super.key,
     required this.imageUrl,
     required this.onRemove,
@@ -206,7 +206,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
             separatorBuilder: (context, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final scene = selectedScenes[index];
-              return SceneButton(
+              return SelectedSceneCard(
                 imageUrl: 'https://image.tmdb.org/t/p/w500${scene.path}',
                 sceneIndex: index,
                 caption: scene.caption,
