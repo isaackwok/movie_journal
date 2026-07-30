@@ -17,24 +17,36 @@ class MovieResultList extends ConsumerWidget {
     final asyncState = ref.watch(searchMovieControllerProvider);
 
     return asyncState.when(
-      data:
-          (state) => ListView.separated(
+      // A loadMore() failure preserves the loaded pages via copyWithPrevious
+      // (see SearchMovieController.loadMore); skipError keeps rendering them
+      // instead of swapping the whole list for the error screen. Initial-load
+      // failures carry no previous value and still reach the error branch.
+      skipError: true,
+      data: (state) {
+        // Popular mode prepends a "People watched" header as item 0, so the
+        // list holds one more item than there are movies and every movie index
+        // is shifted down by one.
+        final hasHeader = state.mode == SearchMovieMode.popular;
+        return ListView.separated(
             padding: const EdgeInsets.only(bottom: 100),
             controller: scrollController,
-            itemCount: state.movies.length,
+            itemCount: hasHeader ? state.movies.length + 1 : state.movies.length,
             itemBuilder: (context, index) {
-              if (state.mode == SearchMovieMode.popular && index == 0) {
+              if (hasHeader && index == 0) {
                 return Text(
                   'People watched',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 );
               }
-              return MovieResultItem(movie: state.movies[index]);
+              return MovieResultItem(
+                movie: state.movies[hasHeader ? index - 1 : index],
+              );
             },
             separatorBuilder: (context, index) {
               return const SizedBox(height: 12);
             },
-          ),
+          );
+      },
       loading:
           () => Skeletonizer(
             enabled: true,

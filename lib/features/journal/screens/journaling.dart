@@ -218,8 +218,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                                 _cleanupState();
                               } catch (e) {
                                 if (context.mounted) {
-                                  CustomToast.showSuccess(
-                                    context,
+                                  CustomToast.showError(
                                     'Failed to save journal. Please try again.',
                                   );
                                 }

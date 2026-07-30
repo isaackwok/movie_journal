@@ -271,7 +271,7 @@ class SupabaseAuthManager {
     Future<AuthResponse> Function() link,
   ) async {
     try {
-      final response = await _cancellable(link);
+      final response = await cancellable(link);
       return response == null
           ? IdentityLinkOutcome.cancelled
           : IdentityLinkOutcome.linked;
@@ -304,7 +304,7 @@ class SupabaseAuthManager {
       return true;
     }
 
-    final confirmed = await _cancellable(
+    final confirmed = await cancellable(
       () => provider == 'apple'
           ? signInWithApple()
           : signInWithGoogle(
@@ -322,7 +322,11 @@ class SupabaseAuthManager {
   /// (`SignInWithAppleAuthorizationException`, `GoogleSignInException`) where
   /// the old Firebase flow threw one `FirebaseAuthException` for both. Widening
   /// that here keeps both SDKs out of the UI layer.
-  static Future<T?> _cancellable<T>(Future<T?> Function() action) async {
+  ///
+  /// Public because UI callers need the same cancelled-vs-failed split — e.g.
+  /// `LoginScreen` wraps [signInWithApple]/[signInWithGoogle] with this so a
+  /// dismissed prompt stays silent while a real fault gets an error toast.
+  static Future<T?> cancellable<T>(Future<T?> Function() action) async {
     try {
       return await action();
     } on SignInWithAppleAuthorizationException catch (e) {

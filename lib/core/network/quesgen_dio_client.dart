@@ -4,6 +4,11 @@ import 'package:movie_journal/supabase_auth_manager.dart';
 final quesgenDioClient = Dio(
   BaseOptions(
     baseUrl: 'https://movie-journal-quesgen-929129412152.asia-east1.run.app',
+    connectTimeout: const Duration(seconds: 10),
+    // The AI review generation legitimately takes tens of seconds (Cloud Run
+    // cold start + LLM latency), so the receive timeout is deliberately
+    // generous — it only needs to beat "hangs forever".
+    receiveTimeout: const Duration(seconds: 90),
   ),
 )..interceptors.add(
     QueuedInterceptorsWrapper(

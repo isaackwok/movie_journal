@@ -115,8 +115,15 @@ class SearchMovieController extends AsyncNotifier<SearchMovieState> {
         hasMore: result.page < result.totalPages,
       ));
     } catch (error, stackTrace) {
-      // Keep current movies but show error for pagination
-      state = AsyncError(error, stackTrace);
+      // Keep the already-loaded pages: without copyWithPrevious the error
+      // state has no value, so the list UI loses everything and a retried
+      // loadMore() bails out at the `state.value == null` guard above.
+      // copyWithPrevious is @internal in Riverpod 3, but it is also exactly
+      // what the framework uses to represent "errored while holding data",
+      // and no public constructor produces that state.
+      state = AsyncError<SearchMovieState>(error, stackTrace)
+          // ignore: invalid_use_of_internal_member
+          .copyWithPrevious(state);
     }
   }
 
