@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -96,11 +98,13 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
     // Validate username format
     final validationError = validateUsername(username);
     if (validationError != null) {
-      Fluttertoast.showToast(
-        msg: validationError,
-        backgroundColor: Colors.red,
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.TOP,
+      unawaited(
+        Fluttertoast.showToast(
+          msg: validationError,
+          backgroundColor: Colors.red,
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.TOP,
+        ),
       );
       return;
     }
@@ -112,11 +116,13 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
       final available = await _checkUsernameAvailable(username);
       if (!available) {
         if (mounted) {
-          Fluttertoast.showToast(
-            msg: 'Username already taken. Please choose another one.',
-            backgroundColor: Colors.red,
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.TOP,
+          unawaited(
+            Fluttertoast.showToast(
+              msg: 'Username already taken. Please choose another one.',
+              backgroundColor: Colors.red,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.TOP,
+            ),
           );
         }
         return;
@@ -131,22 +137,28 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
       // this screen. Without invalidating, HomeScreen re-renders straight back
       // to CreateUserScreen and signup appears to do nothing.
       ref.invalidate(hasProfileProvider);
-      AnalyticsManager.logSignUp(
-        method: SupabaseAuthManager.signInMethod ?? 'unknown',
+      unawaited(
+        AnalyticsManager.logSignUp(
+          method: SupabaseAuthManager.signInMethod ?? 'unknown',
+        ),
       );
       if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-          (route) => false,
+        unawaited(
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+            (route) => false,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        Fluttertoast.showToast(
-          msg: 'Error: $e',
-          backgroundColor: Colors.red,
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.TOP,
+        unawaited(
+          Fluttertoast.showToast(
+            msg: 'Error: $e',
+            backgroundColor: Colors.red,
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.TOP,
+          ),
         );
       }
     } finally {

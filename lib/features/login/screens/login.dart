@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:movie_journal/analytics_manager.dart';
@@ -51,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final response = await flow();
       if (response == null) return;
-      AnalyticsManager.logSignIn(method: method);
+      unawaited(AnalyticsManager.logSignIn(method: method));
     } catch (e) {
       debugPrint('Sign-in with $method failed: $e');
       if (mounted) {

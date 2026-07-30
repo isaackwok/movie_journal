@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -187,9 +189,13 @@ class _AccountSection extends ConsumerWidget {
               // profile-existence answer and can skip CreateUserScreen.
               ref.invalidate(hasProfileProvider);
               if (context.mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  (route) => false,
+                unawaited(
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => const HomeScreen(),
+                    ),
+                    (route) => false,
+                  ),
                 );
               }
             },
@@ -242,7 +248,7 @@ class _AccountSection extends ConsumerWidget {
     try {
       final deletedJournalIds = await SupabaseAuthManager.deleteAccount();
       for (final id in deletedJournalIds) {
-        AnalyticsManager.logJournalDeleted(journalId: id);
+        unawaited(AnalyticsManager.logJournalDeleted(journalId: id));
       }
 
       ref.invalidate(journalsControllerProvider);
@@ -250,9 +256,11 @@ class _AccountSection extends ConsumerWidget {
       ref.invalidate(hasProfileProvider);
 
       if (context.mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (route) => false,
+        unawaited(
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
+          ),
         );
       }
     } catch (e) {
