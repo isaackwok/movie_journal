@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/account_link/controllers/account_link.dart';
 import 'package:movie_journal/features/account_link/widgets/secure_account_sheet.dart';
+import 'package:movie_journal/features/auth/auth_providers.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/supabase_auth_manager.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
