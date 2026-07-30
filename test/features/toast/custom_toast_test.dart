@@ -45,7 +45,7 @@ void main() {
   group('CustomToast status → color mapping', () {
     testWidgets('success uses the primary status color with a black check',
         (tester) async {
-      await showToast(tester, (c) => CustomToast.showSuccess(c, 'Saved'));
+      await showToast(tester, (c) => CustomToast.showSuccess('Saved'));
 
       expect(find.text('Saved'), findsWidgets);
       expect(tester.widget<Icon>(find.byIcon(Icons.check)).color, Colors.black);

@@ -73,7 +73,7 @@ The app follows a feature-based architecture where each feature is self-containe
 - **journal/** - Core journaling features with full workflow from movie selection to saving
   - `controllers/` - JournalState (single journal), JournalsState (list of journals), JournalMode enum + JournalModeNotifier (create/edit mode)
   - `screens/` - Journaling (main editor), JournalComplete (post-save success screen), JournalContent (view saved journal), MoviePreview, ThoughtsScreen (`thoughts.dart`), CaptionEditor. Note `ThoughtsScreen` (screen) and `ThoughtsEditor` (widget, below) are different classes — don't confuse them.
-  - `widgets/` - EmotionsSelectorButton, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, ReviewItem, ReviewsBottomSheet, ThoughtsEditor, PosterPreviewModal, AiReferencesAccordion, JournalContentMoreMenu, and `journal_actions.dart` — a set of shared helper functions (`editJournal`, `shareJournal`, `confirmDeleteJournal`, `deleteJournal`) that encapsulate the domain actions a journal can undergo. Reused by both the more-menu on `JournalContent` and the long-press menu on `JournalCard`. The helpers own the *domain action* (load state / navigate to editor, confirm dialog, Supabase delete + toast, navigate to `TicketPosterPickerScreen`) but intentionally leave post-action navigation (e.g. popping after delete) to the caller, since that depends on which screen initiated the action.
+  - `widgets/` - EmotionsSelectorButton, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, ReviewItem, ReviewsBottomSheet, ThoughtsEditor, AiReferencesAccordion, JournalContentMoreMenu, and `journal_actions.dart` — a set of shared helper functions (`editJournal`, `shareJournal`, `confirmDeleteJournal`, `deleteJournal`) that encapsulate the domain actions a journal can undergo. Reused by both the more-menu on `JournalContent` and the long-press menu on `JournalCard`. The helpers own the *domain action* (load state / navigate to editor, confirm dialog, Supabase delete + toast, navigate to `TicketPosterPickerScreen`) but intentionally leave post-action navigation (e.g. popping after delete) to the caller, since that depends on which screen initiated the action.
 
 - **movie/** - Movie data management with repository pattern
   - `controllers/` - MovieDetailController, MovieImagesController, SearchMovieController
@@ -124,8 +124,6 @@ The app follows a feature-based architecture where each feature is self-containe
 - `network/` - Dio HTTP clients for external APIs
   - `tmdb_dio_client.dart` - The Movie Database API client
   - `quesgen_dio_client.dart` - AI review generation API client
-- `utils/` - Shared utility functions
-  - `color_utils.dart` - Color manipulation utilities
 
 **lib/shared_widgets/**
 - Reusable UI components used across features
@@ -139,9 +137,8 @@ The app follows a feature-based architecture where each feature is self-containe
 - `supabase_auth_manager.dart` - Supabase Auth wrapper (native Apple/Google `signInWithIdToken`, sign-out, reauth, account deletion)
 - `supabase_db_manager.dart` - Postgres CRUD for `profiles` / `journals`, and the snake_case ↔ camelCase translation layer
 - `anonymous_bridge.dart` - one-shot migration bridge for pre-migration Firebase anonymous accounts (transitional; delete at the Firestore freeze)
-- `shared_preferences_manager.dart` - Local preferences storage
 - `themes.dart` - App-wide theme definitions (light/dark mode)
-- `main.dart` - App entry point with Firebase initialization and web responsiveness
+- `main.dart` - App entry point with Firebase and Supabase initialization
 
 ### State Management
 
@@ -197,7 +194,6 @@ Uses **Riverpod** for state management:
 - **firebase_analytics** (12.4.2) - Google Analytics for Firebase (screen views, custom events, user properties)
   - **Keep the FlutterFire suite version-aligned.** Each Firebase plugin pins a specific `flutterfire` Swift package version (tracking `firebase_core`). If `firebase_auth` / `firebase_analytics` drift to versions released against *different* `firebase_core` builds, `flutter build ipa` fails at "Adding Swift Package Manager integration" with `Could not resolve package dependencies` (mismatched `flutterfire` pins). Fix: `flutter pub upgrade firebase_core firebase_auth firebase_analytics` to land a coordinated set.
 - **google_sign_in** (7.2.0) - Google authentication integration
-- **shared_preferences** (2.5.3) - Local key-value storage
 - **flutter_dotenv** (6.0.0) - Environment variables (API keys stored in `.env`)
 - **skeletonizer** (2.0.1) - Loading state skeleton animations
 - **google_fonts** (6.2.1) - Custom typography (e.g., Nothing You Could Do font)
@@ -273,7 +269,7 @@ feature_name/
 - Use `Skeleton.leaf()` for individual loading elements
 
 ### Responsive Design
-- **Web is not a supported target.** `main.dart`'s `_buildRunnableApp(isWeb:, webAppWidth: 400)` still constrains web builds to 400px, so the app *renders* on web — but `SupabaseAuthManager._assertNative()` throws `UnsupportedError` under `kIsWeb`, so **sign-in dead-ends at the login screen**. The throw is deliberate (decision 9): web auth would need an Apple Services ID, a `.p8`, and the OAuth redirect flow. Treat the 400px shell as vestigial, not as web support.
+- **Web is not a supported target.** The `web/`, `linux/`, and `windows/` scaffolds are deleted; `SupabaseAuthManager._assertNative()` throws `UnsupportedError` under `kIsWeb`. The throw is deliberate (decision 9): web auth would need an Apple Services ID, a `.p8`, and the OAuth redirect flow.
 - Use `MediaQuery` for responsive breakpoints
 - Mobile (iOS/Android) is the only functional platform
 

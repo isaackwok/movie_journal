@@ -9,9 +9,7 @@ class CustomToast {
     _fToast.init(context);
   }
 
-  // `context` is retained for API compatibility with existing call sites; the
-  // toast styling is context-free (status colors come from [StatusColors]).
-  static void showSuccess(BuildContext context, String message) {
+  static void showSuccess(String message) {
     _show(icon: Icons.check, statusColor: StatusColors.success, message: message);
   }
 

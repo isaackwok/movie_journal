@@ -31,16 +31,6 @@ class JournalsController extends AsyncNotifier<JournalsState> {
     return JournalsState(journals: journals);
   }
 
-  Future<void> addJournal(JournalState journal) async {
-    final currentState = state.value;
-    if (currentState == null) return;
-
-    final updatedJournals = [...currentState.journals, journal];
-    state = AsyncValue.data(currentState.copyWith(journals: updatedJournals));
-
-    // TODO: Add Firestore write logic here
-  }
-
   /// Remove a journal from both Supabase and local state
   ///
   /// This method first deletes the journal from Supabase, then updates
@@ -58,13 +48,6 @@ class JournalsController extends AsyncNotifier<JournalsState> {
     final updatedJournals =
         currentState.journals.where((j) => j.id != id).toList();
     state = AsyncValue.data(currentState.copyWith(journals: updatedJournals));
-  }
-
-  Future<void> setJournals(List<JournalState> journals) async {
-    final currentState = state.value;
-    if (currentState == null) return;
-
-    state = AsyncValue.data(currentState.copyWith(journals: journals));
   }
 
   Future<void> refreshJournals() async {
