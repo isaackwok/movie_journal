@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:movie_journal/features/movie/data/data_sources/movie_api.dart';
 import 'package:movie_journal/features/movie/data/models/detailed_movie.dart';
 import 'package:movie_journal/features/movie/data/models/movie_image.dart';
@@ -10,13 +11,21 @@ class MovieRepository {
   Future<MovieListResponse> search({
     required String query,
     required int page,
+    CancelToken? cancelToken,
   }) async {
-    final data = await api.searchMovies(query: query, page: page);
+    final data = await api.searchMovies(
+      query: query,
+      page: page,
+      cancelToken: cancelToken,
+    );
     return data;
   }
 
-  Future<MovieListResponse> popular({required int page}) async {
-    final data = await api.popularMovies(page: page);
+  Future<MovieListResponse> popular({
+    required int page,
+    CancelToken? cancelToken,
+  }) async {
+    final data = await api.popularMovies(page: page, cancelToken: cancelToken);
     return data;
   }
 

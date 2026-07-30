@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/data/data_sources/movie_api.dart';
@@ -65,8 +66,19 @@ bool movieIntegrityChecker(BriefMovie movie) =>
     movie.title.isNotEmpty;
 
 class SearchMovieController extends AsyncNotifier<SearchMovieState> {
+  // The debounce in MovieSearchBar does not serialize searches — a submit
+  // right after a debounced fire produces overlapping requests, and TMDB
+  // responses can come back out of order. A response (or failure) is applied
+  // only if its id is still current; anything older is dropped.
+  int _requestId = 0;
+  CancelToken? _cancelToken;
+
+  /// True while the response that produced [_requestId] is still awaited.
+  bool _isStale(int id) => id != _requestId;
+
   @override
   Future<SearchMovieState> build() async {
+    ref.onDispose(() => _cancelToken?.cancel());
     // Load initial popular movies
     final result = await ref.read(movieRepoProvider).popular(page: 1);
     return SearchMovieState(
@@ -78,37 +90,41 @@ class SearchMovieController extends AsyncNotifier<SearchMovieState> {
   }
 
   Future<void> search(String query) async {
-    if (query.isEmpty) {
-      // Reset to popular movies
-      state = const AsyncLoading();
-      state = await AsyncValue.guard(() async {
-        final result = await ref.read(movieRepoProvider).popular(page: 1);
-        return SearchMovieState(
-          movies: result.results.where(movieIntegrityChecker).toList(),
-          page: 2,
-          hasMore: result.page < result.totalPages,
-          mode: SearchMovieMode.popular,
-        );
-      });
-    } else {
-      // Search with new query
-      state = const AsyncLoading();
-      state = await AsyncValue.guard(() async {
-        final result = await ref.read(movieRepoProvider).search(query: query, page: 1);
-        return SearchMovieState(
-          movies: result.results.where(movieIntegrityChecker).toList(),
-          query: query,
-          page: 2,
-          hasMore: result.page < result.totalPages,
-          mode: SearchMovieMode.search,
-        );
-      });
-    }
+    final id = ++_requestId;
+    // Don't let the superseded request keep consuming the network; its state
+    // write is already dead either way thanks to the id guard.
+    _cancelToken?.cancel();
+    final token = _cancelToken = CancelToken();
+
+    // Riverpod merges this with the current state (copyWithPrevious under the
+    // state setter), so listeners still see the previous list while loading —
+    // MovieResultList opts in via skipLoadingOnReload.
+    state = const AsyncLoading();
+    final next = await AsyncValue.guard(() async {
+      final repo = ref.read(movieRepoProvider);
+      final result = query.isEmpty
+          ? await repo.popular(page: 1, cancelToken: token)
+          : await repo.search(query: query, page: 1, cancelToken: token);
+      return SearchMovieState(
+        movies: result.results.where(movieIntegrityChecker).toList(),
+        query: query,
+        page: 2,
+        hasMore: result.page < result.totalPages,
+        mode: query.isEmpty ? SearchMovieMode.popular : SearchMovieMode.search,
+      );
+    });
+    if (_isStale(id)) return;
+    state = next;
   }
 
   Future<void> loadMore() async {
+    // While a reload is in flight the visible list is the *previous* query's
+    // (preserved by copyWithPrevious), so paging from it would fetch pages
+    // for a query the user has already left.
+    if (state.isLoading) return;
     final currentState = state.value;
     if (currentState == null || !currentState.hasMore) return;
+    final id = _requestId;
 
     // Keep current state while loading more
     try {
@@ -122,6 +138,8 @@ class SearchMovieController extends AsyncNotifier<SearchMovieState> {
         );
       }
 
+      // A search() started while this page was in flight owns the state now.
+      if (_isStale(id)) return;
       state = AsyncData(currentState.copyWith(
         movies: [
           ...currentState.movies,
@@ -131,6 +149,7 @@ class SearchMovieController extends AsyncNotifier<SearchMovieState> {
         hasMore: result.page < result.totalPages,
       ));
     } catch (error, stackTrace) {
+      if (_isStale(id)) return;
       // Keep the already-loaded pages: without copyWithPrevious the error
       // state has no value, so the list UI loses everything and a retried
       // loadMore() bails out at the `state.value == null` guard above.
@@ -144,6 +163,11 @@ class SearchMovieController extends AsyncNotifier<SearchMovieState> {
   }
 
   void reset() {
+    // The notifier instance (and these fields) survive invalidateSelf, so any
+    // in-flight response must be orphaned before build() runs again.
+    _requestId++;
+    _cancelToken?.cancel();
+    _cancelToken = null;
     ref.invalidateSelf();
   }
 }
