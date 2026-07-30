@@ -22,14 +22,14 @@ class ThoughtsEditor extends ConsumerWidget {
               context: context,
               backgroundColor: Colors.transparent,
               isScrollControlled: true,
-              builder: (context) => ThoughtsScreen(),
+              builder: (context) => const ThoughtsScreen(),
             ),
           },
       child: Column(
         spacing: 16,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
+          const Text(
             'Write down your thoughts and feelings.',
             style: TextStyle(
               fontSize: 16,
@@ -38,7 +38,7 @@ class ThoughtsEditor extends ConsumerWidget {
             ),
           ),
           Container(
-            padding: EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
               journal.thoughts.isNotEmpty
                   ? journal.thoughts
@@ -62,8 +62,8 @@ class ThoughtsEditor extends ConsumerWidget {
                 defaultExpanded: true,
                 references: selectedRefs,
               )
-              : SizedBox.shrink(),
-          SizedBox(height: 200),
+              : const SizedBox.shrink(),
+          const SizedBox(height: 200),
         ],
       ),
     );

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,7 +70,7 @@ class JournalState {
     Jiffy? createdAt,
     Jiffy? updatedAt,
   }) {
-    this.id = id ?? Uuid().v4();
+    this.id = id ?? const Uuid().v4();
     this.selectedRefs = selectedRefs ?? [];
     this.createdAt = createdAt ?? Jiffy.now();
     this.updatedAt = updatedAt ?? this.createdAt;
@@ -326,7 +327,7 @@ class JournalController extends Notifier<JournalState> {
     final journalsController = ref.read(journalsControllerProvider.notifier);
     await journalsController.refreshJournals();
 
-    AnalyticsManager.logJournalUpdated(journalId: state.id);
+    unawaited(AnalyticsManager.logJournalUpdated(journalId: state.id));
 
     return this;
   }
@@ -352,11 +353,13 @@ class JournalController extends Notifier<JournalState> {
     final journalsController = ref.read(journalsControllerProvider.notifier);
     await journalsController.refreshJournals();
 
-    AnalyticsManager.logJournalCreated(
-      movieTitle: state.movieTitle,
-      tmdbId: state.tmdbId,
-      emotionCount: state.emotions.length,
-      sceneCount: state.selectedScenes.length,
+    unawaited(
+      AnalyticsManager.logJournalCreated(
+        movieTitle: state.movieTitle,
+        tmdbId: state.tmdbId,
+        emotionCount: state.emotions.length,
+        sceneCount: state.selectedScenes.length,
+      ),
     );
 
     return this;

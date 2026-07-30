@@ -50,7 +50,7 @@ class SceneButton extends StatelessWidget {
               highlightColor: Colors.transparent,
               splashColor: Colors.transparent,
               onTap: onTap,
-              child: SizedBox(width: double.infinity, height: double.infinity),
+              child: const SizedBox(width: double.infinity, height: double.infinity),
             ),
           ),
         ),
@@ -60,13 +60,13 @@ class SceneButton extends StatelessWidget {
             right: 8,
             child: Container(
               alignment: Alignment.center,
-              constraints: BoxConstraints(
+              constraints: const BoxConstraints(
                 minWidth: 20,
                 minHeight: 20,
                 maxWidth: 20,
                 maxHeight: 20,
               ),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
@@ -202,7 +202,7 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
                 Navigator.pop(context);
               },
             ),
-            Expanded(
+            const Expanded(
               child: Center(
                 child: Text(
                   'Scenes',

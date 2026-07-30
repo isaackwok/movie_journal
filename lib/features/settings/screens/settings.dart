@@ -30,7 +30,7 @@ class SettingsScreen extends ConsumerWidget {
         ),
         title: const Text('Settings'),
         titleSpacing: 10,
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           fontFamily: 'AvenirNext',
           fontWeight: FontWeight.w700,
           fontSize: 22,

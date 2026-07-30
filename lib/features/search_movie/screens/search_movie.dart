@@ -71,7 +71,7 @@ class _SearchMovieScreenState extends ConsumerState<SearchMovieScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 16,
                   children: [
-                    MovieSearchBar(),
+                    const MovieSearchBar(),
                     Expanded(
                       child: MovieResultList(
                         scrollController: scrollController,

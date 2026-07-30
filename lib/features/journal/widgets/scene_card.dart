@@ -59,7 +59,7 @@ class _SceneCardState extends State<SceneCard> {
       mainAxisSize: MainAxisSize.min,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.only(
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(8),
             topRight: Radius.circular(8),
           ),
@@ -74,7 +74,7 @@ class _SceneCardState extends State<SceneCard> {
           enabled: widget.isEditable,
           controller: _effectiveController,
           focusNode: widget.focusNode,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -92,29 +92,29 @@ class _SceneCardState extends State<SceneCard> {
               fontFamily: 'AvenirNext',
             ),
             filled: true,
-            fillColor: Color(0xFF151515),
-            border: OutlineInputBorder(
+            fillColor: const Color(0xFF151515),
+            border: const OutlineInputBorder(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(8),
                 bottomRight: Radius.circular(8),
               ),
               borderSide: BorderSide.none,
             ),
-            enabledBorder: OutlineInputBorder(
+            enabledBorder: const OutlineInputBorder(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(8),
                 bottomRight: Radius.circular(8),
               ),
               borderSide: BorderSide.none,
             ),
-            focusedBorder: OutlineInputBorder(
+            focusedBorder: const OutlineInputBorder(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(8),
                 bottomRight: Radius.circular(8),
               ),
               borderSide: BorderSide.none,
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
         ),
       ],
@@ -174,7 +174,7 @@ class _SceneCardState extends State<SceneCard> {
         final isOverflowing = textPainter.didExceedMaxLines;
 
         return Container(
-          color: Color(0xFF151515),
+          color: const Color(0xFF151515),
           padding: EdgeInsets.symmetric(
             horizontal: horizontalPadding,
             vertical: 8,

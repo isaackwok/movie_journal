@@ -176,7 +176,7 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
       backgroundColor: Colors.black,
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.only(left: 32.0, right: 32.0),
+          padding: const EdgeInsets.only(left: 32.0, right: 32.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

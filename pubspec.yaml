@@ -140,7 +140,3 @@ flutter:
           weight: 700
         - asset: fonts/AvenirNextCyr-Heavy.ttf
           weight: 800
-
-analyzer:
-  plugins:
-    - custom_lint

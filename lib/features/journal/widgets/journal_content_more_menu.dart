@@ -14,7 +14,7 @@ class JournalContentMoreMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton(
       menuPadding: EdgeInsets.zero,
-      offset: Offset(0, 16),
+      offset: const Offset(0, 16),
       position: PopupMenuPosition.under,
       onSelected: (item) {
         onSelected(context, ref, item);

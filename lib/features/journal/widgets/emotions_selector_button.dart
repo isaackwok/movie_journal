@@ -33,7 +33,7 @@ class EmotionsSelectorButton extends StatelessWidget {
   LinearGradient _getEnergyGradientColors(List<Emotion> selectedEmotions) {
     if (selectedEmotions.isEmpty) {
       // Default colors when no emotions are selected
-      return LinearGradient(
+      return const LinearGradient(
         begin: Alignment.topRight,
         end: Alignment.bottomLeft,
         colors: [Color(0xFF545454), Color(0xFF545454)],
@@ -45,7 +45,7 @@ class EmotionsSelectorButton extends StatelessWidget {
 
     if (hasHighEnergy && !hasLowEnergy) {
       // All High Energy: Pink/salmon gradient
-      return LinearGradient(
+      return const LinearGradient(
         begin: Alignment.topRight,
         end: Alignment.bottomLeft,
         colors: [Color(0xFFFADD9E), Color(0xFFFF8784)],
@@ -53,7 +53,7 @@ class EmotionsSelectorButton extends StatelessWidget {
       );
     } else if (!hasHighEnergy && hasLowEnergy) {
       // All Low Energy: Teal/cyan gradient
-      return LinearGradient(
+      return const LinearGradient(
         begin: Alignment.topRight,
         end: Alignment.bottomLeft,
         colors: [Color(0xFF87C997), Color(0xFF9ADCFF)],
@@ -61,7 +61,7 @@ class EmotionsSelectorButton extends StatelessWidget {
       );
     } else {
       // Mixed Energy: Yellow/green gradient
-      return LinearGradient(
+      return const LinearGradient(
         begin: Alignment.topRight,
         end: Alignment.bottomLeft,
         colors: [
@@ -161,7 +161,7 @@ class EmotionsSelectorButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
-            color: Color(0xFF151515),
+            color: const Color(0xFF151515),
             border: Border.all(
               color: readonly ? Colors.transparent : color,
               width: 1,

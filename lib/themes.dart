@@ -65,15 +65,15 @@ class Themes {
       style: TextButton.styleFrom(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         foregroundColor: _darkPrimary,
-        textStyle: TextStyle(
+        textStyle: const TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 14,
           fontFamily: 'AvenirNext',
         ),
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
     ),
-    bottomSheetTheme: BottomSheetThemeData(
+    bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: _darkSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
