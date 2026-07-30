@@ -5,6 +5,7 @@ import 'package:movie_journal/features/journal/screens/caption_editor.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_select_sheet.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 
 class SelectedSceneCard extends StatelessWidget {
   const SelectedSceneCard({
@@ -150,7 +151,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
           ClipRRect(
             borderRadius: BorderRadius.circular(_borderRadius),
             child: Image.network(
-              'https://image.tmdb.org/t/p/w342$firstBackdropPath',
+              tmdbImageUrl(firstBackdropPath, TmdbImageSize.w342),
               fit: BoxFit.cover,
               width: double.infinity,
               height: double.infinity,
@@ -207,7 +208,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
             itemBuilder: (context, index) {
               final scene = selectedScenes[index];
               return SelectedSceneCard(
-                imageUrl: 'https://image.tmdb.org/t/p/w500${scene.path}',
+                imageUrl: tmdbImageUrl(scene.path, TmdbImageSize.w500),
                 sceneIndex: index,
                 caption: scene.caption,
                 onRemove: () {

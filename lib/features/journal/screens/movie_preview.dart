@@ -5,6 +5,7 @@ import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journaling.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 
 class MoviePreviewScreen extends ConsumerWidget {
   final int movieId;
@@ -39,7 +40,10 @@ class MoviePreviewScreen extends ConsumerWidget {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
                                     child: Image.network(
-                                      'https://image.tmdb.org/t/p/original${movie.posterPath}',
+                                      tmdbImageUrl(
+                                        movie.posterPath!,
+                                        TmdbImageSize.original,
+                                      ),
                                       fit: BoxFit.cover,
                                       width: double.infinity,
                                       frameBuilder: (

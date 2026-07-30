@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 
 class SceneCard extends StatefulWidget {
   final String imagePath;
@@ -64,7 +65,7 @@ class _SceneCardState extends State<SceneCard> {
             topRight: Radius.circular(8),
           ),
           child: Image.network(
-            'https://image.tmdb.org/t/p/w500${widget.imagePath}',
+            tmdbImageUrl(widget.imagePath, TmdbImageSize.w500),
             width: double.infinity,
             height: 235,
             fit: BoxFit.cover,
@@ -130,7 +131,7 @@ class _SceneCardState extends State<SceneCard> {
       child: Stack(
         children: [
           Image.network(
-            'https://image.tmdb.org/t/p/w500${widget.imagePath}',
+            tmdbImageUrl(widget.imagePath, TmdbImageSize.w500),
             width: double.infinity,
             height: 235,
             fit: BoxFit.cover,

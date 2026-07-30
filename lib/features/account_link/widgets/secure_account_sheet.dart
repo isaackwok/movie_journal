@@ -58,9 +58,10 @@ class _SecureAccountSheetState extends ConsumerState<SecureAccountSheet> {
 
     try {
       final service = ref.read(accountLinkServiceProvider);
-      final outcome = method == 'apple'
-          ? await service.linkApple()
-          : await service.linkGoogle();
+      final outcome =
+          method == 'apple'
+              ? await service.linkApple()
+              : await service.linkGoogle();
       if (!mounted) return;
 
       switch (outcome) {
@@ -68,8 +69,7 @@ class _SecureAccountSheetState extends ConsumerState<SecureAccountSheet> {
           unawaited(AnalyticsManager.logAccountLinked(method: method));
           // Toast before popping: FToast resolves its overlay from the context
           // it is handed, and this one is about to be torn down.
-          CustomToast.init(context);
-          CustomToast.showSuccess('Account secured');
+          CustomToast.showSuccess(context, 'Account secured');
           Navigator.of(context).pop();
         case IdentityLinkOutcome.cancelled:
           // They backed out of the system prompt. Leave the sheet open — that
@@ -82,8 +82,10 @@ class _SecureAccountSheetState extends ConsumerState<SecureAccountSheet> {
       }
     } catch (e) {
       if (!mounted) return;
-      CustomToast.init(context);
-      CustomToast.showError("Couldn't secure your account. Please try again.");
+      CustomToast.showError(
+        context,
+        "Couldn't secure your account. Please try again.",
+      );
     } finally {
       if (mounted) setState(() => _isLinking = false);
     }
@@ -151,9 +153,8 @@ class _SecureAccountSheetState extends ConsumerState<SecureAccountSheet> {
             const SizedBox(height: 8),
             Center(
               child: TextButton(
-                onPressed: _isLinking
-                    ? null
-                    : () => Navigator.of(context).pop(),
+                onPressed:
+                    _isLinking ? null : () => Navigator.of(context).pop(),
                 child: Text(
                   'Not now',
                   style: TextStyle(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/analytics_manager.dart';
+import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/features/account_link/controllers/account_link.dart';
 import 'package:movie_journal/features/account_link/widgets/secure_account_sheet.dart';
 import 'package:movie_journal/features/auth/auth_providers.dart';
@@ -232,12 +233,7 @@ class _AccountSection extends ConsumerWidget {
       if (!confirmed) return; // user backed out of the prompt
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Re-authentication required: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        CustomToast.showError(context, 'Re-authentication required: $e');
       }
       return;
     }
@@ -266,12 +262,7 @@ class _AccountSection extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete account: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        CustomToast.showError(context, 'Failed to delete account: $e');
       }
     }
   }

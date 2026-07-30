@@ -5,7 +5,8 @@ import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
-import 'package:movie_journal/shared_widgets/action_text_button.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/shared_widgets/sheet_app_bar.dart';
 
 class SceneGridTile extends StatelessWidget {
   const SceneGridTile({
@@ -137,8 +138,7 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
                 child: GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
@@ -156,8 +156,10 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
 
                     return SceneGridTile(
                       index: selectedIndex,
-                      imageUrl:
-                          'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
+                      imageUrl: tmdbImageUrl(
+                        backdrops[index].filePath,
+                        TmdbImageSize.w500,
+                      ),
                       isSelected: isSelected,
                       onTap: () {
                         if (isSelected) {
@@ -169,8 +171,8 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
                           return;
                         }
                         if (_localSelectedScenes.length >= _maxSceneLimit) {
-                          CustomToast.init(context);
                           CustomToast.showError(
+                            context,
                             'You can select up to $_maxSceneLimit scenes',
                           );
                           return;
@@ -189,40 +191,16 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
           ],
         ),
       ),
-      appBar: AppBar(
+      appBar: SheetAppBar(
+        title: 'Scenes',
         backgroundColor: Theme.of(context).colorScheme.surface,
-        automaticallyImplyLeading: false,
-        titleSpacing: 0,
-        title: Row(
-          children: [
-            ActionTextButton(
-              text: 'Cancel',
-              color: Colors.white,
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            const Expanded(
-              child: Center(
-                child: Text(
-                  'Scenes',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          ActionTextButton(
-            text: 'Done',
-            onPressed: () {
-              ref
-                  .read(journalControllerProvider.notifier)
-                  .setSelectedScenes(_localSelectedScenes);
-              Navigator.pop(context);
-            },
-          ),
-        ],
+        onCancel: () => Navigator.pop(context),
+        onDone: () {
+          ref
+              .read(journalControllerProvider.notifier)
+              .setSelectedScenes(_localSelectedScenes);
+          Navigator.pop(context);
+        },
       ),
     );
   }

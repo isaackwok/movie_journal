@@ -8,9 +8,10 @@ const String _defaultFontFamily = 'Inter';
 
 /// Single source of truth for status accent colors (toast icons, etc.).
 ///
-/// These are context-free constants because some consumers — e.g.
-/// [CustomToast.showError] — run without a [BuildContext]. Used as icon
-/// *background* colors; the inner glyph is always plain black for contrast.
+/// Context-free constants rather than a [ThemeExtension]: they are the same in
+/// every theme, and consumers shouldn't need a [BuildContext] just to pick an
+/// accent. Used as icon *background* colors; the inner glyph is always plain
+/// black for contrast.
 class StatusColors {
   StatusColors._();
 

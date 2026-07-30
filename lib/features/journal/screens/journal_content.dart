@@ -26,7 +26,6 @@ class _JournalContentState extends ConsumerState<JournalContent> {
   @override
   void initState() {
     super.initState();
-    AnalyticsManager.logScreenView('JournalContent');
     _pageController = PageController();
   }
 
@@ -74,164 +73,167 @@ class _JournalContentState extends ConsumerState<JournalContent> {
 
     final journal = journals[journalIndex];
 
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            pinned: true,
-            floating: true,
-            snap: true,
-            automaticallyImplyLeading: false,
-            centerTitle: true,
-            actions: [
-              IconButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      settings: const RouteSettings(
-                        name: kShareFlowRouteName,
+    return ScreenViewTracker(
+      screenName: 'JournalContent',
+      child: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              pinned: true,
+              floating: true,
+              snap: true,
+              automaticallyImplyLeading: false,
+              centerTitle: true,
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        settings: const RouteSettings(
+                          name: kShareFlowRouteName,
+                        ),
+                        builder: (_) => TicketPosterPickerScreen(
+                          journal: journal,
+                          entry: ShareTicketEntry.journalContent,
+                        ),
                       ),
-                      builder: (_) => TicketPosterPickerScreen(
-                        journal: journal,
-                        entry: ShareTicketEntry.journalContent,
-                      ),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.ios_share, color: Colors.white),
+                    );
+                  },
+                  icon: const Icon(Icons.ios_share, color: Colors.white),
+                ),
+                JournalContentMoreMenu(journalId: widget.journalId),
+              ],
+              leading: CircledIconButton(
+                icon: Icons.arrow_back_ios_new,
+                onPressed: () => Navigator.pop(context),
+                outerPadding: const EdgeInsets.only(left: 16),
               ),
-              JournalContentMoreMenu(journalId: widget.journalId),
-            ],
-            leading: CircledIconButton(
-              icon: Icons.arrow_back_ios_new,
-              onPressed: () => Navigator.pop(context),
-              outerPadding: const EdgeInsets.only(left: 16),
+              leadingWidth: 40 + 16,
             ),
-            leadingWidth: 40 + 16,
-          ),
 
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      journal.movieTitle,
-                      style: GoogleFonts.inter(fontSize: 32),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      journal.updatedAt.format(pattern: 'MMM do yyyy'),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white.withAlpha(178),
-                        fontFamily: 'AvenirNext',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  if (journal.emotions.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: EmotionsSelectorButton(
-                        emotions: journal.emotions,
-                        readonly: true,
+                      child: Text(
+                        journal.movieTitle,
+                        style: GoogleFonts.inter(fontSize: 32),
                       ),
                     ),
-                  if (journal.emotions.isNotEmpty) const SizedBox(height: 24),
-                  journal.selectedScenes.isEmpty
-                      ? const SizedBox.shrink()
-                      : Column(
-                        children: [
-                          SizedBox(
-                            height: 235,
-                            child: PageView.builder(
-                              controller: _pageController,
-                              onPageChanged: _onPageChanged,
-                              itemCount: journal.selectedScenes.length,
-                              itemBuilder: (context, index) {
-                                final scene = journal.selectedScenes[index];
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  child: SceneCard(
-                                    imagePath: scene.path,
-                                    caption: scene.caption,
-                                    isEditable: false,
-                                  ),
-                                );
-                              },
+                    const SizedBox(height: 8),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        journal.updatedAt.format(pattern: 'MMM do yyyy'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white.withAlpha(178),
+                          fontFamily: 'AvenirNext',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    if (journal.emotions.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: EmotionsSelectorButton(
+                          emotions: journal.emotions,
+                          readonly: true,
+                        ),
+                      ),
+                    if (journal.emotions.isNotEmpty) const SizedBox(height: 24),
+                    journal.selectedScenes.isEmpty
+                        ? const SizedBox.shrink()
+                        : Column(
+                          children: [
+                            SizedBox(
+                              height: 235,
+                              child: PageView.builder(
+                                controller: _pageController,
+                                onPageChanged: _onPageChanged,
+                                itemCount: journal.selectedScenes.length,
+                                itemBuilder: (context, index) {
+                                  final scene = journal.selectedScenes[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    child: SceneCard(
+                                      imagePath: scene.path,
+                                      caption: scene.caption,
+                                      isEditable: false,
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 24,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Centered dots
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  spacing: 4,
-                                  children: List.generate(
-                                    journal.selectedScenes.length,
-                                    (index) => Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color:
-                                            index == _currentPage
-                                                ? Colors.white
-                                                : Colors.white.withAlpha(77),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 24,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // Centered dots
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    spacing: 4,
+                                    children: List.generate(
+                                      journal.selectedScenes.length,
+                                      (index) => Container(
+                                        width: 6,
+                                        height: 6,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color:
+                                              index == _currentPage
+                                                  ? Colors.white
+                                                  : Colors.white.withAlpha(77),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                  const SizedBox(height: 24),
+                          ],
+                        ),
+                    const SizedBox(height: 24),
 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      journal.thoughts,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        journal.thoughts,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child:
-                        journal.selectedRefs.isEmpty
-                            ? const SizedBox.shrink()
-                            : AiReferencesAccordion(
-                              references: journal.selectedRefs,
-                            ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child:
+                          journal.selectedRefs.isEmpty
+                              ? const SizedBox.shrink()
+                              : AiReferencesAccordion(
+                                references: journal.selectedRefs,
+                              ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
