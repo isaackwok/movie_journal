@@ -67,7 +67,7 @@ class _SecureAccountSheetState extends ConsumerState<SecureAccountSheet> {
           // Toast before popping: FToast resolves its overlay from the context
           // it is handed, and this one is about to be torn down.
           CustomToast.init(context);
-          CustomToast.showSuccess(context, 'Account secured');
+          CustomToast.showSuccess('Account secured');
           Navigator.of(context).pop();
         case IdentityLinkOutcome.cancelled:
           // They backed out of the system prompt. Leave the sheet open — that

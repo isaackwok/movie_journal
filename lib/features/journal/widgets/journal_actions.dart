@@ -67,7 +67,7 @@ Future<void> deleteJournal(
     await ref.read(journalsControllerProvider.notifier).removeJournal(journalId);
 
     if (!context.mounted) return;
-    CustomToast.showSuccess(context, 'Journal deleted successfully');
+    CustomToast.showSuccess('Journal deleted successfully');
   } catch (e) {
     if (!context.mounted) return;
     CustomToast.init(context);

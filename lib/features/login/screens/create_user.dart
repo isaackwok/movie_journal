@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
-import 'package:movie_journal/shared_preferences_manager.dart';
 import 'package:movie_journal/supabase_auth_manager.dart';
 import 'package:movie_journal/supabase_db_manager.dart';
 
@@ -124,8 +123,7 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
       }
 
       // All checks passed - create user
-      final userId = await _createUser(username);
-      await _uploadLocalJournals(userId);
+      await _createUser(username);
       // The provider was evaluated at app startup (before this row existed)
       // and cached the 'User' fallback — invalidate so HomeScreen re-fetches.
       ref.invalidate(currentUsernameProvider);
@@ -170,16 +168,6 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
     }
     await _db.createUser(userId: user.id, username: username);
     return user.id;
-  }
-
-  /// Upload journals written before signup (held in SharedPreferences).
-  ///
-  /// One bulk insert replaces the Firestore `WriteBatch`: same all-or-nothing
-  /// guarantee, one round trip instead of N.
-  Future<void> _uploadLocalJournals(String userId) async {
-    final journals = SharedPreferencesManager.getJournals();
-    if (journals.isEmpty) return;
-    await _db.addJournalsToCollection(userId, journals);
   }
 
   @override

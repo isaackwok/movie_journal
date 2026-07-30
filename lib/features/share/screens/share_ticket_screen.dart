@@ -161,10 +161,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
                               Clipboard.setData(ClipboardData(text: thoughts));
-                              CustomToast.showSuccess(
-                                sheetContext,
-                                'Copied to clipboard',
-                              );
+                              CustomToast.showSuccess('Copied to clipboard');
                             },
                             child: Padding(
                               // Vertical padding enlarges the touch target so it
@@ -467,7 +464,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
       AnalyticsManager.logTicketSaved(movieTitle: widget.journal.movieTitle);
 
       if (mounted) {
-        CustomToast.showSuccess(context, 'Image saved to camera roll');
+        CustomToast.showSuccess('Image saved to camera roll');
       }
     } catch (e) {
       debugPrint('Save image error: $e');

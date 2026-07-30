@@ -4,54 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/thoughts.dart';
 import 'package:movie_journal/features/journal/widgets/ai_references_accordion.dart';
-import 'package:movie_journal/features/quesgen/review.dart';
-
-class SelectedReviewItem extends StatelessWidget {
-  const SelectedReviewItem({
-    super.key,
-    required this.review,
-    required this.onRemove,
-  });
-
-  final Review review;
-  final VoidCallback onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(left: 16, right: 8, top: 12, bottom: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.white.withAlpha(24),
-      ),
-      child: Row(
-        spacing: 8,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Flexible(
-            child: Text(
-              review.text,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          IconButton(
-            onPressed: onRemove,
-            icon: Icon(
-              size: 24,
-              Icons.close,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class ThoughtsEditor extends ConsumerWidget {
   const ThoughtsEditor({super.key});
