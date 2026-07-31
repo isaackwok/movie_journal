@@ -19,7 +19,7 @@ class ReviewsBottomSheet extends ConsumerWidget {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.95,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Color(0xFF171717),
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -40,8 +40,8 @@ class ReviewsBottomSheet extends ConsumerWidget {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               'Movie Reviews',
               style: TextStyle(
@@ -63,10 +63,10 @@ class ReviewsBottomSheet extends ConsumerWidget {
               ),
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Flexible(
             child: SingleChildScrollView(
-              padding: EdgeInsets.only(left: 16, right: 16, bottom: 16),
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
               child: Column(
                 spacing: 12,
                 children: [
@@ -101,7 +101,7 @@ class ReviewsBottomSheet extends ConsumerWidget {
                         ),
                       )
                       : [
-                        Text(
+                        const Text(
                           'No reviews generated',
                           style: TextStyle(
                             fontSize: 14,
@@ -113,7 +113,7 @@ class ReviewsBottomSheet extends ConsumerWidget {
               ),
             ),
           ),
-          SizedBox(height: 32),
+          const SizedBox(height: 32),
         ],
       ),
     );

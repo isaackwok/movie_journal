@@ -25,7 +25,7 @@ class _AiReferencesAccordionState extends State<AiReferencesAccordion>
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 100),
       vsync: this,
     );
     _expandAnimation = CurvedAnimation(
@@ -65,7 +65,7 @@ class _AiReferencesAccordionState extends State<AiReferencesAccordion>
             onTap: _toggleExpansion,
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   Icon(
@@ -73,8 +73,8 @@ class _AiReferencesAccordionState extends State<AiReferencesAccordion>
                     color: Theme.of(context).colorScheme.primary,
                     size: 24,
                   ),
-                  SizedBox(width: 12),
-                  Expanded(
+                  const SizedBox(width: 12),
+                  const Expanded(
                     child: Text(
                       'Reviews',
                       style: TextStyle(
@@ -86,8 +86,8 @@ class _AiReferencesAccordionState extends State<AiReferencesAccordion>
                   ),
                   AnimatedRotation(
                     turns: _isExpanded ? 0.5 : 0,
-                    duration: Duration(milliseconds: 100),
-                    child: Icon(
+                    duration: const Duration(milliseconds: 100),
+                    child: const Icon(
                       Icons.keyboard_arrow_down,
                       color: Colors.white,
                       size: 24,
@@ -100,7 +100,7 @@ class _AiReferencesAccordionState extends State<AiReferencesAccordion>
           SizeTransition(
             sizeFactor: _expandAnimation,
             child: Padding(
-              padding: EdgeInsets.only(top: 16, bottom: 8),
+              padding: const EdgeInsets.only(top: 16, bottom: 8),
               child: Column(
                 spacing: 12,
                 children:

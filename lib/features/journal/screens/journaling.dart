@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -202,15 +204,18 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                                   final savedJournal =
                                       ref.read(journalControllerProvider);
                                   if (context.mounted) {
-                                    Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => JournalCompleteScreen(
-                                              journal: savedJournal,
-                                            ),
+                                    unawaited(
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) =>
+                                                  JournalCompleteScreen(
+                                                    journal: savedJournal,
+                                                  ),
+                                        ),
+                                        (route) => route.isFirst,
                                       ),
-                                      (route) => route.isFirst,
                                     );
                                   }
                                 }
@@ -341,7 +346,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
 
                     ScenesSelector(movieId: movieId),
                     const SectionSeperator(),
-                    ThoughtsEditor(),
+                    const ThoughtsEditor(),
                   ],
                 ),
               ),

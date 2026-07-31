@@ -73,7 +73,7 @@ class _SecureAccountBannerState extends ConsumerState<SecureAccountBanner> {
                 Container(
                   width: 22,
                   height: 22,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: StatusColors.warning,
                     shape: BoxShape.circle,
                   ),

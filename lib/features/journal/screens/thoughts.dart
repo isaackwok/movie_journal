@@ -145,12 +145,12 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
         width: 100,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: Color(0xFF202020),
+          color: const Color(0xFF202020),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add, color: Colors.white, size: 24),
+            const Icon(Icons.add, color: Colors.white, size: 24),
             const SizedBox(height: 4),
             Text(
               'Add',
@@ -185,7 +185,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
                 Navigator.pop(context);
               },
             ),
-            Expanded(
+            const Expanded(
               child: Center(
                 child: Text(
                   'Thoughts',
@@ -266,11 +266,11 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
               width: double.infinity,
               color: Theme.of(context).scaffoldBackgroundColor,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: SafeArea(
+              child: const SafeArea(
                 top: false,
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: const ReviewsFloatingButton(),
+                  child: ReviewsFloatingButton(),
                 ),
               ),
             ),

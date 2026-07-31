@@ -99,7 +99,7 @@ class _JournalContentState extends ConsumerState<JournalContent> {
                     ),
                   );
                 },
-                icon: Icon(Icons.ios_share, color: Colors.white),
+                icon: const Icon(Icons.ios_share, color: Colors.white),
               ),
               JournalContentMoreMenu(journalId: widget.journalId),
             ],
@@ -124,7 +124,7 @@ class _JournalContentState extends ConsumerState<JournalContent> {
                       style: GoogleFonts.inter(fontSize: 32),
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -138,7 +138,7 @@ class _JournalContentState extends ConsumerState<JournalContent> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
                   if (journal.emotions.isNotEmpty)
                     Padding(
@@ -148,7 +148,7 @@ class _JournalContentState extends ConsumerState<JournalContent> {
                         readonly: true,
                       ),
                     ),
-                  if (journal.emotions.isNotEmpty) SizedBox(height: 24),
+                  if (journal.emotions.isNotEmpty) const SizedBox(height: 24),
                   journal.selectedScenes.isEmpty
                       ? const SizedBox.shrink()
                       : Column(
@@ -204,7 +204,7 @@ class _JournalContentState extends ConsumerState<JournalContent> {
                           ),
                         ],
                       ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -216,7 +216,7 @@ class _JournalContentState extends ConsumerState<JournalContent> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),

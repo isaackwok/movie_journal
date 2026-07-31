@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -372,9 +373,11 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
           stickerImage: file.path,
         );
       }
-      AnalyticsManager.logJournalShared(
-        movieTitle: widget.journal.movieTitle,
-        shareMethod: 'instagram_story',
+      unawaited(
+        AnalyticsManager.logJournalShared(
+          movieTitle: widget.journal.movieTitle,
+          shareMethod: 'instagram_story',
+        ),
       );
     } catch (e) {
       debugPrint('Instagram Story share error: $e');
@@ -395,9 +398,11 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
 
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
-        AnalyticsManager.logJournalShared(
-          movieTitle: widget.journal.movieTitle,
-          shareMethod: 'threads',
+        unawaited(
+          AnalyticsManager.logJournalShared(
+            movieTitle: widget.journal.movieTitle,
+            shareMethod: 'threads',
+          ),
         );
       } else {
         if (mounted) {
@@ -430,9 +435,11 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
       if (file == null) return;
 
       await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
-      AnalyticsManager.logJournalShared(
-        movieTitle: widget.journal.movieTitle,
-        shareMethod: 'native',
+      unawaited(
+        AnalyticsManager.logJournalShared(
+          movieTitle: widget.journal.movieTitle,
+          shareMethod: 'native',
+        ),
       );
     } catch (e) {
       debugPrint('Share error: $e');
@@ -461,7 +468,9 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
       if (bytes == null) return;
 
       await Gal.putImageBytes(bytes);
-      AnalyticsManager.logTicketSaved(movieTitle: widget.journal.movieTitle);
+      unawaited(
+        AnalyticsManager.logTicketSaved(movieTitle: widget.journal.movieTitle),
+      );
 
       if (mounted) {
         CustomToast.showSuccess('Image saved to camera roll');

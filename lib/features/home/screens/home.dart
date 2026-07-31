@@ -247,9 +247,9 @@ class HomeScreen extends ConsumerWidget {
                         padding: EdgeInsets.symmetric(horizontal: 20),
                         child: EmptyPlaceholder(),
                       )
-                    : SingleChildScrollView(
-                        padding: const EdgeInsets.only(left: 20, right: 20),
-                        child: const JournalsList(),
+                    : const SingleChildScrollView(
+                        padding: EdgeInsets.only(left: 20, right: 20),
+                        child: JournalsList(),
                       ),
               ),
             ],

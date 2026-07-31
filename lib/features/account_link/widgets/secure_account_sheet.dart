@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -63,7 +65,7 @@ class _SecureAccountSheetState extends ConsumerState<SecureAccountSheet> {
 
       switch (outcome) {
         case IdentityLinkOutcome.linked:
-          AnalyticsManager.logAccountLinked(method: method);
+          unawaited(AnalyticsManager.logAccountLinked(method: method));
           // Toast before popping: FToast resolves its overlay from the context
           // it is handed, and this one is about to be torn down.
           CustomToast.init(context);
@@ -75,7 +77,7 @@ class _SecureAccountSheetState extends ConsumerState<SecureAccountSheet> {
           // as the app having done something.
           break;
         case IdentityLinkOutcome.alreadyLinkedToAnotherAccount:
-          AnalyticsManager.logAccountLinkConflict(method: method);
+          unawaited(AnalyticsManager.logAccountLinkConflict(method: method));
           setState(() => _conflictedMethod = method);
       }
     } catch (e) {
@@ -201,7 +203,7 @@ class _ConflictNotice extends StatelessWidget {
           Container(
             width: 24,
             height: 24,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: StatusColors.warning,
               shape: BoxShape.circle,
             ),

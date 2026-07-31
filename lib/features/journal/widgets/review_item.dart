@@ -24,9 +24,9 @@ class ReviewItem extends StatelessWidget {
       onTap: onPress,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 12),
+        padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 12),
         decoration: BoxDecoration(
-          color: transparent ? Colors.transparent : Color(0xFF202020),
+          color: transparent ? Colors.transparent : const Color(0xFF202020),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color:
@@ -40,7 +40,7 @@ class ReviewItem extends StatelessWidget {
           spacing: 8,
           children: [
             Padding(
-              padding: EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.only(top: 4),
               child: Text(
                 maxLines: 6,
                 overflow: TextOverflow.ellipsis,
@@ -94,7 +94,7 @@ class _SourceIcon extends StatelessWidget {
       _ => null,
     };
 
-    if (asset == null) return SizedBox(width: 24, height: 24);
+    if (asset == null) return const SizedBox(width: 24, height: 24);
 
     return Image.asset(
       asset,

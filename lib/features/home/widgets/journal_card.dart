@@ -111,7 +111,7 @@ class _JournalCardVisual extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: Color(0xFF222222),
+            color: const Color(0xFF222222),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

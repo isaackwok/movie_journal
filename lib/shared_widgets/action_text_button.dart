@@ -19,11 +19,11 @@ class ActionTextButton extends StatelessWidget {
       style: TextButton.styleFrom(
         foregroundColor: color ?? Theme.of(context).colorScheme.primary,
         overlayColor: Colors.transparent,
-        padding: EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
       ),
       child: Text(
         text,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
       ),
     );
   }

@@ -249,7 +249,7 @@ class TicketBack extends StatelessWidget {
                       Expanded(
                         child: ClipRect(
                           child: ColorFiltered(
-                            colorFilter: ColorFilter.mode(
+                            colorFilter: const ColorFilter.mode(
                               Colors.grey,
                               BlendMode.saturation,
                             ),

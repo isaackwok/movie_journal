@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
@@ -42,7 +44,7 @@ class JournalsController extends AsyncNotifier<JournalsState> {
 
     // Delete from Supabase first
     await _dbManager.deleteJournal(id);
-    AnalyticsManager.logJournalDeleted(journalId: id);
+    unawaited(AnalyticsManager.logJournalDeleted(journalId: id));
 
     // Update local state after successful deletion
     final updatedJournals =

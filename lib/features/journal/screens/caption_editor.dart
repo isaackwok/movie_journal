@@ -125,7 +125,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
         ),
         body: Column(
           children: [
-            SizedBox(height: 55),
+            const SizedBox(height: 55),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0),
               child: SizedBox(

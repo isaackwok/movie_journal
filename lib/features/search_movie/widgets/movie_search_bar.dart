@@ -68,12 +68,12 @@ class _MovieSearchBarState extends ConsumerState<MovieSearchBar> {
       hintStyle: WidgetStateProperty.all(
         GoogleFonts.inter(
           fontWeight: FontWeight.w600,
-          color: Color(0xFFA0A0A0),
+          color: const Color(0xFFA0A0A0),
           fontSize: 16,
         ),
       ),
       textStyle: WidgetStateProperty.all(
-        TextStyle(
+        const TextStyle(
           fontWeight: FontWeight.w600,
           color: Colors.white,
           fontSize: 16,

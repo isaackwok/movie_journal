@@ -41,7 +41,7 @@ class JournalsList extends ConsumerWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 Jiffy.parse(
                   entry.key,
@@ -52,7 +52,7 @@ class JournalsList extends ConsumerWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               LayoutBuilder(
                 builder: (context, constraints) {
                   // Compute cell height from cell width so the cell hugs the
