@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_journal/features/onboarding/controllers/splash_posters.dart';
 import 'package:movie_journal/features/onboarding/widgets/poster_marquee.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 import 'package:movie_journal/themes.dart';
 
 import '../../../helpers/widget_test_setup.dart';
@@ -31,11 +32,10 @@ void main() {
     setUp(() {
       container = ProviderContainer(
         overrides: [
+          // TMDB paths, not URLs — TmdbImage owns the size bucket.
           splashPostersProvider.overrideWith(
-            (ref) async => List<String>.generate(
-              8,
-              (index) => 'https://example.com/poster_$index.jpg',
-            ),
+            (ref) async =>
+                List<String>.generate(8, (index) => '/poster_$index.jpg'),
           ),
         ],
       );
@@ -71,17 +71,14 @@ void main() {
       await tester.pump(const Duration(milliseconds: 450));
 
       final posterImages = find.byWidgetPredicate(
-        (widget) =>
-            widget is Image &&
-            widget.image is NetworkImage &&
-            (widget.image as NetworkImage).url.contains('poster_'),
+        (widget) => widget is TmdbImage && widget.path.contains('poster_'),
       );
 
       expect(find.byType(PosterMarquee), findsOneWidget);
       expect(posterImages, findsAtLeastNWidgets(4));
 
       final imageRects =
-          tester.widgetList<Image>(posterImages).map((image) {
+          tester.widgetList<TmdbImage>(posterImages).map((image) {
             final element = find.byWidget(image);
             return tester.getRect(element);
           }).toList();
@@ -90,7 +87,7 @@ void main() {
           imageRects.map((rect) => rect.top.round()).toSet().length;
       expect(distinctRows, greaterThanOrEqualTo(2));
 
-      final firstPosterWidget = tester.widget<Image>(posterImages.first);
+      final firstPosterWidget = tester.widget<TmdbImage>(posterImages.first);
       expect(firstPosterWidget.width, 75);
       expect(firstPosterWidget.height, 100);
     });

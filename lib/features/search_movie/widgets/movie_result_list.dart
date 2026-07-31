@@ -7,6 +7,7 @@ import 'package:movie_journal/features/movie/controllers/search_movie_controller
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 
 class MovieResultList extends ConsumerWidget {
   final ScrollController scrollController;
@@ -156,11 +157,11 @@ class MovieResultItem extends ConsumerWidget {
               borderRadius: BorderRadius.circular(4),
               child:
                   movie.posterPath != null
-                      ? Image.network(
-                        tmdbImageUrl(movie.posterPath!, TmdbImageSize.w154),
+                      ? TmdbImage(
+                        path: movie.posterPath!,
+                        size: TmdbImageSize.w154,
                         width: 96,
                         height: 128,
-                        fit: BoxFit.cover,
                       )
                       : Image.asset(
                         'assets/images/avatar.png',

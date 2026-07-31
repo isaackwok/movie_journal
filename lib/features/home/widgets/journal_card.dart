@@ -7,6 +7,7 @@ import 'package:movie_journal/features/journal/screens/journal_content.dart';
 import 'package:movie_journal/features/journal/widgets/journal_actions.dart';
 import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 import 'package:movie_journal/themes.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 
 class JournalCard extends ConsumerStatefulWidget {
   final JournalState journal;
@@ -122,10 +123,9 @@ class _JournalCardVisual extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 child: AspectRatio(
                   aspectRatio: 150 / 215,
-                  child: Image.network(
-                    tmdbImageUrl(journal.moviePoster, TmdbImageSize.w342),
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
+                  child: TmdbImage(
+                    path: journal.moviePoster,
+                    size: TmdbImageSize.w342,
                   ),
                 ),
               ),

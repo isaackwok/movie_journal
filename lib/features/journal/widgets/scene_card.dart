@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 import 'package:movie_journal/themes.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 
 class SceneCard extends StatefulWidget {
   final String imagePath;
@@ -65,11 +66,11 @@ class _SceneCardState extends State<SceneCard> {
             topLeft: Radius.circular(8),
             topRight: Radius.circular(8),
           ),
-          child: Image.network(
-            tmdbImageUrl(widget.imagePath, TmdbImageSize.w500),
+          child: TmdbImage(
+            path: widget.imagePath,
+            size: TmdbImageSize.w500,
             width: double.infinity,
             height: 235,
-            fit: BoxFit.cover,
           ),
         ),
         TextField(
@@ -131,11 +132,11 @@ class _SceneCardState extends State<SceneCard> {
       borderRadius: BorderRadius.circular(8),
       child: Stack(
         children: [
-          Image.network(
-            tmdbImageUrl(widget.imagePath, TmdbImageSize.w500),
+          TmdbImage(
+            path: widget.imagePath,
+            size: TmdbImageSize.w500,
             width: double.infinity,
             height: 235,
-            fit: BoxFit.cover,
           ),
           if (hasCaption)
             Positioned(

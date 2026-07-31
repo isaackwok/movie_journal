@@ -8,6 +8,7 @@ import 'package:movie_journal/features/share/share_flow.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 import 'package:movie_journal/themes.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 
 class TicketPosterPickerScreen extends ConsumerStatefulWidget {
   final JournalState journal;
@@ -311,20 +312,19 @@ class _TicketPosterPickerScreenState
                         onTap: () => _onPosterSelected(poster.filePath),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            tmdbImageUrl(poster.filePath, TmdbImageSize.w500),
-                            fit: BoxFit.cover,
-                            errorBuilder:
-                                (context, error, stackTrace) => Container(
-                                  color: DarkSurfaces.imagePlaceholder,
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.movie,
-                                      color: Colors.white54,
-                                      size: 48,
-                                    ),
-                                  ),
+                          child: TmdbImage(
+                            path: poster.filePath,
+                            size: TmdbImageSize.w500,
+                            errorWidget: Container(
+                              color: DarkSurfaces.imagePlaceholder,
+                              child: const Center(
+                                child: Icon(
+                                  Icons.movie,
+                                  color: Colors.white54,
+                                  size: 48,
                                 ),
+                              ),
+                            ),
                           ),
                         ),
                       );

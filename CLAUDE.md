@@ -132,10 +132,11 @@ The app follows a feature-based architecture where each feature is self-containe
   - `tmdb_dio_client.dart` - The Movie Database API client
   - `quesgen_dio_client.dart` - AI review generation API client
 - `utils/` - Shared utility functions
-  - `tmdb_image_url.dart` - `tmdbImageUrl(path, TmdbImageSize)`, the one place TMDB image URLs are built (sizes: w154/w342/w500/w780/original; tolerates a missing leading slash). All widgets use it; the only remaining literal base URL is `splash_posters.dart`'s const fallback list. Phase 5 will hang `cacheWidth` guidance off this helper.
+  - `tmdb_image_url.dart` - `tmdbImageUrl(path, TmdbImageSize)`, the one place TMDB image URLs are built (sizes: w154/w342/w500/w780/original; tolerates a missing leading slash). Rendering call sites do not use it directly — they go through `TmdbImage` (see below), which owns the size bucket. Direct callers are `TmdbImage` itself and `tmdbImageProvider`.
 
 **lib/shared_widgets/**
 - Reusable UI components used across features
+- `tmdb_image.dart` - **Every TMDB poster/backdrop in the app renders through `TmdbImage`.** See [Working with TMDB imagery](#working-with-tmdb-imagery) for the cache policy and the two rules that are easy to break.
 - `confirmation_dialog.dart` - Generic confirmation dialog widget
 - `circled_icon_button.dart` - Circular icon button with border styling, used for back buttons and action buttons across screens
   - Props: `icon` (required), `onPressed` (required), `iconSize` (default: 16), `iconColor`, `borderColor`, `outerPadding`, `size` (default: 36)
@@ -209,6 +210,8 @@ Uses **Riverpod** for state management:
 - **google_sign_in** (7.2.0) - Google authentication integration
 - **flutter_dotenv** (6.0.0) - Environment variables (API keys stored in `.env`)
 - **skeletonizer** (2.0.1) - Loading state skeleton animations
+- **cached_network_image** (3.4.1) - Disk-backed image loading; every TMDB image goes through it via `TmdbImage`. See [Working with TMDB imagery](#working-with-tmdb-imagery) for why it was adopted.
+- **flutter_cache_manager** (3.4.2) - A direct dependency, not just a transitive one: `TmdbImageCache` configures its `CacheManager`/`Config` explicitly. Brings `sqflite` (the only new platform dependency in the set) and `path_provider` (already present).
 - **google_fonts** (6.2.1) - Custom typography (e.g., Nothing You Could Do font)
 - **flutter_svg** (2.1.0) - SVG rendering support
 - **jiffy** (6.4.3) - Date formatting and manipulation
@@ -225,6 +228,7 @@ Uses **Riverpod** for state management:
 - **custom_lint** (0.8.0) - Custom lint rule framework
 - **riverpod_lint** (3.0.3) - Riverpod-specific linting
 - **mocktail** (1.0.4) - Lightweight mocking (no codegen)
+- **file** (7.0.1) - Only for `test/helpers/fake_cache_manager.dart`: `BaseCacheManager` traffics in `package:file`'s `File`, so the fake serves bytes from a `MemoryFileSystem`.
 
 ## Environment Setup
 
@@ -375,7 +379,8 @@ Tests mirror `lib/features/` under `test/features/`. Shared helpers live in `tes
 - `test/helpers/test_journal.dart` — `makeJournal()` factory creates a `JournalState` with defaults (tmdbId: 550, movieTitle: 'Fight Club'). Override any field for specific tests.
 - `test/helpers/test_movie.dart` — `makeBriefMovieJson()`, `makeDetailedMovieJson()`, `makeCastJson()`, `makeCrewJson()` factories create TMDB-style JSON maps. Override any field for specific tests.
 - `test/helpers/fake_http_client.dart` — `FakeHttpOverrides` that returns a transparent 1x1 PNG for any HTTP GET. Used by `widget_test_setup.dart`.
-- `test/helpers/widget_test_setup.dart` — `setUpWidgetTests()` and `tearDownWidgetTests()` combine `FakeHttpOverrides` and `GoogleFonts.config.allowRuntimeFetching = false` into a single call. Use in `setUpAll`/`tearDownAll` for any widget test that renders `Image.network` or GoogleFonts widgets.
+- `test/helpers/fake_cache_manager.dart` — `FakeCacheManager`, a `BaseCacheManager` that serves the 1x1 PNG from a `MemoryFileSystem`. `FakeHttpOverrides` alone is **not** enough for `TmdbImage`: `cached_network_image` uses its own `http` client rather than `dart:io`'s, and the real `CacheManager` reaches for the `path_provider`/`sqflite` platform channels, which have no implementation under `flutter_test`. Only `getFileStream` is stubbed — everything else throws so a new dependency on it fails loudly. `failAll` / `delay` switches drive the error and placeholder branches.
+- `test/helpers/widget_test_setup.dart` — `setUpWidgetTests()` and `tearDownWidgetTests()` combine `FakeHttpOverrides`, `GoogleFonts.config.allowRuntimeFetching = false`, and `TmdbImageCache.debugCacheManagerOverride` into a single call. Use in `setUpAll`/`tearDownAll` for any widget test that renders `TmdbImage`, `Image.network`, or GoogleFonts widgets. The installed fake is exposed as `currentFakeCacheManager` so a test can assert the requested URLs or flip `failAll`/`delay` — **call `setUpWidgetTests()` again in `setUp` if you do**, since those are per-test state and a leaked `delay` hangs the next test.
 
 ### Writing New Tests
 - Place tests in `test/features/<feature>/` mirroring the source structure
@@ -388,7 +393,7 @@ Tests mirror `lib/features/` under `test/features/`. Shared helpers live in `tes
 - `SceneItem.copyWith(caption: null)` does not clear an existing caption — `??` operator preserves the old value. Clearing a caption after one was set requires a different approach than passing empty string to `updateSceneCaption()`.
 - **Riverpod 3 auto-disposes by default, which makes async provider tests *hang* rather than fail.** `container.read(someStreamOrFutureProvider.future)` with nothing listening creates the element and tears it down in the same microtask, so the future never completes and the test sits until the 30s timeout — with a secondary `Bad state: … was disposed during loading state, yet no value could be emitted`. Attach `container.listen(provider, (_, _) {})` first (see `account_link_test.dart`'s `_containerFor`). Widgets never hit this because watching keeps the element alive. Five such tests turn a 12-second suite into a 20-minute one that looks like a slow compile.
 - **A visible toast blocks taps underneath it.** `fluttertoast` inserts an overlay entry over the whole screen, so a `tester.tap()` after an error/success toast can miss its target ("derived an Offset that would not hit test on the specified widget"). Drain the toast with `pump(3s)` + `pumpAndSettle()` *before* the next tap, not just before the test ends.
-- **The global `imageCache` poisons later tests in the same file.** An `Image.network` load cut off by a test's teardown caches its *error* keyed by URL; the next `testWidgets` rendering the same URL synchronously gets the poisoned entry and Flutter's unconstrained error placeholder — which surfaces as a baffling `RenderFlex overflowed` in a layout that cannot overflow, and only when tests run in a particular order. Fix with `setUp(() { imageCache.clear(); imageCache.clearLiveImages(); });` (see `movie_result_list_test.dart`).
+- **The global `imageCache` poisons later tests in the same file.** An `Image.network` load cut off by a test's teardown caches its *error* keyed by URL; the next `testWidgets` rendering the same URL synchronously gets the poisoned entry and Flutter's unconstrained error placeholder — which surfaces as a baffling `RenderFlex overflowed` in a layout that cannot overflow, and only when tests run in a particular order. Fix with `setUp(() { imageCache.clear(); imageCache.clearLiveImages(); });` (see `movie_result_list_test.dart`). The *symptom* is now milder — `TmdbImage`'s default error widget is a bounded `Container`, not Flutter's unconstrained placeholder, so a poisoned entry shows as a blank tile rather than an overflow — but the poisoning itself is unchanged, so keep the `setUp`.
 - **`pumpAndSettle` hangs on any screen showing a `Skeletonizer` shimmer that never resolves.** `JournalingScreen`'s scenes selector stays skeletonized by design (`MovieImagesController.build()` never completes until `getMovieImages` is called), so its shimmer loops forever. Drain timers with fixed-duration `pump(Duration(...))` calls instead (see `journaling_test.dart`).
 
 ## Common Development Workflows
@@ -412,10 +417,29 @@ Tests mirror `lib/features/` under `test/features/`. Shared helpers live in `tes
 
 ### Working with TMDB API
 - API client: `lib/core/network/tmdb_dio_client.dart`
-- Image URLs go through `tmdbImageUrl(path, TmdbImageSize)` in `lib/core/utils/tmdb_image_url.dart`. **Do not fetch `/t/p/original` into phone-width boxes** — original posters run 2000×3000+ (~24MB decoded); `w780` already exceeds a phone-width box at 3x. The other call sites' buckets (w154/w342/w500) are ≤ display resolution on 2–3x phones, which is why they carry no `cacheWidth` — adding one there is a no-op or an up-scaled decode, not a saving.
+- Images render through `TmdbImage`, which picks the size bucket — see [Working with TMDB imagery](#working-with-tmdb-imagery). **Do not fetch `/t/p/original` into phone-width boxes**: original posters run 2000×3000+ (~24MB decoded), and `w780` already exceeds a phone-width box at 3x.
 - Environment variable required: TMDB API key in `.env`
 - Movie data models in `lib/features/movie/data/`
 - **`MovieImagesController.build()`** intentionally returns a never-completing `Completer<MovieImagesState>().future` so the provider stays in `AsyncLoading` until callers explicitly invoke `getMovieImages()` on the family instance (`movieImagesControllerProvider(movieId).notifier`). Do **not** make `build()` `throw` or return an empty state — both produce a one-frame UI flash on `ScenesSelector` (issue #2): `throw` flips the AsyncNotifier into `AsyncError` on the next microtask (overriding any synchronous `state = AsyncLoading` that callers set), and an empty state would briefly trigger the "Scene missing!" placeholder.
+
+### Working with TMDB imagery
+
+**Decision (ISA-18): the app uses `cached_network_image`.** Flutter's built-in
+`imageCache` is memory-only and process-scoped, so raw `Image.network` re-downloaded
+every poster on each cold start and again after any eviction. TMDB paths are
+content-addressed — `/abc123.jpg` never changes bytes — so a disk cache has no
+revalidation problem, only a size problem, which an explicit bound solves. The cost
+was measured before adopting: 11 transitive packages, of which the only genuinely new
+platform dependency is `sqflite` (`path_provider` was already pulled in by
+`share_plus`/`gal`). `sqflite_darwin` is an ordinary CocoaPods pod; no `Podfile` edit
+was needed. **Do not re-litigate this**; if it is ever reverted, the reason must be
+recorded here.
+
+- **`TmdbImage` (`lib/shared_widgets/tmdb_image.dart`) is the only way to render a TMDB image.** It takes a `path` + `TmdbImageSize`, never a URL — the size bucket is the widget's business, so no call site builds one. Widgets that used to accept an `imageUrl` (`SceneGridTile`, `SelectedSceneCard`) now accept an `imagePath`, and `splashPostersProvider` returns **paths, not URLs**, for the same reason.
+- **Where an `ImageProvider` is genuinely needed** (`precacheImage`, palette extraction), use `tmdbImageProvider(path, size)` — *not* a bare `NetworkImage`. `CachedNetworkImageProvider` equality is by URL, so the provider warms the exact `imageCache` entry the widget resolves; a `NetworkImage` would warm an entry nothing reads.
+- **Cache policy** lives in `TmdbImageCache`: key `tmdbImageCache`, `stalePeriod` 60 days, `maxNrOfCacheObjects` 400 (~20–60 MB at the w154–w780 sizes this app requests). The package defaults (30 days / 200 objects) are both short for immutable art and unbounded enough to matter — set explicitly rather than inherited.
+- **`ShareTicketScreen` rasterises the ticket through a `RepaintBoundary`**, so it must never build while an image is still a placeholder — that placeholder would be baked into the saved PNG. Two things guarantee this and both must stay: `initState` precaches the poster and `isLoading` is gated on `_posterReady`, and `TicketFront`/`TicketBack` pass `fadeInDuration: Duration.zero` so a fade in flight cannot be captured either.
+- **`cacheWidth` is deliberately absent.** ISA-12 surveyed every call site: the `w154`/`w342`/`w500` buckets are already at or below display resolution on 2–3x phones, so `cacheWidth` would be a no-op or force an upscaled decode. Do not add it.
 
 ### Modifying Journal Features
 State lives in `lib/features/journal/controllers/`: `JournalState` (single) and `JournalsState` (list). See the `journal-data-access` skill for provider patterns.

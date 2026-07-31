@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 
 class MarqueeRow extends StatelessWidget {
   final List<String> posters;
@@ -57,11 +59,11 @@ class MarqueeRow extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    for (final url in repeated)
+                    for (final path in repeated)
                       Padding(
                         padding: EdgeInsets.only(right: gap),
                         child: _PosterTile(
-                          url: url,
+                          path: path,
                           width: tileWidth,
                           height: tileHeight,
                         ),
@@ -78,12 +80,13 @@ class MarqueeRow extends StatelessWidget {
 }
 
 class _PosterTile extends StatelessWidget {
-  final String url;
+  /// A TMDB `poster_path`, not a URL — see `splashPostersProvider`.
+  final String path;
   final double width;
   final double height;
 
   const _PosterTile({
-    required this.url,
+    required this.path,
     required this.width,
     required this.height,
   });
@@ -101,17 +104,16 @@ class _PosterTile extends StatelessWidget {
         height: height,
         padding: tilePadding,
         color: Theme.of(context).colorScheme.surfaceContainer,
-        child: Image.network(
-          url,
+        child: TmdbImage(
+          path: path,
+          size: TmdbImageSize.w342,
           width: imageWidth,
           height: imageHeight,
-          fit: BoxFit.cover,
-          errorBuilder:
-              (_, _, _) => Container(
-                width: imageWidth,
-                height: imageHeight,
-                color: Colors.white10,
-              ),
+          errorWidget: Container(
+            width: imageWidth,
+            height: imageHeight,
+            color: Colors.white10,
+          ),
         ),
       ),
     );

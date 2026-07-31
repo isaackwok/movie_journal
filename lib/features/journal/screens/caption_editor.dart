@@ -5,6 +5,7 @@ import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/widgets/scene_card.dart';
 import 'package:movie_journal/shared_widgets/sheet_app_bar.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 
 class CaptionEditor extends ConsumerStatefulWidget {
   final int initialSceneIndex;
@@ -66,10 +67,10 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
   void didChangeDependencies() {
     var selectedScenes = ref.read(journalControllerProvider).selectedScenes;
     for (var scene in selectedScenes) {
-      precacheImage(
-        NetworkImage(tmdbImageUrl(scene.path, TmdbImageSize.w500)),
-        context,
-      );
+      // Must be the cached provider, not a bare NetworkImage: SceneCard renders
+      // the same scene through TmdbImage, and a different provider identity
+      // would warm a cache entry nothing ever reads.
+      precacheImage(tmdbImageProvider(scene.path, TmdbImageSize.w500), context);
     }
     super.didChangeDependencies();
   }

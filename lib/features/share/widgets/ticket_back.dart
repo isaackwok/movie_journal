@@ -4,6 +4,7 @@ import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/share/widgets/film_strip_clipper.dart';
 import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 
 class TicketBack extends StatelessWidget {
   final String movieTitle;
@@ -254,13 +255,13 @@ class TicketBack extends StatelessWidget {
                               Colors.grey,
                               BlendMode.saturation,
                             ),
-                            child: Image.network(
-                              tmdbImageUrl(scenePath!, TmdbImageSize.w500),
-                              fit: BoxFit.cover,
-                              alignment: Alignment.center,
-                              errorBuilder:
-                                  (context, error, stackTrace) =>
-                                      const SizedBox.shrink(),
+                            child: TmdbImage(
+                              path: scenePath!,
+                              size: TmdbImageSize.w500,
+                              // See TicketFront: this subtree is captured to a
+                              // PNG, so it must not be mid-fade.
+                              fadeInDuration: Duration.zero,
+                              errorWidget: const SizedBox.shrink(),
                             ),
                           ),
                         ),

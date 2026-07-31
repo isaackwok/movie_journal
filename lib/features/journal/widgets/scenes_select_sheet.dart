@@ -7,18 +7,21 @@ import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 import 'package:movie_journal/shared_widgets/sheet_app_bar.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 
 class SceneGridTile extends StatelessWidget {
   const SceneGridTile({
     super.key,
     required this.index,
-    required this.imageUrl,
+    required this.imagePath,
     required this.isSelected,
     required this.onTap,
   });
 
   final int index;
-  final String imageUrl;
+
+  /// A TMDB `file_path`; the size bucket belongs to [TmdbImage], not the caller.
+  final String imagePath;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -28,9 +31,9 @@ class SceneGridTile extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: Image.network(
-            imageUrl,
-            fit: BoxFit.cover,
+          child: TmdbImage(
+            path: imagePath,
+            size: TmdbImageSize.w500,
             width: double.infinity,
             height: double.infinity,
           ),
@@ -159,10 +162,7 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
 
                     return SceneGridTile(
                       index: selectedIndex,
-                      imageUrl: tmdbImageUrl(
-                        backdrops[index].filePath,
-                        TmdbImageSize.w500,
-                      ),
+                      imagePath: backdrops[index].filePath,
                       isSelected: isSelected,
                       onTap: () {
                         if (isSelected) {
