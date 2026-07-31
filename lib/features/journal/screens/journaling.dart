@@ -9,24 +9,13 @@ import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_complete.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector_button.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
+import 'package:movie_journal/features/journal/widgets/section_separator.dart';
 import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
 import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
-
-class SectionSeperator extends StatelessWidget {
-  const SectionSeperator({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 36),
-      child: Container(height: 0.5, color: Colors.white.withAlpha(76)),
-    );
-  }
-}
 
 class JournalingScreen extends ConsumerStatefulWidget {
   final String movieTitle;
@@ -91,9 +80,13 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
     ref.read(journalModeProvider.notifier).set(JournalMode.create);
   }
 
-  void _handleBackButton() async {
+  /// The one exit path: pop immediately when nothing was entered, otherwise
+  /// confirm the discard first. Shared by the back button and PopScope.
+  Future<void> _confirmDiscardAndPop() async {
+    final navigator = Navigator.of(context);
+
     if (!_hasUnsavedChanges()) {
-      Navigator.pop(context);
+      navigator.pop();
       _cleanupState();
       return;
     }
@@ -104,7 +97,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
     );
 
     if (shouldDiscard == true && mounted) {
-      Navigator.pop(context);
+      navigator.pop();
       _cleanupState();
     }
   }
@@ -120,24 +113,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
         canPop: false,
         onPopInvokedWithResult: (didPop, result) async {
           if (didPop) return;
-
-          final navigator = Navigator.of(context);
-
-          if (!_hasUnsavedChanges()) {
-            navigator.pop();
-            _cleanupState();
-            return;
-          }
-
-          final shouldDiscard = await showDialog<bool>(
-            context: context,
-            builder: (context) => const _DiscardChangesDialog(),
-          );
-
-          if (shouldDiscard == true) {
-            navigator.pop();
-            _cleanupState();
-          }
+          await _confirmDiscardAndPop();
         },
         child: Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
@@ -165,7 +141,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                   ),
                 ),
                 leading: CircledIconButton(
-                  onPressed: _handleBackButton,
+                  onPressed: _confirmDiscardAndPop,
                   icon: Icons.arrow_back_ios_new,
                   outerPadding: const EdgeInsets.only(left: 16),
                 ),
@@ -347,7 +323,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
                       const SizedBox(height: 36),
 
                       ScenesSelector(movieId: movieId),
-                      const SectionSeperator(),
+                      const SectionSeparator(),
                       const ThoughtsEditor(),
                     ],
                   ),
