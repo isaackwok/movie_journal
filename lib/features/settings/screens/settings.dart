@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/analytics_manager.dart';
+import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/features/account_link/controllers/account_link.dart';
 import 'package:movie_journal/features/account_link/widgets/secure_account_sheet.dart';
+import 'package:movie_journal/features/auth/auth_providers.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/supabase_auth_manager.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
@@ -30,7 +34,7 @@ class SettingsScreen extends ConsumerWidget {
         ),
         title: const Text('Settings'),
         titleSpacing: 10,
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           fontFamily: 'AvenirNext',
           fontWeight: FontWeight.w700,
           fontSize: 22,
@@ -187,9 +191,13 @@ class _AccountSection extends ConsumerWidget {
               // profile-existence answer and can skip CreateUserScreen.
               ref.invalidate(hasProfileProvider);
               if (context.mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  (route) => false,
+                unawaited(
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => const HomeScreen(),
+                    ),
+                    (route) => false,
+                  ),
                 );
               }
             },
@@ -225,12 +233,7 @@ class _AccountSection extends ConsumerWidget {
       if (!confirmed) return; // user backed out of the prompt
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Re-authentication required: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        CustomToast.showError(context, 'Re-authentication required: $e');
       }
       return;
     }
@@ -242,7 +245,7 @@ class _AccountSection extends ConsumerWidget {
     try {
       final deletedJournalIds = await SupabaseAuthManager.deleteAccount();
       for (final id in deletedJournalIds) {
-        AnalyticsManager.logJournalDeleted(journalId: id);
+        unawaited(AnalyticsManager.logJournalDeleted(journalId: id));
       }
 
       ref.invalidate(journalsControllerProvider);
@@ -250,19 +253,16 @@ class _AccountSection extends ConsumerWidget {
       ref.invalidate(hasProfileProvider);
 
       if (context.mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (route) => false,
+        unawaited(
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
+          ),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete account: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        CustomToast.showError(context, 'Failed to delete account: $e');
       }
     }
   }

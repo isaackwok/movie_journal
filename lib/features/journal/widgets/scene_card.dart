@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/themes.dart';
 
 class SceneCard extends StatefulWidget {
   final String imagePath;
@@ -59,12 +61,12 @@ class _SceneCardState extends State<SceneCard> {
       mainAxisSize: MainAxisSize.min,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.only(
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(8),
             topRight: Radius.circular(8),
           ),
           child: Image.network(
-            'https://image.tmdb.org/t/p/w500${widget.imagePath}',
+            tmdbImageUrl(widget.imagePath, TmdbImageSize.w500),
             width: double.infinity,
             height: 235,
             fit: BoxFit.cover,
@@ -74,7 +76,7 @@ class _SceneCardState extends State<SceneCard> {
           enabled: widget.isEditable,
           controller: _effectiveController,
           focusNode: widget.focusNode,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -92,29 +94,29 @@ class _SceneCardState extends State<SceneCard> {
               fontFamily: 'AvenirNext',
             ),
             filled: true,
-            fillColor: Color(0xFF151515),
-            border: OutlineInputBorder(
+            fillColor: DarkSurfaces.card,
+            border: const OutlineInputBorder(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(8),
                 bottomRight: Radius.circular(8),
               ),
               borderSide: BorderSide.none,
             ),
-            enabledBorder: OutlineInputBorder(
+            enabledBorder: const OutlineInputBorder(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(8),
                 bottomRight: Radius.circular(8),
               ),
               borderSide: BorderSide.none,
             ),
-            focusedBorder: OutlineInputBorder(
+            focusedBorder: const OutlineInputBorder(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(8),
                 bottomRight: Radius.circular(8),
               ),
               borderSide: BorderSide.none,
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
         ),
       ],
@@ -130,7 +132,7 @@ class _SceneCardState extends State<SceneCard> {
       child: Stack(
         children: [
           Image.network(
-            'https://image.tmdb.org/t/p/w500${widget.imagePath}',
+            tmdbImageUrl(widget.imagePath, TmdbImageSize.w500),
             width: double.infinity,
             height: 235,
             fit: BoxFit.cover,
@@ -174,7 +176,7 @@ class _SceneCardState extends State<SceneCard> {
         final isOverflowing = textPainter.didExceedMaxLines;
 
         return Container(
-          color: Color(0xFF151515),
+          color: DarkSurfaces.card,
           padding: EdgeInsets.symmetric(
             horizontal: horizontalPadding,
             vertical: 8,

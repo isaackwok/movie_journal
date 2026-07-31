@@ -5,9 +5,11 @@ import 'package:movie_journal/features/journal/screens/caption_editor.dart';
 import 'package:movie_journal/features/journal/widgets/scenes_select_sheet.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/themes.dart';
 
-class SceneButton extends StatelessWidget {
-  const SceneButton({
+class SelectedSceneCard extends StatelessWidget {
+  const SelectedSceneCard({
     super.key,
     required this.imageUrl,
     required this.onRemove,
@@ -51,13 +53,13 @@ class SceneButton extends StatelessWidget {
               right: 0,
               child: IconButton(
                 style: IconButton.styleFrom(
-                  minimumSize: Size(24, 24),
+                  minimumSize: const Size(24, 24),
                   padding: EdgeInsets.zero,
-                  backgroundColor: Color(0xFF151515).withAlpha(204),
-                  shape: CircleBorder(),
+                  backgroundColor: DarkSurfaces.card.withAlpha(204),
+                  shape: const CircleBorder(),
                 ),
                 onPressed: onRemove,
-                icon: Icon(Icons.close, color: Colors.white, size: 16),
+                icon: const Icon(Icons.close, color: Colors.white, size: 16),
               ),
             ),
             Positioned(
@@ -69,12 +71,12 @@ class SceneButton extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       color: Colors.black.withAlpha(128),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.text_fields,
                       color: Colors.white,
                       size: 16,
@@ -84,7 +86,7 @@ class SceneButton extends StatelessWidget {
                   if (caption != null && caption!.isNotEmpty)
                     Flexible(
                       child: Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 4,
                         ),
@@ -94,7 +96,7 @@ class SceneButton extends StatelessWidget {
                         ),
                         child: Text(
                           caption!,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.black,
                             fontFamily: 'AvenirNext',
                             fontWeight: FontWeight.w500,
@@ -150,7 +152,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
           ClipRRect(
             borderRadius: BorderRadius.circular(_borderRadius),
             child: Image.network(
-              'https://image.tmdb.org/t/p/w342$firstBackdropPath',
+              tmdbImageUrl(firstBackdropPath, TmdbImageSize.w342),
               fit: BoxFit.cover,
               width: double.infinity,
               height: double.infinity,
@@ -172,10 +174,10 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
                   child: InkWell(
                     onTap: _navigateToScenesSelectSheet,
                     borderRadius: BorderRadius.circular(8),
-                    child: Center(
+                    child: const Center(
                       child: Text(
                         "+  Add Scenes",
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -206,8 +208,8 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
             separatorBuilder: (context, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final scene = selectedScenes[index];
-              return SceneButton(
-                imageUrl: 'https://image.tmdb.org/t/p/w500${scene.path}',
+              return SelectedSceneCard(
+                imageUrl: tmdbImageUrl(scene.path, TmdbImageSize.w500),
                 sceneIndex: index,
                 caption: scene.caption,
                 onRemove: () {
@@ -221,8 +223,8 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
         ),
         OutlinedButton.icon(
           onPressed: _navigateToScenesSelectSheet,
-          icon: Icon(Icons.add, color: Colors.white, size: 20),
-          label: Text(
+          icon: const Icon(Icons.add, color: Colors.white, size: 20),
+          label: const Text(
             'Add Scene',
             style: TextStyle(
               color: Colors.white,
@@ -237,7 +239,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
               color: Theme.of(context).colorScheme.primary,
               width: 1,
             ),
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(_borderRadius),
             ),
@@ -251,10 +253,10 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
     return Container(
       height: _minMaxHeight,
       decoration: BoxDecoration(
-        color: Color(0xFF1C1C1E),
+        color: DarkSurfaces.sheetSecondary,
         borderRadius: BorderRadius.circular(_borderRadius),
       ),
-      child: Center(
+      child: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -309,7 +311,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
       spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
+        const Text(
           'What are the memorable scenes?',
           style: TextStyle(
             fontSize: 16,
@@ -337,7 +339,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(_borderRadius),
-                    child: Bone(width: double.infinity, height: _minMaxHeight),
+                    child: const Bone(width: double.infinity, height: _minMaxHeight),
                   ),
                 ),
               ),

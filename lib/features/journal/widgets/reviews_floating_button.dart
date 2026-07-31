@@ -25,13 +25,7 @@ class _ReviewsFloatingButtonState extends ConsumerState<ReviewsFloatingButton> {
 
   void _openBottomSheet() {
     if (!mounted) return;
-    showModalBottomSheet(
-      useSafeArea: true,
-      isScrollControlled: true,
-      context: context,
-      backgroundColor: const Color(0xFF171717),
-      builder: (context) => const Wrap(children: [ReviewsBottomSheet()]),
-    );
+    ReviewsBottomSheet.show(context);
   }
 
   void _onPressed() {
@@ -81,8 +75,8 @@ class _ReviewsFloatingButtonState extends ConsumerState<ReviewsFloatingButton> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5,
-                      color: Color(0xFF11FCEC),
-                      backgroundColor: Color(0xFF11FCEC).withAlpha(50),
+                      color: const Color(0xFF11FCEC),
+                      backgroundColor: const Color(0xFF11FCEC).withAlpha(50),
                     ),
                   ),
                 ),
@@ -109,9 +103,9 @@ class _ReviewsFloatingButtonState extends ConsumerState<ReviewsFloatingButton> {
                   ],
                 ),
               ),
-      label: Text(
+      label: const Text(
         'Reviews',
-        style: const TextStyle(color: Colors.white, fontFamily: 'AvenirNext'),
+        style: TextStyle(color: Colors.white, fontFamily: 'AvenirNext'),
       ),
       style: ElevatedButton.styleFrom(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),

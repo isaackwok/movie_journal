@@ -3,9 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/widgets/review_item.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
+import 'package:movie_journal/themes.dart';
 
 class ReviewsBottomSheet extends ConsumerWidget {
   const ReviewsBottomSheet({super.key});
+
+  /// The one way to open this sheet — ThoughtsScreen and ReviewsFloatingButton
+  /// used to carry byte-identical copies of this call.
+  static void show(BuildContext context) {
+    showModalBottomSheet(
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      backgroundColor: DarkSurfaces.sheet,
+      builder: (context) => const Wrap(children: [ReviewsBottomSheet()]),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -19,8 +32,8 @@ class ReviewsBottomSheet extends ConsumerWidget {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.95,
       ),
-      decoration: BoxDecoration(
-        color: Color(0xFF171717),
+      decoration: const BoxDecoration(
+        color: DarkSurfaces.sheet,
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Column(
@@ -40,8 +53,8 @@ class ReviewsBottomSheet extends ConsumerWidget {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               'Movie Reviews',
               style: TextStyle(
@@ -63,10 +76,10 @@ class ReviewsBottomSheet extends ConsumerWidget {
               ),
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Flexible(
             child: SingleChildScrollView(
-              padding: EdgeInsets.only(left: 16, right: 16, bottom: 16),
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
               child: Column(
                 spacing: 12,
                 children: [
@@ -101,7 +114,7 @@ class ReviewsBottomSheet extends ConsumerWidget {
                         ),
                       )
                       : [
-                        Text(
+                        const Text(
                           'No reviews generated',
                           style: TextStyle(
                             fontSize: 14,
@@ -113,7 +126,7 @@ class ReviewsBottomSheet extends ConsumerWidget {
               ),
             ),
           ),
-          SizedBox(height: 32),
+          const SizedBox(height: 32),
         ],
       ),
     );

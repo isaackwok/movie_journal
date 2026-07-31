@@ -4,7 +4,7 @@ import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/journal/screens/journaling.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
-import 'package:movie_journal/features/share/screens/share_ticket_screen.dart';
+import 'package:movie_journal/features/share/share_flow.dart';
 import 'package:movie_journal/features/share/screens/ticket_poster_picker_screen.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
@@ -65,16 +65,14 @@ Future<void> deleteJournal(
   String journalId,
 ) async {
   try {
-    CustomToast.init(context);
     await ref
         .read(journalsControllerProvider.notifier)
         .removeJournal(journalId);
 
     if (!context.mounted) return;
-    CustomToast.showSuccess('Journal deleted successfully');
+    CustomToast.showSuccess(context, 'Journal deleted successfully');
   } catch (e) {
     if (!context.mounted) return;
-    CustomToast.init(context);
-    CustomToast.showError('Failed to delete journal');
+    CustomToast.showError(context, 'Failed to delete journal');
   }
 }

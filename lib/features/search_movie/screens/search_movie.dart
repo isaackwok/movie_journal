@@ -31,7 +31,6 @@ class _SearchMovieScreenState extends ConsumerState<SearchMovieScreen> {
   @override
   void initState() {
     super.initState();
-    AnalyticsManager.logScreenView('SearchMovie');
     scrollController.addListener(_onScroll);
   }
 
@@ -43,65 +42,68 @@ class _SearchMovieScreenState extends ConsumerState<SearchMovieScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          ref.read(searchMovieControllerProvider.notifier).reset();
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Add Journal'),
-          centerTitle: false,
-          leadingWidth: 40 + 16,
-          leading: CircledIconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Icons.arrow_back_ios_new,
-            outerPadding: const EdgeInsets.only(left: 16),
+    return ScreenViewTracker(
+      screenName: 'SearchMovie',
+      child: PopScope(
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) {
+            ref.read(searchMovieControllerProvider.notifier).reset();
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Add Journal'),
+            centerTitle: false,
+            leadingWidth: 40 + 16,
+            leading: CircledIconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: Icons.arrow_back_ios_new,
+              outerPadding: const EdgeInsets.only(left: 16),
+            ),
           ),
-        ),
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 16,
-                  children: [
-                    MovieSearchBar(),
-                    Expanded(
-                      child: MovieResultList(
-                        scrollController: scrollController,
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 16,
+                    children: [
+                      const MovieSearchBar(),
+                      Expanded(
+                        child: MovieResultList(
+                          scrollController: scrollController,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 100,
-              child: IgnorePointer(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [
-                        Theme.of(context).colorScheme.surface,
-                        Colors.transparent,
-                      ],
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 100,
+                child: IgnorePointer(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Theme.of(context).colorScheme.surface,
+                          Colors.transparent,
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

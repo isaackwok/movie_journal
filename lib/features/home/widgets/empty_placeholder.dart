@@ -25,8 +25,8 @@ class EmptyPlaceholder extends StatelessWidget {
                   width: 180,
                 ),
               ),
-              SizedBox(height: 36),
-              Text(
+              const SizedBox(height: 36),
+              const Text(
                 'Your movie journal starts here',
                 style: TextStyle(
                   fontSize: 20,
@@ -35,8 +35,8 @@ class EmptyPlaceholder extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 4),
-              SizedBox(
+              const SizedBox(height: 4),
+              const SizedBox(
                 width: 288,
                 child: Text(
                   'Add your first movie to keep your memories going',
@@ -48,7 +48,7 @@ class EmptyPlaceholder extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
@@ -72,11 +72,11 @@ class EmptyPlaceholder extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => SearchMovieScreen(),
+                      builder: (context) => const SearchMovieScreen(),
                     ),
                   );
                 },
-                child: Text(
+                child: const Text(
                   'Add Journal',
                   style: TextStyle(
                     color: Colors.white,

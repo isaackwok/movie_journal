@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -26,7 +28,7 @@ class SecureAccountSheet extends ConsumerStatefulWidget {
   static Future<void> show(BuildContext context, {int? journalCount}) {
     return showModalBottomSheet<void>(
       context: context,
-      backgroundColor: const Color(0xFF151515),
+      backgroundColor: DarkSurfaces.card,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -56,18 +58,18 @@ class _SecureAccountSheetState extends ConsumerState<SecureAccountSheet> {
 
     try {
       final service = ref.read(accountLinkServiceProvider);
-      final outcome = method == 'apple'
-          ? await service.linkApple()
-          : await service.linkGoogle();
+      final outcome =
+          method == 'apple'
+              ? await service.linkApple()
+              : await service.linkGoogle();
       if (!mounted) return;
 
       switch (outcome) {
         case IdentityLinkOutcome.linked:
-          AnalyticsManager.logAccountLinked(method: method);
+          unawaited(AnalyticsManager.logAccountLinked(method: method));
           // Toast before popping: FToast resolves its overlay from the context
           // it is handed, and this one is about to be torn down.
-          CustomToast.init(context);
-          CustomToast.showSuccess('Account secured');
+          CustomToast.showSuccess(context, 'Account secured');
           Navigator.of(context).pop();
         case IdentityLinkOutcome.cancelled:
           // They backed out of the system prompt. Leave the sheet open — that
@@ -75,13 +77,15 @@ class _SecureAccountSheetState extends ConsumerState<SecureAccountSheet> {
           // as the app having done something.
           break;
         case IdentityLinkOutcome.alreadyLinkedToAnotherAccount:
-          AnalyticsManager.logAccountLinkConflict(method: method);
+          unawaited(AnalyticsManager.logAccountLinkConflict(method: method));
           setState(() => _conflictedMethod = method);
       }
     } catch (e) {
       if (!mounted) return;
-      CustomToast.init(context);
-      CustomToast.showError("Couldn't secure your account. Please try again.");
+      CustomToast.showError(
+        context,
+        "Couldn't secure your account. Please try again.",
+      );
     } finally {
       if (mounted) setState(() => _isLinking = false);
     }
@@ -149,9 +153,8 @@ class _SecureAccountSheetState extends ConsumerState<SecureAccountSheet> {
             const SizedBox(height: 8),
             Center(
               child: TextButton(
-                onPressed: _isLinking
-                    ? null
-                    : () => Navigator.of(context).pop(),
+                onPressed:
+                    _isLinking ? null : () => Navigator.of(context).pop(),
                 child: Text(
                   'Not now',
                   style: TextStyle(
@@ -201,7 +204,7 @@ class _ConflictNotice extends StatelessWidget {
           Container(
             width: 24,
             height: 24,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: StatusColors.warning,
               shape: BoxShape.circle,
             ),

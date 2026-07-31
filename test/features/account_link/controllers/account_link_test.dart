@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_journal/features/account_link/controllers/account_link.dart';
-import 'package:movie_journal/features/home/screens/home.dart';
+import 'package:movie_journal/features/auth/auth_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 User _user({bool isAnonymous = false}) => User(

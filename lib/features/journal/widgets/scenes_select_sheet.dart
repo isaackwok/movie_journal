@@ -5,10 +5,11 @@ import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
-import 'package:movie_journal/shared_widgets/action_text_button.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/shared_widgets/sheet_app_bar.dart';
 
-class SceneButton extends StatelessWidget {
-  const SceneButton({
+class SceneGridTile extends StatelessWidget {
+  const SceneGridTile({
     super.key,
     required this.index,
     required this.imageUrl,
@@ -50,7 +51,7 @@ class SceneButton extends StatelessWidget {
               highlightColor: Colors.transparent,
               splashColor: Colors.transparent,
               onTap: onTap,
-              child: SizedBox(width: double.infinity, height: double.infinity),
+              child: const SizedBox(width: double.infinity, height: double.infinity),
             ),
           ),
         ),
@@ -60,13 +61,13 @@ class SceneButton extends StatelessWidget {
             right: 8,
             child: Container(
               alignment: Alignment.center,
-              constraints: BoxConstraints(
+              constraints: const BoxConstraints(
                 minWidth: 20,
                 minHeight: 20,
                 maxWidth: 20,
                 maxHeight: 20,
               ),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
@@ -156,10 +157,12 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
                       (scene) => scene.path == backdrop.filePath,
                     );
 
-                    return SceneButton(
+                    return SceneGridTile(
                       index: selectedIndex,
-                      imageUrl:
-                          'https://image.tmdb.org/t/p/w500${backdrops[index].filePath}',
+                      imageUrl: tmdbImageUrl(
+                        backdrops[index].filePath,
+                        TmdbImageSize.w500,
+                      ),
                       isSelected: isSelected,
                       onTap: () {
                         if (isSelected) {
@@ -171,8 +174,8 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
                           return;
                         }
                         if (_localSelectedScenes.length >= _maxSceneLimit) {
-                          CustomToast.init(context);
                           CustomToast.showError(
+                            context,
                             'You can select up to $_maxSceneLimit scenes',
                           );
                           return;
@@ -191,40 +194,16 @@ class _ScenesSelectSheetState extends ConsumerState<ScenesSelectSheet> {
           ],
         ),
       ),
-      appBar: AppBar(
+      appBar: SheetAppBar(
+        title: 'Scenes',
         backgroundColor: Theme.of(context).colorScheme.surface,
-        automaticallyImplyLeading: false,
-        titleSpacing: 0,
-        title: Row(
-          children: [
-            ActionTextButton(
-              text: 'Cancel',
-              color: Colors.white,
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            Expanded(
-              child: Center(
-                child: Text(
-                  'Scenes',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          ActionTextButton(
-            text: 'Done',
-            onPressed: () {
-              ref
-                  .read(journalControllerProvider.notifier)
-                  .setSelectedScenes(_localSelectedScenes);
-              Navigator.pop(context);
-            },
-          ),
-        ],
+        onCancel: () => Navigator.pop(context),
+        onDone: () {
+          ref
+              .read(journalControllerProvider.notifier)
+              .setSelectedScenes(_localSelectedScenes);
+          Navigator.pop(context);
+        },
       ),
     );
   }

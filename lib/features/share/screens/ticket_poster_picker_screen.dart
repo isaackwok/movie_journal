@@ -4,7 +4,10 @@ import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/share/screens/share_ticket_screen.dart';
+import 'package:movie_journal/features/share/share_flow.dart';
 import 'package:movie_journal/analytics_manager.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/themes.dart';
 
 class TicketPosterPickerScreen extends ConsumerStatefulWidget {
   final JournalState journal;
@@ -50,7 +53,6 @@ class _TicketPosterPickerScreenState
   @override
   void initState() {
     super.initState();
-    AnalyticsManager.logScreenView('TicketPosterPicker');
     _pageController = PageController();
     _pageController.addListener(_onPageScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -186,149 +188,153 @@ class _TicketPosterPickerScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        centerTitle: true,
-        title: const Text(
-          'Choose a Ticket Poster',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-            fontFamily: 'AvenirNext',
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              onPressed: () => closeShareFlow(context, widget.entry),
-              icon: const Icon(Icons.close, color: Colors.white, size: 24),
+    return ScreenViewTracker(
+      screenName: 'TicketPosterPicker',
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          centerTitle: true,
+          title: const Text(
+            'Choose a Ticket Poster',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              fontFamily: 'AvenirNext',
             ),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Language tabs
-          SizedBox(
-            height: 48,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _languageTabs.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final isSelected = index == _selectedTabIndex;
-                return GestureDetector(
-                  key: _tabKeys[index],
-                  onTap: () => _onTabSelected(index),
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            isSelected
-                                ? Colors.white.withAlpha(179) // 70%
-                                : Colors.white.withAlpha(38), // 15%
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                onPressed: () => closeShareFlow(context, widget.entry),
+                icon: const Icon(Icons.close, color: Colors.white, size: 24),
+              ),
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Language tabs
+            SizedBox(
+              height: 48,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _languageTabs.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final isSelected = index == _selectedTabIndex;
+                  return GestureDetector(
+                    key: _tabKeys[index],
+                    onTap: () => _onTabSelected(index),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
                           color:
                               isSelected
-                                  ? Colors.white.withAlpha(230) // 90%
-                                  : Colors.transparent,
+                                  ? Colors.white.withAlpha(179) // 70%
+                                  : Colors.white.withAlpha(38), // 15%
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color:
+                                isSelected
+                                    ? Colors.white.withAlpha(230) // 90%
+                                    : Colors.transparent,
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        _languageTabs[index].$1,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'AvenirNext',
-                          color: isSelected ? Colors.black : Colors.white,
+                        child: Text(
+                          _languageTabs[index].$1,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'AvenirNext',
+                            color: isSelected ? Colors.black : Colors.white,
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Poster grid pages
-          Expanded(
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: _languageTabs.length,
-              itemBuilder: (context, pageIndex) {
-                final langCode = _languageCodeForTab(pageIndex);
-                final pagePosters = _posterCache[langCode] ?? [];
-                final isCurrentPage = pageIndex == _selectedTabIndex;
-                final isPageLoading = isCurrentPage && _loading;
-
-                if (isPageLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (pagePosters.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'No posters available',
-                      style: TextStyle(
-                        color: Colors.white.withAlpha(128),
-                        fontSize: 14,
-                        fontFamily: 'AvenirNext',
                       ),
                     ),
                   );
-                }
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
 
-                return GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 2 / 3,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: pagePosters.length,
-                  itemBuilder: (context, index) {
-                    final poster = pagePosters[index];
-                    return GestureDetector(
-                      onTap: () => _onPosterSelected(poster.filePath),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          'https://image.tmdb.org/t/p/w500${poster.filePath}',
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) => Container(
-                                color: const Color(0xFF2C2C2E),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.movie,
-                                    color: Colors.white54,
-                                    size: 48,
-                                  ),
-                                ),
-                              ),
+            // Poster grid pages
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: _languageTabs.length,
+                itemBuilder: (context, pageIndex) {
+                  final langCode = _languageCodeForTab(pageIndex);
+                  final pagePosters = _posterCache[langCode] ?? [];
+                  final isCurrentPage = pageIndex == _selectedTabIndex;
+                  final isPageLoading = isCurrentPage && _loading;
+
+                  if (isPageLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (pagePosters.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No posters available',
+                        style: TextStyle(
+                          color: Colors.white.withAlpha(128),
+                          fontSize: 14,
+                          fontFamily: 'AvenirNext',
                         ),
                       ),
                     );
-                  },
-                );
-              },
+                  }
+
+                  return GridView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 2 / 3,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                    itemCount: pagePosters.length,
+                    itemBuilder: (context, index) {
+                      final poster = pagePosters[index];
+                      return GestureDetector(
+                        onTap: () => _onPosterSelected(poster.filePath),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            tmdbImageUrl(poster.filePath, TmdbImageSize.w500),
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (context, error, stackTrace) => Container(
+                                  color: DarkSurfaces.imagePlaceholder,
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.movie,
+                                      color: Colors.white54,
+                                      size: 48,
+                                    ),
+                                  ),
+                                ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

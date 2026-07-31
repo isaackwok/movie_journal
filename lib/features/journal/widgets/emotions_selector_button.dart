@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/journal/widgets/emotions_selector_bottom_sheet.dart';
+import 'package:movie_journal/themes.dart';
 
 class EmotionsSelectorButton extends StatelessWidget {
   final List<Emotion> emotions;
@@ -33,7 +34,7 @@ class EmotionsSelectorButton extends StatelessWidget {
   LinearGradient _getEnergyGradientColors(List<Emotion> selectedEmotions) {
     if (selectedEmotions.isEmpty) {
       // Default colors when no emotions are selected
-      return LinearGradient(
+      return const LinearGradient(
         begin: Alignment.topRight,
         end: Alignment.bottomLeft,
         colors: [Color(0xFF545454), Color(0xFF545454)],
@@ -45,7 +46,7 @@ class EmotionsSelectorButton extends StatelessWidget {
 
     if (hasHighEnergy && !hasLowEnergy) {
       // All High Energy: Pink/salmon gradient
-      return LinearGradient(
+      return const LinearGradient(
         begin: Alignment.topRight,
         end: Alignment.bottomLeft,
         colors: [Color(0xFFFADD9E), Color(0xFFFF8784)],
@@ -53,7 +54,7 @@ class EmotionsSelectorButton extends StatelessWidget {
       );
     } else if (!hasHighEnergy && hasLowEnergy) {
       // All Low Energy: Teal/cyan gradient
-      return LinearGradient(
+      return const LinearGradient(
         begin: Alignment.topRight,
         end: Alignment.bottomLeft,
         colors: [Color(0xFF87C997), Color(0xFF9ADCFF)],
@@ -61,7 +62,7 @@ class EmotionsSelectorButton extends StatelessWidget {
       );
     } else {
       // Mixed Energy: Yellow/green gradient
-      return LinearGradient(
+      return const LinearGradient(
         begin: Alignment.topRight,
         end: Alignment.bottomLeft,
         colors: [
@@ -91,9 +92,9 @@ class EmotionsSelectorButton extends StatelessWidget {
   // Separators between successive emotion names, indexed by selection count.
   // For 2 selections: "A and B". For 3: "A, B and C".
   static const _separatorsByCount = <List<String>>[
-    [],              // 0 emotions
-    [],              // 1 emotion
-    [' and '],       // 2 emotions
+    [], // 0 emotions
+    [], // 1 emotion
+    [' and '], // 2 emotions
     [', ', ' and '], // 3 emotions
   ];
 
@@ -108,8 +109,7 @@ class EmotionsSelectorButton extends StatelessWidget {
       );
     }
 
-    final names =
-        selectedEmotions.map((e) => e.name.toLowerCase()).toList();
+    final names = selectedEmotions.map((e) => e.name.toLowerCase()).toList();
     final separators = _separatorsByCount[names.length];
 
     return Text.rich(
@@ -161,7 +161,7 @@ class EmotionsSelectorButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
-            color: Color(0xFF151515),
+            color: DarkSurfaces.card,
             border: Border.all(
               color: readonly ? Colors.transparent : color,
               width: 1,
