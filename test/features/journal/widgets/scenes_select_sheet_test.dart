@@ -75,7 +75,7 @@ void main() {
       await tester.pumpWidget(buildSubject(container));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(SceneButton).first);
+      await tester.tap(find.byType(SceneGridTile).first);
       await tester.pump();
 
       expect(find.text('Select up to 10 (1/10)'), findsOneWidget);
@@ -97,13 +97,13 @@ void main() {
 
       // Fill the cap.
       for (var i = 0; i < 10; i++) {
-        await tester.tap(find.byType(SceneButton).at(i));
+        await tester.tap(find.byType(SceneGridTile).at(i));
         await tester.pump();
       }
       expect(find.text('Select up to 10 (10/10)'), findsOneWidget);
 
       // Tapping an 11th is blocked: count holds at 10/10 and a toast appears.
-      await tester.tap(find.byType(SceneButton).at(10));
+      await tester.tap(find.byType(SceneGridTile).at(10));
       await tester.pump();
       expect(find.text('Select up to 10 (10/10)'), findsOneWidget);
       expect(find.text('You can select up to 10 scenes'), findsWidgets);
