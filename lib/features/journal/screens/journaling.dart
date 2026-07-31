@@ -53,9 +53,7 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
   @override
   void initState() {
     super.initState();
-    AnalyticsManager.logScreenView('Journaling');
     _scrollController.addListener(_onScroll);
-    CustomToast.init(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(journalModeProvider.notifier).set(
           _isEditMode ? JournalMode.edit : JournalMode.create);
@@ -116,242 +114,247 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
     final movieAsync = ref.watch(movieDetailControllerProvider);
     final movieId = movieAsync.hasValue ? movieAsync.value!.id : 0;
     final journal = ref.watch(journalControllerProvider);
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
+    return ScreenViewTracker(
+      screenName: 'Journaling',
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
 
-        final navigator = Navigator.of(context);
+          final navigator = Navigator.of(context);
 
-        if (!_hasUnsavedChanges()) {
-          navigator.pop();
-          _cleanupState();
-          return;
-        }
+          if (!_hasUnsavedChanges()) {
+            navigator.pop();
+            _cleanupState();
+            return;
+          }
 
-        final shouldDiscard = await showDialog<bool>(
-          context: context,
-          builder: (context) => const _DiscardChangesDialog(),
-        );
+          final shouldDiscard = await showDialog<bool>(
+            context: context,
+            builder: (context) => const _DiscardChangesDialog(),
+          );
 
-        if (shouldDiscard == true) {
-          navigator.pop();
-          _cleanupState();
-        }
-      },
-      child: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        body: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            SliverAppBar(
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              pinned: true,
-              floating: true,
-              snap: true,
-              automaticallyImplyLeading: false,
-              centerTitle: true,
-              title: AnimatedOpacity(
-                opacity: _showTitle ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 200),
-                child: Text(
-                  widget.movieTitle,
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
+          if (shouldDiscard == true) {
+            navigator.pop();
+            _cleanupState();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          body: CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              SliverAppBar(
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                pinned: true,
+                floating: true,
+                snap: true,
+                automaticallyImplyLeading: false,
+                centerTitle: true,
+                title: AnimatedOpacity(
+                  opacity: _showTitle ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Text(
+                    widget.movieTitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              leading: CircledIconButton(
-                onPressed: _handleBackButton,
-                icon: Icons.arrow_back_ios_new,
-                outerPadding: const EdgeInsets.only(left: 16),
-              ),
-              leadingWidth: 40 + 16,
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: ElevatedButton(
-                    onPressed:
-                        _isSaving ||
-                                (journal.emotions.isEmpty &&
-                                    journal.selectedScenes.isEmpty &&
-                                    journal.thoughts.isEmpty)
-                            ? null
-                            : () async {
-                              setState(() {
-                                _isSaving = true;
-                              });
-                              try {
-                                if (_isEditMode) {
-                                  await ref
-                                      .read(journalControllerProvider.notifier)
-                                      .update();
-                                  if (context.mounted) {
-                                    CustomToast.showSuccess(
-                                      'Your journal has been updated.',
-                                    );
-                                    Navigator.of(context).popUntil(
-                                      (route) => route.isFirst,
-                                    );
-                                  }
-                                } else {
-                                  await ref
-                                      .read(journalControllerProvider.notifier)
-                                      .save();
-                                  final savedJournal =
-                                      ref.read(journalControllerProvider);
-                                  if (context.mounted) {
-                                    unawaited(
-                                      Navigator.pushAndRemoveUntil(
+                leading: CircledIconButton(
+                  onPressed: _handleBackButton,
+                  icon: Icons.arrow_back_ios_new,
+                  outerPadding: const EdgeInsets.only(left: 16),
+                ),
+                leadingWidth: 40 + 16,
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: ElevatedButton(
+                      onPressed:
+                          _isSaving ||
+                                  (journal.emotions.isEmpty &&
+                                      journal.selectedScenes.isEmpty &&
+                                      journal.thoughts.isEmpty)
+                              ? null
+                              : () async {
+                                setState(() {
+                                  _isSaving = true;
+                                });
+                                try {
+                                  if (_isEditMode) {
+                                    await ref
+                                        .read(journalControllerProvider.notifier)
+                                        .update();
+                                    if (context.mounted) {
+                                      CustomToast.showSuccess(
                                         context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) =>
-                                                  JournalCompleteScreen(
-                                                    journal: savedJournal,
-                                                  ),
-                                        ),
+                                        'Your journal has been updated.',
+                                      );
+                                      Navigator.of(context).popUntil(
                                         (route) => route.isFirst,
-                                      ),
+                                      );
+                                    }
+                                  } else {
+                                    await ref
+                                        .read(journalControllerProvider.notifier)
+                                        .save();
+                                    final savedJournal =
+                                        ref.read(journalControllerProvider);
+                                    if (context.mounted) {
+                                      unawaited(
+                                        Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) =>
+                                                    JournalCompleteScreen(
+                                                      journal: savedJournal,
+                                                    ),
+                                          ),
+                                          (route) => route.isFirst,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                  _cleanupState();
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    CustomToast.showError(
+                                      context,
+                                      'Failed to save journal. Please try again.',
                                     );
                                   }
+                                } finally {
+                                  if (mounted) {
+                                    setState(() {
+                                      _isSaving = false;
+                                    });
+                                  }
                                 }
-                                _cleanupState();
-                              } catch (e) {
-                                if (context.mounted) {
-                                  CustomToast.showError(
-                                    'Failed to save journal. Please try again.',
-                                  );
-                                }
-                              } finally {
-                                if (mounted) {
-                                  setState(() {
-                                    _isSaving = false;
-                                  });
-                                }
-                              }
-                            },
-                    style: ButtonStyle(
-                      shape: WidgetStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                              },
+                      style: ButtonStyle(
+                        shape: WidgetStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
-                      ),
-                      padding: WidgetStateProperty.all(
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      textStyle: WidgetStateProperty.all(
-                        const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
+                        padding: WidgetStateProperty.all(
+                          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
-                      ),
-                      overlayColor: WidgetStateProperty.all(
-                        Theme.of(context).colorScheme.primary,
-                      ),
-                      backgroundColor: WidgetStateProperty.all(
-                        Colors.transparent,
-                      ),
-                      side: WidgetStateProperty.resolveWith((states) {
-                        if (states.contains(WidgetState.disabled)) {
+                        textStyle: WidgetStateProperty.all(
+                          const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                        overlayColor: WidgetStateProperty.all(
+                          Theme.of(context).colorScheme.primary,
+                        ),
+                        backgroundColor: WidgetStateProperty.all(
+                          Colors.transparent,
+                        ),
+                        side: WidgetStateProperty.resolveWith((states) {
+                          if (states.contains(WidgetState.disabled)) {
+                            return BorderSide(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withAlpha(76),
+                              width: 1,
+                            );
+                          }
                           return BorderSide(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withAlpha(76),
+                            color: Theme.of(context).colorScheme.primary,
                             width: 1,
                           );
-                        }
-                        return BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 1,
-                        );
-                      }),
-                      foregroundColor: WidgetStateProperty.resolveWith((
-                        states,
-                      ) {
-                        if (states.contains(WidgetState.disabled)) {
-                          return Colors.white.withAlpha(76);
-                        }
-                        return Colors.white;
-                      }),
-                    ),
-                    child: _isSaving
-                        ? SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: Center(
-                            child: SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                                backgroundColor: Colors.white.withAlpha(50),
+                        }),
+                        foregroundColor: WidgetStateProperty.resolveWith((
+                          states,
+                        ) {
+                          if (states.contains(WidgetState.disabled)) {
+                            return Colors.white.withAlpha(76);
+                          }
+                          return Colors.white;
+                        }),
+                      ),
+                      child: _isSaving
+                          ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: Center(
+                              child: SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                  backgroundColor: Colors.white.withAlpha(50),
+                                ),
                               ),
                             ),
-                          ),
-                        )
-                        : const Text('Save'),
+                          )
+                          : const Text('Save'),
+                    ),
+                  ),
+                ],
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 8,
+                          children: [
+                            Text(
+                              widget.movieTitle,
+                              style: GoogleFonts.inter(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              _isEditMode
+                                  ? journal.createdAt.format(pattern: 'MMM do yyyy')
+                                  : Jiffy.now().format(pattern: 'MMM do yyyy'),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white.withAlpha(179),
+                                fontFamily: 'AvenirNext',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 36),
+                      EmotionsSelectorButton(
+                        emotions: journal.emotions,
+                        onSave: (selectedEmotions) {
+                          ref
+                              .read(journalControllerProvider.notifier)
+                              .setEmotions(selectedEmotions);
+                        },
+                      ),
+                      const SizedBox(height: 36),
+
+                      ScenesSelector(movieId: movieId),
+                      const SectionSeperator(),
+                      const ThoughtsEditor(),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 8,
-                        children: [
-                          Text(
-                            widget.movieTitle,
-                            style: GoogleFonts.inter(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            _isEditMode
-                                ? journal.createdAt.format(pattern: 'MMM do yyyy')
-                                : Jiffy.now().format(pattern: 'MMM do yyyy'),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white.withAlpha(179),
-                              fontFamily: 'AvenirNext',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 36),
-                    EmotionsSelectorButton(
-                      emotions: journal.emotions,
-                      onSave: (selectedEmotions) {
-                        ref
-                            .read(journalControllerProvider.notifier)
-                            .setEmotions(selectedEmotions);
-                      },
-                    ),
-                    const SizedBox(height: 36),
-
-                    ScenesSelector(movieId: movieId),
-                    const SectionSeperator(),
-                    const ThoughtsEditor(),
-                  ],
-                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

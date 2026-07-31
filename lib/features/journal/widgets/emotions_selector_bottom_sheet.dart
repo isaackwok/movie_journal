@@ -264,8 +264,8 @@ class _EmotionsSelectorBottomSheetState
     // Block (with feedback) when trying to exceed the cap.
     if (!isSelected &&
         _tempSelectedEmotions.length >= widget.maxSelectionLimit) {
-      CustomToast.init(context);
       CustomToast.showError(
+        context,
         'You can select up to ${widget.maxSelectionLimit} emotions',
       );
       return;

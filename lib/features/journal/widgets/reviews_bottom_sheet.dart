@@ -7,6 +7,18 @@ import 'package:movie_journal/features/quesgen/provider.dart';
 class ReviewsBottomSheet extends ConsumerWidget {
   const ReviewsBottomSheet({super.key});
 
+  /// The one way to open this sheet — ThoughtsScreen and ReviewsFloatingButton
+  /// used to carry byte-identical copies of this call.
+  static void show(BuildContext context) {
+    showModalBottomSheet(
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      backgroundColor: const Color(0xFF171717),
+      builder: (context) => const Wrap(children: [ReviewsBottomSheet()]),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final quesgenState = ref.watch(quesgenControllerProvider);

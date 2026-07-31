@@ -23,7 +23,6 @@ class _BrandingSplashScreenState extends ConsumerState<BrandingSplashScreen>
   @override
   void initState() {
     super.initState();
-    AnalyticsManager.logScreenView('OnboardingSplash');
 
     // Pre-warm the poster fetch so it likely arrives during fade-in.
     // ignore: unused_result
@@ -35,9 +34,10 @@ class _BrandingSplashScreenState extends ConsumerState<BrandingSplashScreen>
     );
     _fade = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 1.0).chain(
-          CurveTween(curve: Curves.easeOut),
-        ),
+        tween: Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 20, // 0–600ms fade-in
       ),
       TweenSequenceItem(
@@ -45,9 +45,10 @@ class _BrandingSplashScreenState extends ConsumerState<BrandingSplashScreen>
         weight: 60, // 600–2400ms hold
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 1.0, end: 0.0).chain(
-          CurveTween(curve: Curves.easeIn),
-        ),
+        tween: Tween(
+          begin: 1.0,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
         weight: 20, // 2400–3000ms fade-out
       ),
     ]).animate(_fadeController);
@@ -75,50 +76,53 @@ class _BrandingSplashScreenState extends ConsumerState<BrandingSplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Bottom marquee strip — clipped to the bottom 380px so the rotated,
-          // overflowing column can never escape this region.
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 380,
-            child: PosterMarquee(progress: _marqueeController),
-          ),
-          // Center brand mark (logo + wordmark are baked into the SVG) and
-          // tagline. The SVG already contains the "i + ticket" mark *and* the
-          // handwritten "Fink" word, so we don't render an extra wordmark here.
-          Center(
-            child: FadeTransition(
-              opacity: _fade,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SvgPicture.asset(
-                    'assets/images/fink_logo.svg',
-                    height: 160,
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'From film to ink,\nBuild your movie journey.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      height: 1.35,
-                      fontFamily: 'AvenirNext',
-                      fontWeight: FontWeight.w400,
+    return ScreenViewTracker(
+      screenName: 'OnboardingSplash',
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Bottom marquee strip — clipped to the bottom 380px so the rotated,
+            // overflowing column can never escape this region.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 380,
+              child: PosterMarquee(progress: _marqueeController),
+            ),
+            // Center brand mark (logo + wordmark are baked into the SVG) and
+            // tagline. The SVG already contains the "i + ticket" mark *and* the
+            // handwritten "Fink" word, so we don't render an extra wordmark here.
+            Center(
+              child: FadeTransition(
+                opacity: _fade,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/fink_logo.svg',
+                      height: 160,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    const Text(
+                      'From film to ink,\nBuild your movie journey.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        height: 1.35,
+                        fontFamily: 'AvenirNext',
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

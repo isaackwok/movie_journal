@@ -24,13 +24,7 @@ class _ReviewsFloatingButtonState extends ConsumerState<ReviewsFloatingButton> {
 
   void _openBottomSheet() {
     if (!mounted) return;
-    showModalBottomSheet(
-      useSafeArea: true,
-      isScrollControlled: true,
-      context: context,
-      backgroundColor: const Color(0xFF171717),
-      builder: (context) => const Wrap(children: [ReviewsBottomSheet()]),
-    );
+    ReviewsBottomSheet.show(context);
   }
 
   void _onPressed() {

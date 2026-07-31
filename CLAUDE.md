@@ -75,7 +75,7 @@ The app follows a feature-based architecture where each feature is self-containe
 - **journal/** - Core journaling features with full workflow from movie selection to saving
   - `controllers/` - JournalState (single journal), JournalsState (list of journals), JournalMode enum + JournalModeNotifier (create/edit mode)
   - `screens/` - Journaling (main editor), JournalComplete (post-save success screen), JournalContent (view saved journal), MoviePreview, ThoughtsScreen (`thoughts.dart`), CaptionEditor. Note `ThoughtsScreen` (screen) and `ThoughtsEditor` (widget, below) are different classes — don't confuse them.
-  - `widgets/` - EmotionsSelectorButton, EmotionsSelectorBottomSheet, ScenesSelector, ScenesSelectSheet, SceneCard, ReviewItem, ReviewsBottomSheet, ThoughtsEditor, AiReferencesAccordion, JournalContentMoreMenu, and `journal_actions.dart` — a set of shared helper functions (`editJournal`, `shareJournal`, `confirmDeleteJournal`, `deleteJournal`) that encapsulate the domain actions a journal can undergo. Reused by both the more-menu on `JournalContent` and the long-press menu on `JournalCard`. The helpers own the *domain action* (load state / navigate to editor, confirm dialog, Supabase delete + toast, navigate to `TicketPosterPickerScreen`) but intentionally leave post-action navigation (e.g. popping after delete) to the caller, since that depends on which screen initiated the action.
+  - `widgets/` - EmotionsSelectorButton, EmotionsSelectorBottomSheet, ScenesSelector (whose selected-scene card is `SelectedSceneCard`), ScenesSelectSheet (whose grid tile is `SceneGridTile`), SceneCard, ReviewItem, ReviewsBottomSheet (opened only via `ReviewsBottomSheet.show(context)` — ThoughtsScreen and ReviewsFloatingButton share it), ThoughtsEditor, AiReferencesAccordion, JournalContentMoreMenu, and `journal_actions.dart` — a set of shared helper functions (`editJournal`, `shareJournal`, `confirmDeleteJournal`, `deleteJournal`) that encapsulate the domain actions a journal can undergo. Reused by both the more-menu on `JournalContent` and the long-press menu on `JournalCard`. The helpers own the *domain action* (load state / navigate to editor, confirm dialog, Supabase delete + toast, navigate to `TicketPosterPickerScreen`) but intentionally leave post-action navigation (e.g. popping after delete) to the caller, since that depends on which screen initiated the action.
 
 - **movie/** - Movie data management with repository pattern
   - `controllers/` - MovieDetailController, MovieImagesController, SearchMovieController
@@ -102,7 +102,7 @@ The app follows a feature-based architecture where each feature is self-containe
   - `widgets/` - FlippableTicket (3D flip animation), TicketFront (poster side), TicketBack (details side), FilmStripClipper (perforation CustomClipper)
 
 - **login/** - Authentication screens and user creation flows
-  - `screens/` - LoginScreen, CreateUserScreen (username input with validation: alphanumeric/underscore/dot only, uniqueness check via the `username_available` RPC, error toasts use `ToastGravity.TOP` to stay visible above the keyboard). `validateUsername()` is a top-level function for testability.
+  - `screens/` - LoginScreen, CreateUserScreen (username input with validation: alphanumeric/underscore/dot only, uniqueness check via the `username_available` RPC, error toasts use `CustomToast.showError(..., gravity: ToastGravity.TOP)` to stay visible above the keyboard). `validateUsername()` is a top-level function for testability.
 
 - **onboarding/** - Branded splash shown on cold start when the user is unauthenticated
   - `screens/` - BrandingSplashScreen — fade-in/hold/fade-out timeline (3s total) via a single `AnimationController` + `TweenSequence` (mirrors `journal_complete.dart`'s pattern). When the fade controller hits `completed`, calls `splashShownProvider.markShown()` so `HomeScreen` re-renders to `LoginScreen`. **No `Navigator.push`** — the splash plugs into `HomeScreen`'s stream-driven conditional in `home.dart` (the `splashShown ? LoginScreen : BrandingSplashScreen` branch), gated by `splashShownProvider`.
@@ -118,7 +118,7 @@ The app follows a feature-based architecture where each feature is self-containe
   - `screens/` - SettingsScreen (displays username, sign out, delete account options). Logout and delete flows invalidate journal/username providers to prevent stale data on re-login. When `needsAccountLinkProvider` is true it grows a warning-colored **Secure Account** item (the only entry point once the one-time prompt is gone) and the Logout dialog swaps in copy saying that getting back in depends on this device. Deliberately *not* "you will lose everything" — logging out is recoverable; see the `supabase-migration` skill.
 
 - **toast/** - Toast notification utilities
-  - `custom_toast.dart` - Custom toast built on `fluttertoast`. Three static entry points — `showSuccess(context, msg)`, `showError(msg)`, `showWarning(msg)` — all render the same dark bordered card via a private `_show({icon, statusColor, message})`; only the icon glyph + accent vary. The icon is a filled circle in the status color with a **plain black** inner glyph. Colors come from `StatusColors` in `themes.dart` (success = primary `#A8DADD`, error `#FF615D`, warning `#FF9F1C`) — the single source of truth. `showSuccess` keeps a `context` param for call-site compatibility but no longer uses it for styling. Call `CustomToast.init(context)` once before showing (idiom: init immediately before the show call). Status→color mapping pinned by `custom_toast_test.dart`.
+  - `custom_toast.dart` - Custom toast built on `fluttertoast`. Three static entry points — `showSuccess(context, msg)`, `showError(context, msg, {gravity})`, `showWarning(context, msg)` — all render the same dark bordered card via a private `_show(...)`; only the icon glyph + accent vary. The icon is a filled circle in the status color with a **plain black** inner glyph. Colors come from `StatusColors` in `themes.dart` (success = primary `#A8DADD`, error `#FF615D`, warning `#FF9F1C`) — the single source of truth. There is no `init` step: `_show` re-inits its `FToast` from the passed context on every call (the old `CustomToast.init(context)` + show pairing is gone). `showError` takes an optional `gravity` (default `ToastGravity.BOTTOM`; the enum is re-exported from `custom_toast.dart` so call sites don't import fluttertoast) — CreateUserScreen passes `ToastGravity.TOP` to stay above the keyboard. This is the app's only error surface: no raw `Fluttertoast` or `SnackBar` calls. Status→color mapping pinned by `custom_toast_test.dart`.
 
 ### Core Infrastructure
 
@@ -126,12 +126,15 @@ The app follows a feature-based architecture where each feature is self-containe
 - `network/` - Dio HTTP clients for external APIs
   - `tmdb_dio_client.dart` - The Movie Database API client
   - `quesgen_dio_client.dart` - AI review generation API client
+- `utils/` - Shared utility functions
+  - `tmdb_image_url.dart` - `tmdbImageUrl(path, TmdbImageSize)`, the one place TMDB image URLs are built (sizes: w154/w342/w500/w780/original; tolerates a missing leading slash). All widgets use it; the only remaining literal base URL is `splash_posters.dart`'s const fallback list. Phase 5 will hang `cacheWidth` guidance off this helper.
 
 **lib/shared_widgets/**
 - Reusable UI components used across features
 - `confirmation_dialog.dart` - Generic confirmation dialog widget
 - `circled_icon_button.dart` - Circular icon button with border styling, used for back buttons and action buttons across screens
   - Props: `icon` (required), `onPressed` (required), `iconSize` (default: 16), `iconColor`, `borderColor`, `outerPadding`, `size` (default: 36)
+- `sheet_app_bar.dart` - `SheetAppBar({title?, onCancel, onDone, backgroundColor?})`, the Cancel / centered-title / Done app bar shared by ThoughtsScreen, ScenesSelectSheet, and CaptionEditor (which passes no title). Implements `PreferredSizeWidget`.
 - `provider_sign_in_button.dart` - `ProviderSignInButton`, the outlined Apple/Google button. Extracted from `login.dart`'s private `_SignInButton` when `SecureAccountSheet` needed the same control: both flows ask for the same credential through the same native prompt, so they must look identical. Only the label differs ("Sign in with…" vs "Continue with…").
 
 **Root-level managers:**
@@ -263,7 +266,7 @@ feature_name/
 - Supports light and dark themes (default: dark mode)
 - Theme definitions in `lib/themes.dart`
 - Access colors via `Theme.of(context).colorScheme`
-- **Status colors**: `StatusColors` (in `themes.dart`) holds `success` (= primary `#A8DADD`), `error` (`#FF615D`), `warning` (`#FF9F1C`) as context-free constants — used as icon backgrounds (e.g. toasts), with a black inner glyph. They're constants rather than a `ThemeExtension` because consumers like `CustomToast.showError` run without a `BuildContext`.
+- **Status colors**: `StatusColors` (in `themes.dart`) holds `success` (= primary `#A8DADD`), `error` (`#FF615D`), `warning` (`#FF9F1C`) as context-free constants — used as icon backgrounds (e.g. toasts), with a black inner glyph. They're constants rather than a `ThemeExtension` because they're identical in every theme and consumers shouldn't need a `BuildContext` just to pick an accent.
 
 ### Loading States
 - Use **Skeletonizer** package for skeleton screens
@@ -343,7 +346,7 @@ Journals store `Jiffy.toString()`, a **naive local** string with no zone. Postgr
 
 ### Analytics
 - `AnalyticsManager` in `lib/analytics_manager.dart` wraps `FirebaseAnalytics` with static methods. Disabled in debug builds (`!kDebugMode`, set in `main.dart`). All events, screen names, and user properties live there — read the source rather than maintaining a list here.
-- **Screen tracking pattern**: stateful screens call `logScreenView()` in `initState`; ConsumerWidget screens wrap in the `ScreenViewTracker` widget.
+- **Screen tracking pattern**: one idiom — every screen wraps its built root in the `ScreenViewTracker` widget (no `logScreenView()`-in-`initState` variant anymore). Screens with early loading/error returns (e.g. `JournalContent`) wrap only the main state so transient frames aren't logged. `ThoughtsScreen` deliberately does **not** log a screen view — it is a section of the Journaling flow, and logging it inflated screen counts.
 - **User identification**: `ref.listenManual` on auth/username providers in `MyApp` sets user id + `sign_in_method` / `username` properties.
 - **iOS config**: `IS_ANALYTICS_ENABLED: true` in `GoogleService-Info.plist`.
 
@@ -414,7 +417,7 @@ State lives in `lib/features/journal/controllers/`: `JournalState` (single) and 
 - **Caption editor focus management**: `caption_editor.dart` owns `_captionFocusNodes` keyed by scene path. A `postFrameCallback` in `initState` focuses the initial scene's `TextField`; `_onPageChanged` re-focuses on every swipe so the keyboard stays up as the user captions multiple scenes.
 - **Journal actions**: `lib/features/journal/widgets/journal_actions.dart` holds `editJournal` / `shareJournal` / `confirmDeleteJournal` / `deleteJournal`. Reused by both `JournalContent`'s more-menu and `JournalCard`'s context menu. Helpers own the domain action but leave post-action navigation to the caller.
 - **`ReviewItem`** has four visual states via `showAction` / `isSelected` / `transparent` props — used in reviews bottom sheet (add/selected), AI references accordion (transparent, no action), etc.
-- **Selection-limit UX (scenes & emotions share one pattern)**: both `ScenesSelectSheet` (cap `_maxSceneLimit = 10`) and `EmotionsSelectorBottomSheet` (`maxSelectionLimit = 3`) show the same limit text — `'Select up to N (M/N)'`, styled `AvenirNext / 14 / w500 / height 1.5 / Colors.white.withAlpha(153)`, no color change at the cap. In `ScenesSelectSheet` this count is a **fixed header** above an `Expanded(SingleChildScrollView(GridView))` so it stays visible while the grid scrolls (don't move it back inside the scroll view). Tapping an *unselected* item while already at the cap is blocked **and** shows `CustomToast.showError('You can select up to N scenes/emotions')` (preceded by `CustomToast.init(context)`, per the `journal_actions.dart` idiom); deselect/re-select stay silent. **Testing gotcha**: the toast spawns chained `fluttertoast` timers (≈2s show + fade), so any widget test that triggers an over-cap tap must drain them with `await tester.pump(const Duration(seconds: 3)); await tester.pumpAndSettle();` or it fails with "Timer still pending" (see `scenes_select_sheet_test.dart` / `emotions_selector_bottom_sheet_test.dart`).
+- **Selection-limit UX (scenes & emotions share one pattern)**: both `ScenesSelectSheet` (cap `_maxSceneLimit = 10`) and `EmotionsSelectorBottomSheet` (`maxSelectionLimit = 3`) show the same limit text — `'Select up to N (M/N)'`, styled `AvenirNext / 14 / w500 / height 1.5 / Colors.white.withAlpha(153)`, no color change at the cap. In `ScenesSelectSheet` this count is a **fixed header** above an `Expanded(SingleChildScrollView(GridView))` so it stays visible while the grid scrolls (don't move it back inside the scroll view). Tapping an *unselected* item while already at the cap is blocked **and** shows `CustomToast.showError(context, 'You can select up to N scenes/emotions')`; deselect/re-select stay silent. **Testing gotcha**: the toast spawns chained `fluttertoast` timers (≈2s show + fade), so any widget test that triggers an over-cap tap must drain them with `await tester.pump(const Duration(seconds: 3)); await tester.pumpAndSettle();` or it fails with "Timer still pending" (see `scenes_select_sheet_test.dart` / `emotions_selector_bottom_sheet_test.dart`).
 
 ### Working with Share Ticket
 Feature lives under `lib/features/share/`. Flow: callers → `TicketPosterPickerScreen` → `ShareTicketScreen`.

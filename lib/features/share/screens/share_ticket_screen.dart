@@ -67,7 +67,6 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
   @override
   void initState() {
     super.initState();
-    AnalyticsManager.logScreenView('ShareTicket');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
           .read(movieDetailControllerProvider.notifier)
@@ -80,7 +79,6 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
 
   void _showShareBottomSheet() {
     final thoughts = widget.journal.thoughts;
-    CustomToast.init(context);
 
     showModalBottomSheet(
       context: context,
@@ -162,7 +160,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
                               Clipboard.setData(ClipboardData(text: thoughts));
-                              CustomToast.showSuccess('Copied to clipboard');
+                              CustomToast.showSuccess(context, 'Copied to clipboard');
                             },
                             child: Padding(
                               // Vertical padding enlarges the touch target so it
@@ -182,7 +180,9 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
-                                      color: Colors.white.withValues(alpha: 0.7),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.7,
+                                      ),
                                       fontFamily: 'AvenirNext',
                                     ),
                                   ),
@@ -355,8 +355,6 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
   }
 
   Future<void> _shareToInstagramStory() async {
-    CustomToast.init(context);
-
     try {
       final file = await _captureTicketToFile('movie_ticket_story.png');
       if (file == null) return;
@@ -382,14 +380,15 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
     } catch (e) {
       debugPrint('Instagram Story share error: $e');
       if (mounted) {
-        CustomToast.showError('Could not open Instagram. Is it installed?');
+        CustomToast.showError(
+          context,
+          'Could not open Instagram. Is it installed?',
+        );
       }
     }
   }
 
   Future<void> _shareToThreads() async {
-    CustomToast.init(context);
-
     try {
       final text = _composeThreadsText();
       final uri = Uri.parse(
@@ -406,13 +405,16 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
         );
       } else {
         if (mounted) {
-          CustomToast.showError('Could not open Threads. Is it installed?');
+          CustomToast.showError(
+            context,
+            'Could not open Threads. Is it installed?',
+          );
         }
       }
     } catch (e) {
       debugPrint('Threads share error: $e');
       if (mounted) {
-        CustomToast.showError('Could not open Threads');
+        CustomToast.showError(context, 'Could not open Threads');
       }
     }
   }
@@ -449,7 +451,6 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
   Future<void> _saveImage() async {
     if (_saving) return;
     setState(() => _saving = true);
-    CustomToast.init(context);
 
     try {
       // Request gallery permission
@@ -458,7 +459,7 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
         final granted = await Gal.requestAccess();
         if (!granted) {
           if (mounted) {
-            CustomToast.showError('Photo library access denied');
+            CustomToast.showError(context, 'Photo library access denied');
           }
           return;
         }
@@ -473,12 +474,12 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
       );
 
       if (mounted) {
-        CustomToast.showSuccess('Image saved to camera roll');
+        CustomToast.showSuccess(context, 'Image saved to camera roll');
       }
     } catch (e) {
       debugPrint('Save image error: $e');
       if (mounted) {
-        CustomToast.showError('Failed to save image');
+        CustomToast.showError(context, 'Failed to save image');
       }
     } finally {
       if (mounted) {
@@ -498,9 +499,8 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
     if (!asyncJournals.hasValue) return 0;
     final journals = asyncJournals.value?.journals;
     if (journals == null || journals.isEmpty) return 0;
-    final sorted = [...journals]..sort(
-      (a, b) => a.createdAt.dateTime.compareTo(b.createdAt.dateTime),
-    );
+    final sorted = [...journals]
+      ..sort((a, b) => a.createdAt.dateTime.compareTo(b.createdAt.dateTime));
     final index = sorted.indexWhere((j) => j.id == journalId);
     return index == -1 ? 0 : index + 1;
   }
@@ -513,7 +513,9 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
 
     final journal = widget.journal;
     final isLoading =
-        asyncMovie.isLoading || asyncImages.isLoading || asyncJournals.isLoading;
+        asyncMovie.isLoading ||
+        asyncImages.isLoading ||
+        asyncJournals.isLoading;
 
     // Extract movie details
     final movie = asyncMovie.hasValue ? asyncMovie.value : null;
@@ -538,102 +540,107 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
 
     final ticketNumber = _computeTicketNumber(asyncJournals, journal.id);
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leadingWidth: 56,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: CircledIconButton(
-            icon: Icons.arrow_back_ios_new,
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              onPressed: _onClose,
-              icon: const Icon(Icons.close, color: Colors.white, size: 24),
+    return ScreenViewTracker(
+      screenName: 'ShareTicket',
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leadingWidth: 56,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: CircledIconButton(
+              icon: Icons.arrow_back_ios_new,
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ),
-        ],
-      ),
-      body:
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                children: [
-                  Expanded(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: AspectRatio(
-                          aspectRatio: 2 / 3,
-                          child: RepaintBoundary(
-                            key: _repaintKey,
-                            child: FlippableTicket(
-                              hintOnMount: true,
-                              front: TicketFront(
-                                posterPath:
-                                    widget.posterPath ?? journal.moviePoster,
-                              ),
-                              back: TicketBack(
-                                movieTitle: journal.movieTitle,
-                                year: year,
-                                releaseDate: releaseDate,
-                                director: director,
-                                cast: cast,
-                                emotions: journal.emotions,
-                                scenePath: scenePath,
-                                createdAt: journal.createdAt,
-                                ticketNumber: ticketNumber,
+          centerTitle: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                onPressed: _onClose,
+                icon: const Icon(Icons.close, color: Colors.white, size: 24),
+              ),
+            ),
+          ],
+        ),
+        body:
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: AspectRatio(
+                            aspectRatio: 2 / 3,
+                            child: RepaintBoundary(
+                              key: _repaintKey,
+                              child: FlippableTicket(
+                                hintOnMount: true,
+                                front: TicketFront(
+                                  posterPath:
+                                      widget.posterPath ?? journal.moviePoster,
+                                ),
+                                back: TicketBack(
+                                  movieTitle: journal.movieTitle,
+                                  year: year,
+                                  releaseDate: releaseDate,
+                                  director: director,
+                                  cast: cast,
+                                  emotions: journal.emotions,
+                                  scenePath: scenePath,
+                                  createdAt: journal.createdAt,
+                                  ticketNumber: ticketNumber,
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
-                    child: Row(
-                      children: [
-                        CircledIconButton(
-                          icon: Icons.download,
-                          onPressed: _saving ? null : _saveImage,
-                          iconSize: 20,
-                          size: 48,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _showShareBottomSheet,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primary,
-                              foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'AvenirNext',
-                              ),
-                            ),
-                            child: const Text('Share'),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+                      child: Row(
+                        children: [
+                          CircledIconButton(
+                            icon: Icons.download,
+                            onPressed: _saving ? null : _saveImage,
+                            iconSize: 20,
+                            size: 48,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: _showShareBottomSheet,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                foregroundColor: Colors.black,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                textStyle: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'AvenirNext',
+                                ),
+                              ),
+                              child: const Text('Share'),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+      ),
     );
   }
 }

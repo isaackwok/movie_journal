@@ -6,6 +6,7 @@ import 'package:movie_journal/features/journal/screens/movie_preview.dart';
 import 'package:movie_journal/features/movie/controllers/search_movie_controller.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 
 class MovieResultList extends ConsumerWidget {
   final ScrollController scrollController;
@@ -151,7 +152,7 @@ class MovieResultItem extends ConsumerWidget {
               child:
                   movie.posterPath != null
                       ? Image.network(
-                        'https://image.tmdb.org/t/p/w154/${movie.posterPath}',
+                        tmdbImageUrl(movie.posterPath!, TmdbImageSize.w154),
                         width: 96,
                         height: 128,
                         fit: BoxFit.cover,
