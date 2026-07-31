@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -43,29 +41,29 @@ class SupabaseDbManager {
 
   // ------------------------------------------------------------ translation
 
-  /// Postgres row -> the exact camelCase map `JournalState.fromJson` expects.
+  /// Postgres row -> the exact camelCase map `JournalState.fromMap` expects.
   static JournalState rowToJournal(Map<String, dynamic> row) {
-    return JournalState.fromJson(
-      jsonEncode({
-        'id': row['id'],
-        'tmdbId': row['tmdb_id'],
-        'movieTitle': row['movie_title'] ?? '',
-        'moviePoster': row['movie_poster'] ?? '',
-        // text[] arrives as List<dynamic>; jsonb columns as decoded JSON.
-        // fromJson already handles the legacy string-vs-object shapes for
-        // scenes and refs, so they are passed through untouched.
-        'emotions': row['emotions'] ?? const [],
-        'selectedScenes': row['selected_scenes'] ?? const [],
-        'selectedRefs': row['selected_refs'] ?? const [],
-        'thoughts': row['thoughts'] ?? '',
-        'createdAt': row['created_at'] == null
-            ? null
-            : pgTimestampToLocalNaive(row['created_at'] as String),
-        'updatedAt': row['updated_at'] == null
-            ? null
-            : pgTimestampToLocalNaive(row['updated_at'] as String),
-      }),
-    );
+    return JournalState.fromMap({
+      'id': row['id'],
+      'tmdbId': row['tmdb_id'],
+      'movieTitle': row['movie_title'] ?? '',
+      'moviePoster': row['movie_poster'] ?? '',
+      // text[] arrives as List<dynamic>; jsonb columns as decoded JSON.
+      // fromJson already handles the legacy string-vs-object shapes for
+      // scenes and refs, so they are passed through untouched.
+      'emotions': row['emotions'] ?? const [],
+      'selectedScenes': row['selected_scenes'] ?? const [],
+      'selectedRefs': row['selected_refs'] ?? const [],
+      'thoughts': row['thoughts'] ?? '',
+      'createdAt':
+          row['created_at'] == null
+              ? null
+              : pgTimestampToLocalNaive(row['created_at'] as String),
+      'updatedAt':
+          row['updated_at'] == null
+              ? null
+              : pgTimestampToLocalNaive(row['updated_at'] as String),
+    });
   }
 
   /// JournalState -> snake_case column map. Timestamps are absolute UTC.
@@ -107,11 +105,12 @@ class SupabaseDbManager {
 
   /// Returns the new row's uuid, replacing Firestore's DocumentReference.
   Future<String> addJournal(String userId, JournalState journal) async {
-    final row = await _db
-        .from('journals')
-        .insert(journalToRow(journal, userId: userId))
-        .select('id')
-        .single();
+    final row =
+        await _db
+            .from('journals')
+            .insert(journalToRow(journal, userId: userId))
+            .select('id')
+            .single();
     return row['id'] as String;
   }
 
@@ -134,11 +133,13 @@ class SupabaseDbManager {
   Future<void> updateJournal(String journalId, JournalState journal) async {
     await _db
         .from('journals')
-        .update(journalToRow(
-          journal,
-          userId: _requireUserId(),
-          includeCreatedAt: false,
-        ))
+        .update(
+          journalToRow(
+            journal,
+            userId: _requireUserId(),
+            includeCreatedAt: false,
+          ),
+        )
         .eq('id', journalId);
   }
 
@@ -164,20 +165,13 @@ class SupabaseDbManager {
   }
 
   Future<bool> userExists(String userId) async {
-    final row = await _db
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .maybeSingle();
+    final row =
+        await _db.from('profiles').select('id').eq('id', userId).maybeSingle();
     return row != null;
   }
 
   Future<Map<String, dynamic>?> getUser(String userId) async {
-    return await _db
-        .from('profiles')
-        .select()
-        .eq('id', userId)
-        .maybeSingle();
+    return await _db.from('profiles').select().eq('id', userId).maybeSingle();
   }
 
   /// Sets `updated_at`, which is the delta-sync's signal that the new app owns
@@ -187,10 +181,13 @@ class SupabaseDbManager {
     required String username,
   }) async {
     try {
-      await _db.from('profiles').update({
-        'username': username,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', userId);
+      await _db
+          .from('profiles')
+          .update({
+            'username': username,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', userId);
     } on PostgrestException catch (e) {
       if (e.code == '23505') throw Exception('Username is already taken');
       rethrow;
