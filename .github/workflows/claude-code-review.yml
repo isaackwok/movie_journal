@@ -19,10 +19,13 @@ jobs:
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
 
     runs-on: ubuntu-latest
+    # write on pull-requests + issues is what lets the action post its review and
+    # inline comments. With read, the run still reports success but every write is
+    # denied and the findings are discarded with the runner (ISA-26).
     permissions:
       contents: read
-      pull-requests: read
-      issues: read
+      pull-requests: write
+      issues: write
       id-token: write
 
     steps:
@@ -39,6 +42,11 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          # Echo the final report into the workflow log as well. The action defaults
+          # this to false, which is why the ISA-26 runs left no trace anywhere once
+          # the PR write was denied. Keep it on: it is the fallback that makes a
+          # future posting failure visible instead of silent.
+          display_report: true
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
