@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:movie_journal/analytics_manager.dart';
@@ -33,12 +35,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    AnalyticsManager.logScreenView('Login');
-  }
-
   /// Cancelled prompts stay silent — backing out of the Apple/Google sheet is
   /// an ordinary choice, not a failure. Real faults get an error toast; the
   /// success path needs no navigation because `home.dart` reacts to the auth
@@ -51,12 +47,11 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final response = await flow();
       if (response == null) return;
-      AnalyticsManager.logSignIn(method: method);
+      unawaited(AnalyticsManager.logSignIn(method: method));
     } catch (e) {
       debugPrint('Sign-in with $method failed: $e');
       if (mounted) {
-        CustomToast.init(context);
-        CustomToast.showError('Sign-in failed. Please try again.');
+        CustomToast.showError(context, 'Sign-in failed. Please try again.');
       }
     } finally {
       if (mounted) {
@@ -67,57 +62,60 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(),
-              // Title
-              const Text(
-                'Start your movie journals.',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  height: 1.5,
-                  fontFamily: 'AvenirNext',
+    return ScreenViewTracker(
+      screenName: 'Login',
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(),
+                // Title
+                const Text(
+                  'Start your movie journals.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    height: 1.5,
+                    fontFamily: 'AvenirNext',
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              // Subtitle
-              const Text(
-                'Get started by signing in with your\nGoogle or Apple accounts.',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  height: 1.5,
-                  fontFamily: 'AvenirNext',
+                const SizedBox(height: 16),
+                // Subtitle
+                const Text(
+                  'Get started by signing in with your\nGoogle or Apple accounts.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    height: 1.5,
+                    fontFamily: 'AvenirNext',
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 48),
-              // Sign in with Google button
-              ProviderSignInButton(
-                disabled: _isLoading,
-                onPressed: () => _signIn(widget.googleSignIn, method: 'google'),
-                icon: SvgPicture.asset('assets/images/google_icon.svg'),
-                label: 'Sign in with Google',
-              ),
-              const SizedBox(height: 16),
-              // Sign in with Apple button
-              ProviderSignInButton(
-                disabled: _isLoading,
-                onPressed: () => _signIn(widget.appleSignIn, method: 'apple'),
-                icon: const Icon(Icons.apple, color: Colors.white, size: 28),
-                label: 'Sign in with Apple',
-              ),
-              const Spacer(),
-            ],
+                const SizedBox(height: 48),
+                // Sign in with Google button
+                ProviderSignInButton(
+                  disabled: _isLoading,
+                  onPressed: () => _signIn(widget.googleSignIn, method: 'google'),
+                  icon: SvgPicture.asset('assets/images/google_icon.svg'),
+                  label: 'Sign in with Google',
+                ),
+                const SizedBox(height: 16),
+                // Sign in with Apple button
+                ProviderSignInButton(
+                  disabled: _isLoading,
+                  onPressed: () => _signIn(widget.appleSignIn, method: 'apple'),
+                  icon: const Icon(Icons.apple, color: Colors.white, size: 28),
+                  label: 'Sign in with Apple',
+                ),
+                const Spacer(),
+              ],
+            ),
           ),
         ),
       ),

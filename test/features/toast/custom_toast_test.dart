@@ -14,13 +14,11 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: Builder(
-            builder: (context) => ElevatedButton(
-              onPressed: () {
-                CustomToast.init(context);
-                show(context);
-              },
-              child: const Text('go'),
-            ),
+            builder:
+                (context) => ElevatedButton(
+                  onPressed: () => show(context),
+                  child: const Text('go'),
+                ),
           ),
         ),
       ),
@@ -32,7 +30,9 @@ void main() {
   // The icon circle is the nearest Container ancestor of the glyph.
   BoxDecoration circleOf(WidgetTester tester, IconData icon) {
     final container = tester.widget<Container>(
-      find.ancestor(of: find.byIcon(icon), matching: find.byType(Container)).first,
+      find
+          .ancestor(of: find.byIcon(icon), matching: find.byType(Container))
+          .first,
     );
     return container.decoration as BoxDecoration;
   }
@@ -43,9 +43,10 @@ void main() {
   }
 
   group('CustomToast status → color mapping', () {
-    testWidgets('success uses the primary status color with a black check',
-        (tester) async {
-      await showToast(tester, (c) => CustomToast.showSuccess('Saved'));
+    testWidgets('success uses the primary status color with a black check', (
+      tester,
+    ) async {
+      await showToast(tester, (c) => CustomToast.showSuccess(c, 'Saved'));
 
       expect(find.text('Saved'), findsWidgets);
       expect(tester.widget<Icon>(find.byIcon(Icons.check)).color, Colors.black);
@@ -56,9 +57,10 @@ void main() {
       await drainToastTimers(tester);
     });
 
-    testWidgets('error uses the error status color with a black cross',
-        (tester) async {
-      await showToast(tester, (_) => CustomToast.showError('Nope'));
+    testWidgets('error uses the error status color with a black cross', (
+      tester,
+    ) async {
+      await showToast(tester, (c) => CustomToast.showError(c, 'Nope'));
 
       expect(find.text('Nope'), findsWidgets);
       expect(tester.widget<Icon>(find.byIcon(Icons.close)).color, Colors.black);
@@ -67,9 +69,10 @@ void main() {
       await drainToastTimers(tester);
     });
 
-    testWidgets('warning uses the warning status color with a black bang',
-        (tester) async {
-      await showToast(tester, (_) => CustomToast.showWarning('Careful'));
+    testWidgets('warning uses the warning status color with a black bang', (
+      tester,
+    ) async {
+      await showToast(tester, (c) => CustomToast.showWarning(c, 'Careful'));
 
       expect(find.text('Careful'), findsWidgets);
       expect(

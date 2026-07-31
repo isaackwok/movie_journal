@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movie_journal/analytics_manager.dart';
+import 'package:movie_journal/features/toast/custom_toast.dart';
+import 'package:movie_journal/features/auth/auth_providers.dart';
 import 'package:movie_journal/features/home/screens/home.dart';
 import 'package:movie_journal/supabase_auth_manager.dart';
 import 'package:movie_journal/supabase_db_manager.dart';
@@ -63,12 +66,6 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
   bool _isLoading = false;
 
   @override
-  void initState() {
-    super.initState();
-    AnalyticsManager.logScreenView('CreateUser');
-  }
-
-  @override
   void dispose() {
     _usernameController.dispose();
     super.dispose();
@@ -96,10 +93,10 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
     // Validate username format
     final validationError = validateUsername(username);
     if (validationError != null) {
-      Fluttertoast.showToast(
-        msg: validationError,
-        backgroundColor: Colors.red,
-        toastLength: Toast.LENGTH_LONG,
+      // TOP so the toast stays visible above the keyboard.
+      CustomToast.showError(
+        context,
+        validationError,
         gravity: ToastGravity.TOP,
       );
       return;
@@ -112,10 +109,9 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
       final available = await _checkUsernameAvailable(username);
       if (!available) {
         if (mounted) {
-          Fluttertoast.showToast(
-            msg: 'Username already taken. Please choose another one.',
-            backgroundColor: Colors.red,
-            toastLength: Toast.LENGTH_LONG,
+          CustomToast.showError(
+            context,
+            'Username already taken. Please choose another one.',
             gravity: ToastGravity.TOP,
           );
         }
@@ -131,23 +127,22 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
       // this screen. Without invalidating, HomeScreen re-renders straight back
       // to CreateUserScreen and signup appears to do nothing.
       ref.invalidate(hasProfileProvider);
-      AnalyticsManager.logSignUp(
-        method: SupabaseAuthManager.signInMethod ?? 'unknown',
+      unawaited(
+        AnalyticsManager.logSignUp(
+          method: SupabaseAuthManager.signInMethod ?? 'unknown',
+        ),
       );
       if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-          (route) => false,
+        unawaited(
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+            (route) => false,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        Fluttertoast.showToast(
-          msg: 'Error: $e',
-          backgroundColor: Colors.red,
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.TOP,
-        );
+        CustomToast.showError(context, 'Error: $e', gravity: ToastGravity.TOP);
       }
     } finally {
       if (mounted) {
@@ -172,123 +167,132 @@ class _CreateUserScreenState extends ConsumerState<CreateUserScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.only(left: 32.0, right: 32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Title
-              const Text(
-                'Pick a name.',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  height: 1.5,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'AvenirNext',
+    return ScreenViewTracker(
+      screenName: 'CreateUser',
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 32.0, right: 32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Title
+                const Text(
+                  'Pick a name.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    height: 1.5,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'AvenirNext',
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              // Subtitle
-              const Text(
-                'Tell me more about you.',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontFamily: 'AvenirNext',
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              // Username label
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Username',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Username input field
-              TextField(
-                controller: _usernameController,
-                enabled: !_isLoading,
-                autocorrect: false,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
-                decoration: InputDecoration(
-                  hintText: 'name or nickname',
-                  hintStyle: TextStyle(
-                    color: Colors.white.withAlpha(76),
+                const SizedBox(height: 4),
+                // Subtitle
+                const Text(
+                  'Tell me more about you.',
+                  style: TextStyle(
+                    color: Colors.white,
                     fontSize: 16,
+                    fontFamily: 'AvenirNext',
                   ),
-                  filled: false,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.white, width: 1),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.white, width: 2),
-                  ),
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: Colors.white.withAlpha(76),
-                      width: 1,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                // Username label
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Username',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                 ),
-              ),
-              const SizedBox(height: 76),
-              // Start Journaling button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleStartJournaling,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(
-                      0xFFB4E4E4,
-                    ), // Light blue color
-                    disabledBackgroundColor: const Color(
-                      0xFFB4E4E4,
-                    ).withAlpha(127),
-                    shape: RoundedRectangleBorder(
+                const SizedBox(height: 8),
+                // Username input field
+                TextField(
+                  controller: _usernameController,
+                  enabled: !_isLoading,
+                  autocorrect: false,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  decoration: InputDecoration(
+                    hintText: 'name or nickname',
+                    hintStyle: TextStyle(
+                      color: Colors.white.withAlpha(76),
+                      fontSize: 16,
+                    ),
+                    filled: false,
+                    enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.white,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.white,
+                        width: 2,
+                      ),
+                    ),
+                    disabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.white.withAlpha(76),
+                        width: 1,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
                     ),
                   ),
-                  child:
-                      _isLoading
-                          ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.black,
+                ),
+                const SizedBox(height: 76),
+                // Start Journaling button
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _handleStartJournaling,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(
+                        0xFFB4E4E4,
+                      ), // Light blue color
+                      disabledBackgroundColor: const Color(
+                        0xFFB4E4E4,
+                      ).withAlpha(127),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child:
+                        _isLoading
+                            ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.black,
+                                ),
+                              ),
+                            )
+                            : const Text(
+                              'Start Journaling',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          )
-                          : const Text(
-                            'Start Journaling',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 32),
-            ],
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),

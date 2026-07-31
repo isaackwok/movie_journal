@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movie_journal/themes.dart';
 
 class ConfirmationDialog extends StatelessWidget {
   final String title;
@@ -46,14 +47,14 @@ class ConfirmationDialog extends StatelessWidget {
       fontSize: 14,
       fontWeight: FontWeight.w500,
       height: 1.4,
-      color: Color(0xFFFF615D),
+      color: StatusColors.error,
     ),
   });
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Color(0xFF151515),
+      backgroundColor: DarkSurfaces.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
         padding: const EdgeInsets.all(24),

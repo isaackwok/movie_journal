@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/share/widgets/film_strip_clipper.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 
 class TicketBack extends StatelessWidget {
   final String movieTitle;
@@ -249,12 +250,12 @@ class TicketBack extends StatelessWidget {
                       Expanded(
                         child: ClipRect(
                           child: ColorFiltered(
-                            colorFilter: ColorFilter.mode(
+                            colorFilter: const ColorFilter.mode(
                               Colors.grey,
                               BlendMode.saturation,
                             ),
                             child: Image.network(
-                              'https://image.tmdb.org/t/p/w500$scenePath',
+                              tmdbImageUrl(scenePath!, TmdbImageSize.w500),
                               fit: BoxFit.cover,
                               alignment: Alignment.center,
                               errorBuilder:

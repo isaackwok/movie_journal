@@ -4,6 +4,7 @@ import 'package:movie_journal/features/journal/widgets/review_item.dart';
 import 'package:movie_journal/features/quesgen/review.dart';
 
 import '../../../helpers/widget_test_setup.dart';
+import 'package:movie_journal/themes.dart';
 
 void main() {
   setUpAll(() => setUpWidgetTests());
@@ -54,8 +55,9 @@ void main() {
     });
 
     group('action button states', () {
-      testWidgets('hides action button when showAction is false',
-          (tester) async {
+      testWidgets('hides action button when showAction is false', (
+        tester,
+      ) async {
         await tester.pumpWidget(buildSubject(showAction: false));
         expect(find.byIcon(Icons.add_rounded), findsNothing);
         expect(find.byIcon(Icons.check_rounded), findsNothing);
@@ -82,25 +84,30 @@ void main() {
           buildSubject(showAction: true, isSelected: true),
         );
         final container = tester.widget<Container>(
-          find.ancestor(
-            of: find.byIcon(Icons.check_rounded),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .ancestor(
+                of: find.byIcon(Icons.check_rounded),
+                matching: find.byType(Container),
+              )
+              .first,
         );
         final decoration = container.decoration as BoxDecoration;
         expect(decoration.color, const Color(0xFFA8DADD));
       });
 
-      testWidgets('unselected button has transparent background',
-          (tester) async {
+      testWidgets('unselected button has transparent background', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           buildSubject(showAction: true, isSelected: false),
         );
         final container = tester.widget<Container>(
-          find.ancestor(
-            of: find.byIcon(Icons.add_rounded),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .ancestor(
+                of: find.byIcon(Icons.add_rounded),
+                matching: find.byType(Container),
+              )
+              .first,
         );
         final decoration = container.decoration as BoxDecoration;
         expect(decoration.color, Colors.transparent);
@@ -108,65 +115,72 @@ void main() {
     });
 
     group('transparent variant', () {
-      testWidgets('has transparent background when transparent is true',
-          (tester) async {
+      testWidgets('has transparent background when transparent is true', (
+        tester,
+      ) async {
         await tester.pumpWidget(buildSubject(transparent: true));
 
         // Find the outer Container of the ReviewItem (the one with decoration)
-        final containers = tester
-            .widgetList<Container>(find.byType(Container))
-            .where((c) =>
-                c.decoration is BoxDecoration &&
-                (c.decoration as BoxDecoration).borderRadius != null)
-            .toList();
+        final containers =
+            tester
+                .widgetList<Container>(find.byType(Container))
+                .where(
+                  (c) =>
+                      c.decoration is BoxDecoration &&
+                      (c.decoration as BoxDecoration).borderRadius != null,
+                )
+                .toList();
 
         // The first matching container should be the ReviewItem's outer container
         final outerDecoration = containers.first.decoration as BoxDecoration;
         expect(outerDecoration.color, Colors.transparent);
       });
 
-      testWidgets('has visible border when transparent is true',
-          (tester) async {
+      testWidgets('has visible border when transparent is true', (
+        tester,
+      ) async {
         await tester.pumpWidget(buildSubject(transparent: true));
 
-        final containers = tester
-            .widgetList<Container>(find.byType(Container))
-            .where((c) =>
-                c.decoration is BoxDecoration &&
-                (c.decoration as BoxDecoration).borderRadius != null)
-            .toList();
+        final containers =
+            tester
+                .widgetList<Container>(find.byType(Container))
+                .where(
+                  (c) =>
+                      c.decoration is BoxDecoration &&
+                      (c.decoration as BoxDecoration).borderRadius != null,
+                )
+                .toList();
 
         final outerDecoration = containers.first.decoration as BoxDecoration;
         expect(outerDecoration.border, isNotNull);
         // White with alpha 76
-        expect(
-          outerDecoration.border!.top.color,
-          Colors.white.withAlpha(76),
-        );
+        expect(outerDecoration.border!.top.color, Colors.white.withAlpha(76));
       });
 
-      testWidgets('has dark background when transparent is false',
-          (tester) async {
+      testWidgets('has dark background when transparent is false', (
+        tester,
+      ) async {
         await tester.pumpWidget(buildSubject(transparent: false));
 
-        final containers = tester
-            .widgetList<Container>(find.byType(Container))
-            .where((c) =>
-                c.decoration is BoxDecoration &&
-                (c.decoration as BoxDecoration).borderRadius != null)
-            .toList();
+        final containers =
+            tester
+                .widgetList<Container>(find.byType(Container))
+                .where(
+                  (c) =>
+                      c.decoration is BoxDecoration &&
+                      (c.decoration as BoxDecoration).borderRadius != null,
+                )
+                .toList();
 
         final outerDecoration = containers.first.decoration as BoxDecoration;
-        expect(outerDecoration.color, const Color(0xFF202020));
+        expect(outerDecoration.color, DarkSurfaces.raisedCard);
       });
     });
 
     group('interaction', () {
       testWidgets('calls onPress when tapped', (tester) async {
         var tapped = false;
-        await tester.pumpWidget(
-          buildSubject(onPress: () => tapped = true),
-        );
+        await tester.pumpWidget(buildSubject(onPress: () => tapped = true));
         await tester.tap(find.byType(InkWell).first);
         expect(tapped, isTrue);
       });

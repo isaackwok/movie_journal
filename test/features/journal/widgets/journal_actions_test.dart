@@ -3,8 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_journal/features/journal/widgets/journal_actions.dart';
-import 'package:movie_journal/features/share/screens/share_ticket_screen.dart';
 import 'package:movie_journal/features/share/screens/ticket_poster_picker_screen.dart';
+import 'package:movie_journal/features/share/share_flow.dart';
 
 import '../../../helpers/test_journal.dart';
 import '../../../helpers/widget_test_setup.dart';

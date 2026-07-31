@@ -6,6 +6,7 @@ import 'package:movie_journal/features/journal/screens/movie_preview.dart';
 import 'package:movie_journal/features/movie/controllers/search_movie_controller.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 
 class MovieResultList extends ConsumerWidget {
   final ScrollController scrollController;
@@ -38,7 +39,7 @@ class MovieResultList extends ConsumerWidget {
             itemCount: hasHeader ? state.movies.length + 1 : state.movies.length,
             itemBuilder: (context, index) {
               if (hasHeader && index == 0) {
-                return Text(
+                return const Text(
                   'People watched',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 );
@@ -67,9 +68,9 @@ class MovieResultList extends ConsumerWidget {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
-                        child: Bone(width: 96, height: 128),
+                        child: const Bone(width: 96, height: 128),
                       ),
-                      Expanded(
+                      const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -95,7 +96,7 @@ class MovieResultList extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
+                const Text(
                   'Error loading movies',
                   style: TextStyle(
                     color: Color(0xFFFCA311),
@@ -103,10 +104,10 @@ class MovieResultList extends ConsumerWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => ref.refresh(searchMovieControllerProvider),
-                  child: Text('Retry'),
+                  child: const Text('Retry'),
                 ),
               ],
             ),
@@ -156,7 +157,7 @@ class MovieResultItem extends ConsumerWidget {
               child:
                   movie.posterPath != null
                       ? Image.network(
-                        'https://image.tmdb.org/t/p/w154/${movie.posterPath}',
+                        tmdbImageUrl(movie.posterPath!, TmdbImageSize.w154),
                         width: 96,
                         height: 128,
                         fit: BoxFit.cover,

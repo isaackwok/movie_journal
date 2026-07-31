@@ -73,7 +73,11 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   custom_lint: ^0.8.0
-  riverpod_lint: ^3.0.3
+  # Capped below 3.1.0: riverpod_lint 3.1.x dropped its custom_lint entrypoint
+  # (moved to the analysis_server_plugin system), and custom_lint's generated
+  # client resolves this constraint independently — 3.1.x makes it fail to
+  # compile ("Not found: package:riverpod_lint/riverpod_lint.dart").
+  riverpod_lint: ">=3.0.3 <3.1.0"
   mocktail: ^1.0.4
 
 # For information on the generic Dart part of this file, see the
@@ -140,7 +144,3 @@ flutter:
           weight: 700
         - asset: fonts/AvenirNextCyr-Heavy.ttf
           weight: 800
-
-analyzer:
-  plugins:
-    - custom_lint
