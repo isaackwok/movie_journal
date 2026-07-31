@@ -64,6 +64,8 @@ flutter pub outdated
 
 The app follows a feature-based architecture where each feature is self-contained in `lib/features/`:
 
+- **auth/** - `auth_providers.dart`: the app-wide auth providers, importable without dragging in any screen — `authStateProvider` (Supabase auth stream), `currentUsernameProvider`, `anonymousBridgeProvider` (one-shot pre-login migration bridge), `hasProfileProvider` (HomeScreen vs CreateUserScreen; runs `claim_migrated_data()` once on a missing profile). Moved out of `home/screens/home.dart` (ISA-11) so features stop importing a screen file to reach auth state.
+
 - **home/** - Main dashboard: journal entries list, empty state, add movie button
   - `screens/` - HomeScreen. Empty state renders `EmptyPlaceholder` outside `SingleChildScrollView` (needs bounded height for `LayoutBuilder`); non-empty state wraps `JournalsList` in `SingleChildScrollView`.
   - `widgets/` - JournalCard, JournalsList, EmptyPlaceholder, AddMovieButton.
