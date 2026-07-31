@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:movie_journal/features/home/screens/home.dart';
+import 'package:movie_journal/features/auth/auth_providers.dart';
 import 'package:movie_journal/supabase_auth_manager.dart';
 
 /// Seam between the link UI and the auth SDK.

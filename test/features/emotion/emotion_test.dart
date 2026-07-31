@@ -58,12 +58,14 @@ void main() {
     // Built with `final` (not const) so instances are not canonicalized and
     // the == override is actually exercised.
     test('same fields → equal, same hashCode', () {
+      // ignore: prefer_const_constructors
       final a = Emotion(
         id: 'joyful',
         name: 'Joyful',
         group: 'Uplifting',
         energyLevel: 'high',
       );
+      // ignore: prefer_const_constructors
       final b = Emotion(
         id: 'joyful',
         name: 'Joyful',
@@ -76,12 +78,14 @@ void main() {
     });
 
     test('different id → not equal', () {
+      // ignore: prefer_const_constructors
       final a = Emotion(
         id: 'joyful',
         name: 'Joyful',
         group: 'Uplifting',
         energyLevel: 'high',
       );
+      // ignore: prefer_const_constructors
       final b = Emotion(
         id: 'funny',
         name: 'Joyful',

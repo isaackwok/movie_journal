@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_content.dart';
 import 'package:movie_journal/features/journal/widgets/journal_actions.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/themes.dart';
 
 class JournalCard extends ConsumerStatefulWidget {
   final JournalState journal;
@@ -111,7 +113,7 @@ class _JournalCardVisual extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: Color(0xFF222222),
+            color: DarkSurfaces.tile,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -121,7 +123,7 @@ class _JournalCardVisual extends StatelessWidget {
                 child: AspectRatio(
                   aspectRatio: 150 / 215,
                   child: Image.network(
-                    'https://image.tmdb.org/t/p/w342${journal.moviePoster}',
+                    tmdbImageUrl(journal.moviePoster, TmdbImageSize.w342),
                     fit: BoxFit.cover,
                     alignment: Alignment.center,
                   ),

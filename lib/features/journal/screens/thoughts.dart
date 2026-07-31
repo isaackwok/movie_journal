@@ -4,10 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/quesgen/review.dart';
 import 'package:movie_journal/features/journal/widgets/review_item.dart';
-import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/features/journal/widgets/reviews_bottom_sheet.dart';
 import 'package:movie_journal/features/journal/widgets/reviews_floating_button.dart';
-import 'package:movie_journal/shared_widgets/action_text_button.dart';
+import 'package:movie_journal/shared_widgets/sheet_app_bar.dart';
+import 'package:movie_journal/themes.dart';
 
 class ThoughtsScreen extends ConsumerStatefulWidget {
   const ThoughtsScreen({super.key});
@@ -26,7 +26,8 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
   @override
   void initState() {
     super.initState();
-    AnalyticsManager.logScreenView('Thoughts');
+    // Deliberately NOT logged as a screen view: this is a section of the
+    // Journaling flow, and logging it inflated screen counts in GA.
     thoughtsController.text = ref.read(journalControllerProvider).thoughts;
     thoughtsController.addListener(_onTextChanged);
   }
@@ -101,15 +102,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
     textPainter.dispose();
   }
 
-  void _openReviewsBottomSheet() {
-    showModalBottomSheet(
-      useSafeArea: true,
-      isScrollControlled: true,
-      context: context,
-      backgroundColor: const Color(0xFF171717),
-      builder: (context) => const Wrap(children: [ReviewsBottomSheet()]),
-    );
-  }
+  void _openReviewsBottomSheet() => ReviewsBottomSheet.show(context);
 
   Widget _buildSelectedReviewsSection(
     List<Review> references, {
@@ -145,12 +138,12 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
         width: 100,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: Color(0xFF202020),
+          color: DarkSurfaces.raisedCard,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add, color: Colors.white, size: 24),
+            const Icon(Icons.add, color: Colors.white, size: 24),
             const SizedBox(height: 4),
             Text(
               'Add',
@@ -172,40 +165,15 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
         ref.watch(journalControllerProvider).selectedRefs;
     final isEditMode = ref.watch(journalModeProvider) == JournalMode.edit;
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        titleSpacing: 0,
-        centerTitle: true,
-        title: Row(
-          children: [
-            ActionTextButton(
-              text: 'Cancel',
-              color: Colors.white,
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            Expanded(
-              child: Center(
-                child: Text(
-                  'Thoughts',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          ActionTextButton(
-            text: 'Done',
-            onPressed: () {
-              ref
-                  .read(journalControllerProvider.notifier)
-                  .setThoughts(thoughtsController.text);
-              Navigator.pop(context);
-            },
-          ),
-        ],
+      appBar: SheetAppBar(
+        title: 'Thoughts',
+        onCancel: () => Navigator.pop(context),
+        onDone: () {
+          ref
+              .read(journalControllerProvider.notifier)
+              .setThoughts(thoughtsController.text);
+          Navigator.pop(context);
+        },
       ),
       body: Column(
         children: [
@@ -266,11 +234,11 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
               width: double.infinity,
               color: Theme.of(context).scaffoldBackgroundColor,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: SafeArea(
+              child: const SafeArea(
                 top: false,
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: const ReviewsFloatingButton(),
+                  child: ReviewsFloatingButton(),
                 ),
               ),
             ),

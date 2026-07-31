@@ -5,6 +5,7 @@ import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journaling.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 
 class MoviePreviewScreen extends ConsumerWidget {
   final int movieId;
@@ -39,7 +40,10 @@ class MoviePreviewScreen extends ConsumerWidget {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
                                     child: Image.network(
-                                      'https://image.tmdb.org/t/p/original${movie.posterPath}',
+                                      tmdbImageUrl(
+                                        movie.posterPath!,
+                                        TmdbImageSize.original,
+                                      ),
                                       fit: BoxFit.cover,
                                       width: double.infinity,
                                       frameBuilder: (
@@ -162,17 +166,17 @@ class MoviePreviewScreen extends ConsumerWidget {
                 shadowColor: Colors.black26,
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    textStyle: TextStyle(
+                    textStyle: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       fontFamily: 'AvenirNext',
                     ),
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(
+                    shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(16)),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                   onPressed: () {
                     if (movie.posterPath != null) {
@@ -217,11 +221,11 @@ class MoviePreviewScreen extends ConsumerWidget {
                             children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Bone.square(size: 492),
+                                child: const Bone.square(size: 492),
                               ),
                               const SizedBox(height: 24),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
+                              const Padding(
+                                padding: EdgeInsets.symmetric(
                                   horizontal: 8,
                                 ),
                                 child: Column(
@@ -281,19 +285,19 @@ class MoviePreviewScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
+                  const Text(
                     'Error loading movie',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => ref.refresh(movieDetailControllerProvider),
-                    child: Text('Retry'),
+                    child: const Text('Retry'),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text('Go Back'),
+                    child: const Text('Go Back'),
                   ),
                 ],
               ),

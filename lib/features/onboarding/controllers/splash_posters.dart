@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/data/data_sources/movie_api.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 
+// Fallback URLs are const, so they can't go through tmdbImageUrl().
 const _imageBaseUrl = 'https://image.tmdb.org/t/p/w342';
 
 const _fallbackPosters = <String>[
@@ -17,11 +19,12 @@ const _fallbackPosters = <String>[
 final splashPostersProvider = FutureProvider<List<String>>((ref) async {
   try {
     final response = await MovieAPI().popularMovies(page: 1);
-    final urls = response.results
-        .where((m) => m.posterPath != null && m.posterPath!.isNotEmpty)
-        .map((m) => '$_imageBaseUrl${m.posterPath}')
-        .take(20)
-        .toList();
+    final urls =
+        response.results
+            .where((m) => m.posterPath != null && m.posterPath!.isNotEmpty)
+            .map((m) => tmdbImageUrl(m.posterPath!, TmdbImageSize.w342))
+            .take(20)
+            .toList();
     return urls.isEmpty ? _fallbackPosters : urls;
   } catch (_) {
     return _fallbackPosters;

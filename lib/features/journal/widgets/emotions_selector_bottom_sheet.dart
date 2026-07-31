@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/emotion/emotion.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
+import 'package:movie_journal/themes.dart';
 
 class _AnimatedEmotionChip extends StatefulWidget {
   final Emotion emotion;
@@ -62,7 +63,7 @@ class _AnimatedEmotionChipState extends State<_AnimatedEmotionChip>
             scale: _scaleAnimation.value,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color:
                     widget.isSelected
@@ -76,7 +77,7 @@ class _AnimatedEmotionChipState extends State<_AnimatedEmotionChip>
               ),
               child: Text(
                 widget.emotion.name,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'AvenirNext',
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -131,7 +132,7 @@ class _EmotionsSelectorBottomSheetState
       "sections": [
         {
           "label": "Uplifting",
-          "color": Color(0xFFFADD9E),
+          "color": const Color(0xFFFADD9E),
           "emotions": [
             EmotionType.joyful,
             EmotionType.funny,
@@ -143,7 +144,7 @@ class _EmotionsSelectorBottomSheetState
         },
         {
           "label": "Intense",
-          "color": Color(0xFFFC8885),
+          "color": const Color(0xFFFC8885),
           "emotions": [
             EmotionType.shocked,
             EmotionType.angry,
@@ -161,7 +162,7 @@ class _EmotionsSelectorBottomSheetState
       "sections": [
         {
           "label": "Soothing",
-          "color": Color(0xFF87C997),
+          "color": const Color(0xFF87C997),
           "emotions": [
             EmotionType.heartwarming,
             EmotionType.touched,
@@ -173,7 +174,7 @@ class _EmotionsSelectorBottomSheetState
         },
         {
           "label": "Quiet",
-          "color": Color(0xFF9ADCFF),
+          "color": const Color(0xFF9ADCFF),
           "emotions": [
             EmotionType.melancholic,
             EmotionType.bittersweet,
@@ -264,8 +265,8 @@ class _EmotionsSelectorBottomSheetState
     // Block (with feedback) when trying to exceed the cap.
     if (!isSelected &&
         _tempSelectedEmotions.length >= widget.maxSelectionLimit) {
-      CustomToast.init(context);
       CustomToast.showError(
+        context,
         'You can select up to ${widget.maxSelectionLimit} emotions',
       );
       return;
@@ -300,8 +301,8 @@ class _EmotionsSelectorBottomSheetState
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Color(0xFF1C1C1E),
+      decoration: const BoxDecoration(
+        color: DarkSurfaces.sheetSecondary,
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: SafeArea(
@@ -316,7 +317,7 @@ class _EmotionsSelectorBottomSheetState
                 }
               },
               child: Container(
-                margin: EdgeInsets.only(top: 12, bottom: 16),
+                margin: const EdgeInsets.only(top: 12, bottom: 16),
                 width: 36,
                 height: 3,
                 decoration: BoxDecoration(
@@ -337,7 +338,7 @@ class _EmotionsSelectorBottomSheetState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'What are your feelings about this movie?',
                           style: TextStyle(
                             fontFamily: 'AvenirNext',
@@ -347,7 +348,7 @@ class _EmotionsSelectorBottomSheetState
                             color: Colors.white,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'Select up to ${widget.maxSelectionLimit} (${_tempSelectedEmotions.length}/${widget.maxSelectionLimit})',
                           style: TextStyle(
@@ -363,9 +364,9 @@ class _EmotionsSelectorBottomSheetState
                   ),
                   IconButton(
                     onPressed: _handleCancel,
-                    icon: Icon(Icons.close, color: Colors.white),
+                    icon: const Icon(Icons.close, color: Colors.white),
                     padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
+                    constraints: const BoxConstraints(),
                     style: const ButtonStyle(
                       tapTargetSize:
                           MaterialTapTargetSize.shrinkWrap, // the '2023' part
@@ -375,7 +376,7 @@ class _EmotionsSelectorBottomSheetState
               ),
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Content with horizontal scroll - two pages
             AnimatedContainer(
@@ -400,10 +401,10 @@ class _EmotionsSelectorBottomSheetState
                       });
 
                       return SingleChildScrollView(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Container(
                           key: _pageKeys[pageIndex],
-                          padding: EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             color: Colors.transparent,
                             borderRadius: BorderRadius.circular(16),
@@ -418,14 +419,14 @@ class _EmotionsSelectorBottomSheetState
                               // Page title (e.g., "High Energy")
                               Text(
                                 pageTitle,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontFamily: 'AvenirNext',
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
                                 ),
                               ),
-                              SizedBox(height: 16),
+                              const SizedBox(height: 16),
 
                               // Sections
                               ...sections.asMap().entries.map((entry) {
@@ -450,7 +451,7 @@ class _EmotionsSelectorBottomSheetState
                                         color: sectionColor,
                                       ),
                                     ),
-                                    SizedBox(height: 12),
+                                    const SizedBox(height: 12),
                                     Wrap(
                                       spacing: 8,
                                       runSpacing: 8,
@@ -475,14 +476,14 @@ class _EmotionsSelectorBottomSheetState
                                           }).toList(),
                                     ),
                                     if (!isLastSection) ...[
-                                      SizedBox(height: 16),
+                                      const SizedBox(height: 16),
                                       Divider(
                                         color: Colors.white.withAlpha(
                                           77,
                                         ), // 30% opacity
                                         thickness: 1,
                                       ),
-                                      SizedBox(height: 16),
+                                      const SizedBox(height: 16),
                                     ],
                                   ],
                                 );
@@ -498,13 +499,13 @@ class _EmotionsSelectorBottomSheetState
             ),
 
             // Page indicator
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 2,
                 (index) => Container(
-                  margin: EdgeInsets.symmetric(horizontal: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
@@ -518,7 +519,7 @@ class _EmotionsSelectorBottomSheetState
               ),
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Done button
             Padding(
@@ -528,17 +529,17 @@ class _EmotionsSelectorBottomSheetState
                 height: 46,
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    textStyle: TextStyle(
+                    textStyle: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       fontFamily: 'AvenirNext',
                     ),
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(
+                    shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(16)),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                   onPressed: _handleDone,
                   child: const Text('Done'),
