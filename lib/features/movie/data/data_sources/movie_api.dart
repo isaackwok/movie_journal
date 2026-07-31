@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:movie_journal/core/network/tmdb_dio_client.dart';
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
 import 'package:movie_journal/features/movie/data/models/detailed_movie.dart';
@@ -43,10 +44,12 @@ class MovieAPI {
     required int page,
     String language = 'en-US',
     String? region,
+    CancelToken? cancelToken,
   }) async {
     final response = await tmdbDioClient.get(
       '/movie/popular',
       queryParameters: {'page': page, 'language': language, 'region': region},
+      cancelToken: cancelToken,
     );
     return MovieListResponse.fromJson(response.data);
   }
@@ -59,6 +62,7 @@ class MovieAPI {
     String? region,
     int? primaryReleaseYear,
     int? year,
+    CancelToken? cancelToken,
   }) async {
     final response = await tmdbDioClient.get(
       '/search/movie',
@@ -71,6 +75,7 @@ class MovieAPI {
         'primary_release_year': primaryReleaseYear,
         'year': year,
       },
+      cancelToken: cancelToken,
     );
     return MovieListResponse.fromJson(response.data);
   }

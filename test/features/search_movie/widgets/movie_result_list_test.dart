@@ -5,6 +5,7 @@ import 'package:movie_journal/features/movie/controllers/search_movie_controller
 import 'package:movie_journal/features/movie/data/models/brief_movie.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/search_movie/widgets/movie_result_list.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../helpers/test_movie.dart';
 import '../../../helpers/widget_test_setup.dart';
@@ -16,6 +17,17 @@ class _FixedSearchMovieController extends SearchMovieController {
 
   @override
   Future<SearchMovieState> build() async => _state;
+
+  /// Re-emits what SearchMovieController.search() emits while a reload is in
+  /// flight. Riverpod's state setter merges a plain `AsyncLoading` with the
+  /// previous state via copyWithPrevious(isRefresh: false) — see
+  /// ElementWithFuture.onLoading — so this is loading-with-a-previous-value,
+  /// NOT the seamless refresh flavor.
+  void reloadKeepingValue() {
+    state = const AsyncLoading<SearchMovieState>()
+        // ignore: invalid_use_of_internal_member
+        .copyWithPrevious(state, isRefresh: false);
+  }
 }
 
 void main() {
@@ -91,6 +103,50 @@ void main() {
       expect(find.text('People watched'), findsNothing);
       expect(find.byType(MovieResultItem), findsNWidgets(2));
       expect(find.textContaining('First Movie'), findsOneWidget);
+    });
+  });
+
+  group('MovieResultList reload', () {
+    testWidgets('keeps the previous results instead of skeletons', (
+      tester,
+    ) async {
+      final container = ProviderContainer(
+        overrides: [
+          searchMovieControllerProvider.overrideWith(
+            () => _FixedSearchMovieController(
+              SearchMovieState(movies: movies, mode: SearchMovieMode.popular),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final scrollController = ScrollController();
+      addTearDown(scrollController.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: Scaffold(
+              body: MovieResultList(scrollController: scrollController),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(MovieResultItem), findsNWidgets(2));
+
+      final notifier = container.read(searchMovieControllerProvider.notifier)
+          as _FixedSearchMovieController;
+      notifier.reloadKeepingValue();
+      await tester.pump();
+
+      expect(
+        find.byType(MovieResultItem),
+        findsNWidgets(2),
+        reason: 'a reload with a previous value must not blank the list',
+      );
+      expect(find.byType(Skeletonizer), findsNothing);
     });
   });
 }

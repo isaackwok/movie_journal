@@ -80,3 +80,26 @@ final journalsControllerProvider =
     AsyncNotifierProvider<JournalsController, JournalsState>(
       JournalsController.new,
     );
+
+/// Journals grouped by month ('yyyy-MM'), groups newest-first and entries
+/// within each group newest-first. Derived here once per journals change
+/// instead of re-grouping and re-sorting on every JournalsList rebuild.
+/// Empty while the journals are still loading (or errored).
+final groupedJournalsProvider = Provider<
+  List<MapEntry<String, List<JournalState>>>
+>((ref) {
+  final journals =
+      ref.watch(journalsControllerProvider.select((s) => s.value?.journals)) ??
+      const [];
+
+  final grouped = <String, List<JournalState>>{};
+  for (final journal in journals) {
+    grouped
+        .putIfAbsent(journal.createdAt.format(pattern: 'yyyy-MM'), () => [])
+        .add(journal);
+  }
+  for (final group in grouped.values) {
+    group.sort((a, b) => b.createdAt.dateTime.compareTo(a.createdAt.dateTime));
+  }
+  return grouped.entries.toList()..sort((a, b) => b.key.compareTo(a.key));
+});

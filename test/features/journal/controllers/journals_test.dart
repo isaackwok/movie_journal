@@ -1,11 +1,22 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 
 import '../../../helpers/test_journal.dart';
 
 // Note: journals.dart now includes an AnalyticsManager call in removeJournal().
 // This is a no-op without Firebase and doesn't affect copyWith tests below.
+
+/// Serves a fixed list without touching Supabase auth or the database.
+class _FakeJournalsController extends JournalsController {
+  _FakeJournalsController(this._journals);
+  final List<JournalState> _journals;
+
+  @override
+  Future<JournalsState> build() async => JournalsState(journals: _journals);
+}
 
 void main() {
   group('JournalsState', () {
@@ -82,6 +93,68 @@ void main() {
       final a = JournalsState(journals: [journal]);
       final b = JournalsState(journals: [journal, journal]);
       expect(a, isNot(equals(b)));
+    });
+  });
+
+  group('groupedJournalsProvider', () {
+    ProviderContainer containerWith(List<JournalState> journals) {
+      final container = ProviderContainer(
+        overrides: [
+          journalsControllerProvider.overrideWith(
+            () => _FakeJournalsController(journals),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      // Riverpod 3 auto-disposes unlistened providers mid-flight; keep the
+      // element alive or `.future` never completes (see CLAUDE.md).
+      container.listen(journalsControllerProvider, (_, _) {});
+      return container;
+    }
+
+    JournalState journalOn(String id, String date) {
+      final t = Jiffy.parse('$date 10:00:00');
+      return makeJournal(id: id, createdAt: t, updatedAt: t);
+    }
+
+    test(
+      'groups by yyyy-MM, groups newest-first, entries newest-first',
+      () async {
+        final container = containerWith([
+          journalOn('june-early', '2026-06-05'),
+          journalOn('july-late', '2026-07-20'),
+          journalOn('june-late', '2026-06-25'),
+          journalOn('july-early', '2026-07-01'),
+        ]);
+        await container.read(journalsControllerProvider.future);
+
+        final groups = container.read(groupedJournalsProvider);
+
+        expect(groups.map((g) => g.key), ['2026-07', '2026-06']);
+        expect(
+          groups[0].value.map((j) => j.id),
+          ['july-late', 'july-early'],
+        );
+        expect(
+          groups[1].value.map((j) => j.id),
+          ['june-late', 'june-early'],
+        );
+      },
+    );
+
+    test('empty while journals are still loading', () {
+      final container = containerWith([journalOn('j1', '2026-07-01')]);
+      // No await: the fake build() has not resolved yet.
+      expect(container.read(groupedJournalsProvider), isEmpty);
+    });
+
+    test('memoized: repeated reads return the same object', () async {
+      final container = containerWith([journalOn('j1', '2026-07-01')]);
+      await container.read(journalsControllerProvider.future);
+
+      final first = container.read(groupedJournalsProvider);
+      final second = container.read(groupedJournalsProvider);
+      expect(identical(first, second), isTrue);
     });
   });
 }

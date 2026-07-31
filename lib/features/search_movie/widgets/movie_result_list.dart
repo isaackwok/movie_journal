@@ -23,6 +23,11 @@ class MovieResultList extends ConsumerWidget {
       // instead of swapping the whole list for the error screen. Initial-load
       // failures carry no previous value and still reach the error branch.
       skipError: true,
+      // A search() reload carries the previous list (Riverpod merges the
+      // AsyncLoading with the prior state); keep showing it instead of
+      // flashing skeletons on every keystroke's debounced search. The initial
+      // load has no previous value and still gets the skeleton branch.
+      skipLoadingOnReload: true,
       data: (state) {
         // Popular mode prepends a "People watched" header as item 0, so the
         // list holds one more item than there are movies and every movie index
@@ -121,9 +126,9 @@ class MovieResultItem extends ConsumerWidget {
       tmdbId: movie.id,
       movieTitle: movie.title,
     );
-    ref
-        .read(movieDetailControllerProvider.notifier)
-        .fetchMovieDetails(movie.id);
+    // Warm the per-movie cache so the details are (likely) ready when
+    // MoviePreviewScreen starts watching during the push animation.
+    ref.read(movieDetailControllerProvider(movie.id));
     if (context.mounted) {
       Navigator.push(
         context,
