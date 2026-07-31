@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/analytics_manager.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/widgets/scene_card.dart';
-import 'package:movie_journal/shared_widgets/action_text_button.dart';
+import 'package:movie_journal/shared_widgets/sheet_app_bar.dart';
 
 class CaptionEditor extends ConsumerStatefulWidget {
   final int initialSceneIndex;
@@ -23,7 +24,6 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
   @override
   void initState() {
     super.initState();
-    AnalyticsManager.logScreenView('CaptionEditor');
     _currentPage = widget.initialSceneIndex;
     _pageController = PageController(initialPage: widget.initialSceneIndex);
 
@@ -67,7 +67,7 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
     var selectedScenes = ref.read(journalControllerProvider).selectedScenes;
     for (var scene in selectedScenes) {
       precacheImage(
-        NetworkImage('https://image.tmdb.org/t/p/w500${scene.path}'),
+        NetworkImage(tmdbImageUrl(scene.path, TmdbImageSize.w500)),
         context,
       );
     }
@@ -105,103 +105,95 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
       journalControllerProvider.select((j) => j.selectedScenes),
     );
 
-    return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
+    return ScreenViewTracker(
+      screenName: 'CaptionEditor',
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        child: Scaffold(
           backgroundColor: Colors.black,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          titleSpacing: 0,
-          title: ActionTextButton(
-            text: 'Cancel',
-            color: Colors.white,
-            onPressed: () {
-              Navigator.pop(context);
-            },
+          appBar: SheetAppBar(
+            backgroundColor: Colors.black,
+            onCancel: () => Navigator.pop(context),
+            onDone: _saveAllCaptions,
           ),
-          actions: [
-            ActionTextButton(text: 'Done', onPressed: _saveAllCaptions),
-          ],
-        ),
-        body: Column(
-          children: [
-            SizedBox(height: 55),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0),
-              child: SizedBox(
-                height: 295,
-                child: PageView.builder(
-                  controller: _pageController,
-                  onPageChanged: _onPageChanged,
-                  itemCount: selectedScenes.length,
-                  itemBuilder: (context, index) {
-                    final scene = selectedScenes[index];
-                    final controller = _captionControllers[scene.path];
-                    final focusNode = _captionFocusNodes[scene.path];
+          body: Column(
+            children: [
+              const SizedBox(height: 55),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 0),
+                child: SizedBox(
+                  height: 295,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: _onPageChanged,
+                    itemCount: selectedScenes.length,
+                    itemBuilder: (context, index) {
+                      final scene = selectedScenes[index];
+                      final controller = _captionControllers[scene.path];
+                      final focusNode = _captionFocusNodes[scene.path];
 
-                    return SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: SceneCard(
-                          imagePath: scene.path,
-                          controller: controller,
-                          focusNode: focusNode,
-                          isEditable: true,
+                      return SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: SceneCard(
+                            imagePath: scene.path,
+                            controller: controller,
+                            focusNode: focusNode,
+                            isEditable: true,
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: SizedBox(
-                width: double.infinity,
-                height: 24,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Centered dots
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 4,
-                      children: List.generate(
-                        selectedScenes.length,
-                        (index) => Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color:
-                                index == _currentPage
-                                    ? Colors.white
-                                    : Colors.white.withAlpha(77),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 24,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Centered dots
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 4,
+                        children: List.generate(
+                          selectedScenes.length,
+                          (index) => Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color:
+                                  index == _currentPage
+                                      ? Colors.white
+                                      : Colors.white.withAlpha(77),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    // Text positioned on the right
-                    Positioned(
-                      right: 0,
-                      child: Text(
-                        '${_currentPage + 1} of ${selectedScenes.length}',
-                        style: TextStyle(
-                          color: Colors.white.withAlpha(153),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'AvenirNext',
-                          height: 1.5,
+                      // Text positioned on the right
+                      Positioned(
+                        right: 0,
+                        child: Text(
+                          '${_currentPage + 1} of ${selectedScenes.length}',
+                          style: TextStyle(
+                            color: Colors.white.withAlpha(153),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'AvenirNext',
+                            height: 1.5,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

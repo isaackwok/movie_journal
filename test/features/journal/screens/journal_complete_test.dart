@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_journal/features/home/widgets/journal_card.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journal_complete.dart';
-import 'package:movie_journal/features/share/screens/share_ticket_screen.dart';
+import 'package:movie_journal/features/share/share_flow.dart';
 import 'package:movie_journal/features/share/screens/ticket_poster_picker_screen.dart';
 
 import '../../../helpers/test_journal.dart';
