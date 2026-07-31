@@ -126,9 +126,9 @@ class MovieResultItem extends ConsumerWidget {
       tmdbId: movie.id,
       movieTitle: movie.title,
     );
-    ref
-        .read(movieDetailControllerProvider.notifier)
-        .fetchMovieDetails(movie.id);
+    // Warm the per-movie cache so the details are (likely) ready when
+    // MoviePreviewScreen starts watching during the push animation.
+    ref.read(movieDetailControllerProvider(movie.id));
     if (context.mounted) {
       Navigator.push(
         context,

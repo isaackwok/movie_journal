@@ -75,14 +75,15 @@ class _TicketPosterPickerScreenState
   }
 
   Future<void> _initAndFetch() async {
-    final notifier = ref.read(movieDetailControllerProvider.notifier);
-    await notifier.fetchMovieDetails(widget.journal.tmdbId);
-
-    final asyncMovie = ref.read(movieDetailControllerProvider);
-    final movie = asyncMovie.hasValue ? asyncMovie.value : null;
-    if (movie != null) {
+    try {
+      final movie = await ref.read(
+        movieDetailControllerProvider(widget.journal.tmdbId).future,
+      );
       _resolvedOriginalLanguage = movie.originalLanguage;
       _applyLanguageTabFilter();
+    } catch (_) {
+      // Same fallback as before the .family conversion: without the detail
+      // fetch, keep the default tabs and fall back to 'en' for tab 0.
     }
 
     await _fetchPostersForTab(0);

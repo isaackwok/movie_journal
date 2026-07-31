@@ -12,11 +12,10 @@ import 'package:movie_journal/shared_widgets/confirmation_dialog.dart';
 void editJournal(BuildContext context, WidgetRef ref, JournalState journal) {
   ref.read(journalControllerProvider.notifier).loadJournal(journal);
   ref
-      .read(movieImagesControllerProvider.notifier)
-      .getMovieImages(id: journal.tmdbId);
-  ref
-      .read(movieDetailControllerProvider.notifier)
-      .fetchMovieDetails(journal.tmdbId);
+      .read(movieImagesControllerProvider(journal.tmdbId).notifier)
+      .getMovieImages();
+  // Warm the per-movie detail cache for the editor screens.
+  ref.read(movieDetailControllerProvider(journal.tmdbId));
 
   Navigator.push(
     context,

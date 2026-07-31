@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/widgets/reviews_bottom_sheet.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
@@ -28,7 +29,8 @@ class _ReviewsFloatingButtonState extends ConsumerState<ReviewsFloatingButton> {
   }
 
   void _onPressed() {
-    final movieAsync = ref.read(movieDetailControllerProvider);
+    final tmdbId = ref.read(journalControllerProvider).tmdbId;
+    final movieAsync = ref.read(movieDetailControllerProvider(tmdbId));
     final movie = movieAsync.hasValue ? movieAsync.value : null;
     final quesgenState = ref.read(quesgenControllerProvider);
 
