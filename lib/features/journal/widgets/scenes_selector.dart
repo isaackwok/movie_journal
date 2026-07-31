@@ -300,8 +300,10 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
   @override
   Widget build(BuildContext context) {
     final movieImagesAsync = ref.watch(movieImagesControllerProvider);
-    final journal = ref.watch(journalControllerProvider);
-    final selectedScenes = journal.selectedScenes;
+    // Only the scenes matter here; thoughts/emotion edits shouldn't rebuild.
+    final selectedScenes = ref.watch(
+      journalControllerProvider.select((j) => j.selectedScenes),
+    );
 
     return Column(
       spacing: 16,

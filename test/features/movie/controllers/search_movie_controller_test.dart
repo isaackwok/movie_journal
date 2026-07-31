@@ -94,20 +94,82 @@ void main() {
     });
   });
 
-  group('SearchMovieController.loadMore', () {
-    // Regression test for ISA-9 bug 5: a pagination failure used to set a
-    // bare AsyncError, which dropped every already-loaded page from the state
-    // and made all later loadMore() calls bail at the `state.value == null`
-    // guard.
-    test('failure preserves loaded movies and stays retryable', () async {
-      final repo = _FakeMovieRepo();
+  group('SearchMovieState value equality', () {
+    test('same fields → equal, same hashCode', () {
+      final a = SearchMovieState(
+        movies: [BriefMovie.fromJson(makeBriefMovieJson())],
+        query: 'fight',
+        page: 2,
+        hasMore: true,
+        mode: SearchMovieMode.search,
+      );
+      final b = SearchMovieState(
+        movies: [BriefMovie.fromJson(makeBriefMovieJson())],
+        query: 'fight',
+        page: 2,
+        hasMore: true,
+        mode: SearchMovieMode.search,
+      );
+      expect(identical(a.movies, b.movies), isFalse);
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('default states → equal', () {
+      expect(SearchMovieState(), equals(SearchMovieState()));
+    });
+
+    test('different movies → not equal', () {
+      final a = SearchMovieState(
+        movies: [BriefMovie.fromJson(makeBriefMovieJson(id: 1))],
+      );
+      final b = SearchMovieState(
+        movies: [BriefMovie.fromJson(makeBriefMovieJson(id: 2))],
+      );
+      expect(a, isNot(equals(b)));
+    });
+
+    test('different query → not equal', () {
+      final a = SearchMovieState(query: 'a', mode: SearchMovieMode.search);
+      final b = SearchMovieState(query: 'b', mode: SearchMovieMode.search);
+      expect(a, isNot(equals(b)));
+    });
+
+    test('different page → not equal', () {
+      expect(
+        SearchMovieState(page: 1),
+        isNot(equals(SearchMovieState(page: 2))),
+      );
+    });
+
+    test('different hasMore → not equal', () {
+      expect(
+        SearchMovieState(hasMore: true),
+        isNot(equals(SearchMovieState(hasMore: false))),
+      );
+    });
+  });
+
+  group('SearchMovieController', () {
+    ProviderContainer containerWith(_FakeMovieRepo repo) {
       final container = ProviderContainer(
         overrides: [movieRepoProvider.overrideWithValue(repo)],
       );
       addTearDown(container.dispose);
-      // Riverpod 3 auto-disposes unlistened providers mid-await; keep the
-      // element alive (see Known Test Findings in CLAUDE.md).
+      // Riverpod 3 auto-disposes unlistened providers mid-flight; keep the
+      // element alive or `.future` never completes (see CLAUDE.md).
       container.listen(searchMovieControllerProvider, (_, _) {});
+      return container;
+    }
+
+    // Regression test for ISA-9 bug 5: a pagination failure used to set a
+    // bare AsyncError, which dropped every already-loaded page from the state
+    // and made all later loadMore() calls bail at the `state.value == null`
+    // guard.
+    test('loadMore() failure preserves loaded movies and stays retryable',
+        () async {
+      final repo = _FakeMovieRepo();
+      final container = containerWith(repo);
 
       final initial =
           await container.read(searchMovieControllerProvider.future);
@@ -131,6 +193,55 @@ void main() {
       final recovered = container.read(searchMovieControllerProvider);
       expect(recovered.hasError, isFalse);
       expect(recovered.value!.movies.length, greaterThan(initialCount));
+    });
+
+    test('build() loads the first popular page', () async {
+      final container = containerWith(_FakeMovieRepo());
+
+      final state = await container.read(searchMovieControllerProvider.future);
+
+      expect(state.movies.single.id, 1);
+      expect(state.page, 2);
+      expect(state.hasMore, isTrue);
+      expect(state.mode, SearchMovieMode.popular);
+    });
+
+    test('loadMore() appends the next page', () async {
+      final container = containerWith(_FakeMovieRepo());
+      await container.read(searchMovieControllerProvider.future);
+
+      await container
+          .read(searchMovieControllerProvider.notifier)
+          .loadMore();
+
+      final state = container.read(searchMovieControllerProvider).value!;
+      expect(state.movies.map((m) => m.id), [1, 2]);
+      expect(state.page, 3);
+    });
+
+    test('search() switches to search mode and resets paging', () async {
+      final container = containerWith(_FakeMovieRepo());
+      await container.read(searchMovieControllerProvider.future);
+
+      await container
+          .read(searchMovieControllerProvider.notifier)
+          .search('fight');
+
+      final state = container.read(searchMovieControllerProvider).value!;
+      expect(state.mode, SearchMovieMode.search);
+      expect(state.query, 'fight');
+      expect(state.page, 2);
+    });
+
+    test('failed popular reload surfaces AsyncError', () async {
+      final repo = _FakeMovieRepo();
+      final container = containerWith(repo);
+      await container.read(searchMovieControllerProvider.future);
+
+      repo.failPopular = true;
+      await container.read(searchMovieControllerProvider.notifier).search('');
+
+      expect(container.read(searchMovieControllerProvider).hasError, isTrue);
     });
   });
 }

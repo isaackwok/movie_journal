@@ -101,7 +101,9 @@ class _CaptionEditorState extends ConsumerState<CaptionEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedScenes = ref.watch(journalControllerProvider).selectedScenes;
+    final selectedScenes = ref.watch(
+      journalControllerProvider.select((j) => j.selectedScenes),
+    );
 
     return ScreenViewTracker(
       screenName: 'CaptionEditor',

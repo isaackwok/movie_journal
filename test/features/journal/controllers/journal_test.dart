@@ -420,4 +420,161 @@ void main() {
       expect(state.thoughts, 'My deep thoughts about the movie');
     });
   });
+
+  // ── Value equality (ISA-12 item 1) ─────────────────────────────────
+
+  group('SceneItem value equality', () {
+    test('same path + caption → equal, same hashCode', () {
+      final a = SceneItem(path: '/scene.jpg', caption: 'wow');
+      final b = SceneItem(path: '/scene.jpg', caption: 'wow');
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('null captions on both sides → equal', () {
+      expect(SceneItem(path: '/s.jpg'), equals(SceneItem(path: '/s.jpg')));
+    });
+
+    test('different caption → not equal', () {
+      final a = SceneItem(path: '/scene.jpg', caption: 'wow');
+      final b = SceneItem(path: '/scene.jpg', caption: 'meh');
+      expect(a, isNot(equals(b)));
+    });
+
+    test('caption set vs null → not equal', () {
+      final a = SceneItem(path: '/scene.jpg', caption: 'wow');
+      final b = SceneItem(path: '/scene.jpg');
+      expect(a, isNot(equals(b)));
+    });
+
+    test('different path → not equal', () {
+      expect(
+        SceneItem(path: '/a.jpg'),
+        isNot(equals(SceneItem(path: '/b.jpg'))),
+      );
+    });
+  });
+
+  group('JournalState value equality', () {
+    JournalState buildJournal() {
+      final t = Jiffy.parse('2026-07-30 10:00:00');
+      return makeJournal(
+        id: 'fixed-id',
+        tmdbId: 550,
+        movieTitle: 'Fight Club',
+        thoughts: 'great',
+        emotions: [emotionList[EmotionType.joyful]!],
+        selectedScenes: [SceneItem(path: '/s.jpg', caption: 'c')],
+        selectedRefs: [Review(text: 'r', source: 'reddit')],
+        createdAt: t,
+        updatedAt: t,
+      );
+    }
+
+    test('same field values → equal, same hashCode', () {
+      final a = buildJournal();
+      final b = buildJournal();
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('lists are compared by value, not identity', () {
+      final a = buildJournal();
+      final b = buildJournal();
+      expect(identical(a.selectedScenes, b.selectedScenes), isFalse);
+      expect(identical(a.selectedRefs, b.selectedRefs), isFalse);
+      expect(a, equals(b));
+    });
+
+    test('copyWith with no args → equal to original', () {
+      final a = buildJournal();
+      expect(a.copyWith(), equals(a));
+    });
+
+    test('each field difference breaks equality', () {
+      final a = buildJournal();
+      expect(a.copyWith(id: 'other'), isNot(equals(a)));
+      expect(a.copyWith(tmdbId: 551), isNot(equals(a)));
+      expect(a.copyWith(movieTitle: 'Se7en'), isNot(equals(a)));
+      expect(a.copyWith(moviePoster: '/x.jpg'), isNot(equals(a)));
+      expect(a.copyWith(thoughts: 'meh'), isNot(equals(a)));
+      expect(
+        a.copyWith(emotions: [emotionList[EmotionType.angry]!]),
+        isNot(equals(a)),
+      );
+      expect(
+        a.copyWith(selectedScenes: [SceneItem(path: '/other.jpg')]),
+        isNot(equals(a)),
+      );
+      expect(
+        a.copyWith(selectedRefs: [Review(text: 'x', source: 'letterboxd')]),
+        isNot(equals(a)),
+      );
+      expect(
+        a.copyWith(createdAt: Jiffy.parse('2020-01-01 00:00:00')),
+        isNot(equals(a)),
+      );
+      expect(
+        a.copyWith(updatedAt: Jiffy.parse('2020-01-01 00:00:00')),
+        isNot(equals(a)),
+      );
+    });
+  });
+
+  group('notification behavior with value equality', () {
+    late ProviderContainer container;
+
+    setUp(() {
+      container = ProviderContainer();
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    test('assigning an equal state does not notify listeners', () {
+      var notifications = 0;
+      container.listen(journalControllerProvider, (_, _) => notifications++);
+      final controller = container.read(journalControllerProvider.notifier);
+
+      controller.setThoughts('hello');
+      expect(notifications, 1);
+
+      // Same value again: copyWith produces an equal state, and Riverpod's
+      // default updateShouldNotify compares with ==, so no notification.
+      controller.setThoughts('hello');
+      expect(notifications, 1);
+    });
+
+    test('select(selectedScenes) ignores unrelated field changes', () {
+      var notifications = 0;
+      container.listen(
+        journalControllerProvider.select((j) => j.selectedScenes),
+        (_, _) => notifications++,
+      );
+      final controller = container.read(journalControllerProvider.notifier);
+
+      controller.setThoughts('unrelated');
+      controller.setMovieTitle('unrelated too');
+      expect(notifications, 0);
+
+      controller.addScene('/s.jpg');
+      expect(notifications, 1);
+    });
+
+    test('select(thoughts) ignores scene changes', () {
+      var notifications = 0;
+      container.listen(
+        journalControllerProvider.select((j) => j.thoughts),
+        (_, _) => notifications++,
+      );
+      final controller = container.read(journalControllerProvider.notifier);
+
+      controller.addScene('/s.jpg');
+      expect(notifications, 0);
+
+      controller.setThoughts('now');
+      expect(notifications, 1);
+    });
+  });
 }

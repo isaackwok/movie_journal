@@ -53,4 +53,46 @@ void main() {
       expect(found.value.group, 'Uplifting');
     });
   });
+
+  group('Emotion value equality', () {
+    // Built with `final` (not const) so instances are not canonicalized and
+    // the == override is actually exercised.
+    test('same fields → equal, same hashCode', () {
+      // ignore: prefer_const_constructors
+      final a = Emotion(
+        id: 'joyful',
+        name: 'Joyful',
+        group: 'Uplifting',
+        energyLevel: 'high',
+      );
+      // ignore: prefer_const_constructors
+      final b = Emotion(
+        id: 'joyful',
+        name: 'Joyful',
+        group: 'Uplifting',
+        energyLevel: 'high',
+      );
+      expect(identical(a, b), isFalse);
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('different id → not equal', () {
+      // ignore: prefer_const_constructors
+      final a = Emotion(
+        id: 'joyful',
+        name: 'Joyful',
+        group: 'Uplifting',
+        energyLevel: 'high',
+      );
+      // ignore: prefer_const_constructors
+      final b = Emotion(
+        id: 'funny',
+        name: 'Joyful',
+        group: 'Uplifting',
+        energyLevel: 'high',
+      );
+      expect(a, isNot(equals(b)));
+    });
+  });
 }

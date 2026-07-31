@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/quesgen/api.dart';
 import 'package:movie_journal/features/quesgen/review.dart';
@@ -28,6 +29,18 @@ class QuesgenState {
       isError: isError ?? this.isError,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is QuesgenState &&
+          runtimeType == other.runtimeType &&
+          listEquals(reviews, other.reviews) &&
+          isLoading == other.isLoading &&
+          isError == other.isError;
+
+  @override
+  int get hashCode => Object.hash(Object.hashAll(reviews), isLoading, isError);
 }
 
 class QuesgenController extends Notifier<QuesgenState> {
@@ -41,7 +54,7 @@ class QuesgenController extends Notifier<QuesgenState> {
   }) async {
     state = state.copyWith(isLoading: true);
     try {
-      final locale = _toBackendLocaleTag(PlatformDispatcher.instance.locale);
+      final locale = toBackendLocaleTag(PlatformDispatcher.instance.locale);
       final newReviews = await ref
           .read(quesgenApiProvider)
           .generateReviews(
@@ -69,7 +82,10 @@ class QuesgenController extends Notifier<QuesgenState> {
 ///   code already encodes the script (TW/HK -> Traditional, CN -> Simplified).
 /// - Returns `null` when the language code is missing so the caller can
 ///   omit `?lang=` and let the server apply its own default.
-String? _toBackendLocaleTag(Locale locale) {
+///
+/// Top-level and public for testability (same pattern as `validateUsername`
+/// in create_user.dart).
+String? toBackendLocaleTag(Locale locale) {
   final language = locale.languageCode.trim();
   if (language.isEmpty) return null;
   final country = locale.countryCode;

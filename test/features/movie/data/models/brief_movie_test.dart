@@ -59,4 +59,31 @@ void main() {
       expect(movie.voteCount, isNull);
     });
   });
+
+  group('BriefMovie value equality', () {
+    test('same JSON → equal, same hashCode', () {
+      final a = BriefMovie.fromJson(makeBriefMovieJson());
+      final b = BriefMovie.fromJson(makeBriefMovieJson());
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('genreIds compared by value, not identity', () {
+      final a = BriefMovie.fromJson(makeBriefMovieJson(genreIds: [18, 53]));
+      final b = BriefMovie.fromJson(makeBriefMovieJson(genreIds: [18, 53]));
+      expect(a, equals(b));
+    });
+
+    test('different id → not equal', () {
+      final a = BriefMovie.fromJson(makeBriefMovieJson(id: 1));
+      final b = BriefMovie.fromJson(makeBriefMovieJson(id: 2));
+      expect(a, isNot(equals(b)));
+    });
+
+    test('different title → not equal', () {
+      final a = BriefMovie.fromJson(makeBriefMovieJson(title: 'A'));
+      final b = BriefMovie.fromJson(makeBriefMovieJson(title: 'B'));
+      expect(a, isNot(equals(b)));
+    });
+  });
 }

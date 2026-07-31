@@ -93,7 +93,7 @@ The app follows a feature-based architecture where each feature is self-containe
 
 - **quesgen/** - AI review fetching service for movie reviews from external sources
   - `review.dart` - Review data model with `text` and `source` fields (sources: "letterboxd", "reddit")
-  - `controller.dart` - Review generation logic (QuesgenController, QuesgenState)
+  - `controller.dart` - Review generation logic (QuesgenController, QuesgenState). Also exports `toBackendLocaleTag()`, a top-level public function (public for testability, like `validateUsername`) converting the OS `Locale` to the BCP 47 tag the backend accepts — drops script subtags (`zh-Hant-TW` → `zh-TW`)
   - `provider.dart` - Riverpod provider
   - `api.dart` - API integration (GET `/generate/{movieId}`) returning `{ reviews: [{ text, source }] }`
 
@@ -155,6 +155,9 @@ Uses **Riverpod** for state management:
 - Controllers use Riverpod notifiers for complex state logic
 - Follow patterns: `Provider` for computed values, `NotifierProvider` for simple and complex state, `FutureProvider`/`AsyncNotifierProvider` for async operations
 - Note: Riverpod 3.x removed `StateProvider` — use a `Notifier` with a `set()` method instead (see `JournalModeNotifier` for pattern)
+- **State classes carry value equality.** `JournalState`, `JournalsState`, `SearchMovieState`, `QuesgenState`, `MovieImagesState` and their element models (`SceneItem`, `Emotion`, `Review`, `BriefMovie`, `MovieImage`) implement hand-rolled `==`/`hashCode` (deliberately no freezed/codegen). Riverpod's default `updateShouldNotify` compares with `==`, so a no-op `state = state.copyWith(...)` no longer notifies listeners. **Adding a field to one of these classes means updating its `==`/`hashCode` too** — the equality groups in the mirrored test files will catch a missed field only if you extend them.
+- `JournalState` is immutable (all fields `final`). Its public constructor is a factory so a defaulted `updatedAt` equals the *resolved* `createdAt` (identical `Jiffy`, not a second `Jiffy.now()`).
+- Prefer `ref.watch(provider.select((s) => s.field))` when a widget uses one or two fields of a larger state — done in `thoughts_editor.dart`, `scenes_selector.dart`, `caption_editor.dart`. Note `.select()` on a `List` field compares by list *identity*, which works because `copyWith` preserves untouched list instances.
 
 ### Data Flow
 
