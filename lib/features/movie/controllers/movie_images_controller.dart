@@ -5,12 +5,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/data/models/movie_image.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 
+/// One instance per TMDB movie id (`movieImagesControllerProvider(movieId)`),
+/// so overlapping flows (journaling one movie while sharing another) no
+/// longer race on a single global state.
 class MovieImagesController extends AsyncNotifier<MovieImagesState> {
-  int? _movieId;
+  MovieImagesController(this.movieId);
+
+  /// The family argument.
+  final int movieId;
 
   @override
   Future<MovieImagesState> build() {
-    // Stay in AsyncLoading until getMovieImages(id:) is called externally.
+    // Stay in AsyncLoading until getMovieImages() is called externally.
     //
     // We deliberately return a Future that never completes instead of
     // throwing or returning an empty state. Throwing here (the previous
@@ -25,26 +31,18 @@ class MovieImagesController extends AsyncNotifier<MovieImagesState> {
     return Completer<MovieImagesState>().future;
   }
 
-  Future<void> getMovieImages({required int id, String? language}) async {
-    _movieId = id;
+  Future<void> getMovieImages({String? language}) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final images = await ref.read(movieRepoProvider).getMovieImages(
-        id: id,
-        language: language,
-      );
+      final images = await ref
+          .read(movieRepoProvider)
+          .getMovieImages(id: movieId, language: language);
       return MovieImagesState(
         posters: images.posters,
         logos: images.logos,
         backdrops: images.backdrops,
       );
     });
-  }
-
-  Future<void> refresh() async {
-    if (_movieId != null) {
-      await getMovieImages(id: _movieId!);
-    }
   }
 }
 
@@ -83,8 +81,8 @@ class MovieImagesState {
 
   @override
   int get hashCode => Object.hash(
-        Object.hashAll(posters),
-        Object.hashAll(logos),
-        Object.hashAll(backdrops),
-      );
+    Object.hashAll(posters),
+    Object.hashAll(logos),
+    Object.hashAll(backdrops),
+  );
 }

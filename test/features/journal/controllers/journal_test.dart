@@ -577,4 +577,44 @@ void main() {
       expect(notifications, 1);
     });
   });
+
+  group('JournalState.fromMap', () {
+    Map<String, dynamic> journalMap() => {
+          'id': 'j1',
+          'tmdbId': 550,
+          'movieTitle': 'Fight Club',
+          'moviePoster': '/poster.jpg',
+          'emotions': ['joyful'],
+          'selectedScenes': [
+            {'path': '/scene.jpg', 'caption': 'the ending'},
+            '/legacy_scene.jpg',
+          ],
+          'selectedRefs': [
+            {'text': 'great movie', 'source': 'letterboxd'},
+            'legacy plain-string review',
+          ],
+          'thoughts': 'wow',
+          'createdAt': '2026-07-01 10:00:00',
+          'updatedAt': '2026-07-02 11:00:00',
+        };
+
+    test('parses a decoded map identically to fromJson(encoded)', () {
+      final map = journalMap();
+      // jsonDecode(jsonEncode()) mirrors what fromJson used to see.
+      expect(
+        JournalState.fromMap(map),
+        equals(JournalState.fromJson(jsonEncode(map))),
+      );
+    });
+
+    test('fromJson is fromMap over the decoded string', () {
+      final journal = JournalState.fromJson(jsonEncode(journalMap()));
+      expect(journal.id, 'j1');
+      expect(journal.selectedScenes, hasLength(2));
+      expect(journal.selectedScenes[1].path, '/legacy_scene.jpg');
+      expect(journal.selectedRefs, hasLength(2));
+      expect(journal.selectedRefs[1].text, 'legacy plain-string review');
+      expect(journal.createdAt.format(pattern: 'yyyy-MM-dd'), '2026-07-01');
+    });
+  });
 }

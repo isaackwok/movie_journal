@@ -139,7 +139,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const ScenesSelectSheet(),
+      builder: (context) => ScenesSelectSheet(movieId: widget.movieId),
     );
   }
 
@@ -299,7 +299,9 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
 
   @override
   Widget build(BuildContext context) {
-    final movieImagesAsync = ref.watch(movieImagesControllerProvider);
+    final movieImagesAsync = ref.watch(
+      movieImagesControllerProvider(widget.movieId),
+    );
     // Only the scenes matter here; thoughts/emotion edits shouldn't rebuild.
     final selectedScenes = ref.watch(
       journalControllerProvider.select((j) => j.selectedScenes),

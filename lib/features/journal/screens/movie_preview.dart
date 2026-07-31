@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/analytics_manager.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/screens/journaling.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
-import 'package:skeletonizer/skeletonizer.dart';
-import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 import 'package:movie_journal/shared_widgets/tmdb_image.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class MoviePreviewScreen extends ConsumerWidget {
   final int movieId;
@@ -15,7 +15,7 @@ class MoviePreviewScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncState = ref.watch(movieDetailControllerProvider);
+    final asyncState = ref.watch(movieDetailControllerProvider(movieId));
 
     return asyncState.when(
       data:
@@ -42,7 +42,11 @@ class MoviePreviewScreen extends ConsumerWidget {
                                     borderRadius: BorderRadius.circular(12),
                                     child: TmdbImage(
                                       path: movie.posterPath!,
-                                      size: TmdbImageSize.original,
+                                      // w780 (≈780×1170, ~3.6MB decoded) is
+                                      // already ≥ a phone-width box at 3x;
+                                      // `original` posters run 2000×3000+,
+                                      // ~24MB decoded per view.
+                                      size: TmdbImageSize.w780,
                                       width: double.infinity,
                                       // The poster renders at its natural
                                       // aspect ratio inside a scroll view, so
@@ -169,8 +173,8 @@ class MoviePreviewScreen extends ConsumerWidget {
                   onPressed: () {
                     if (movie.posterPath != null) {
                       ref
-                          .read(movieImagesControllerProvider.notifier)
-                          .getMovieImages(id: movieId);
+                          .read(movieImagesControllerProvider(movieId).notifier)
+                          .getMovieImages();
                       ref
                           .read(journalControllerProvider.notifier)
                           .setMovie(movieId, movie.title, movie.posterPath!);
@@ -279,7 +283,9 @@ class MoviePreviewScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => ref.refresh(movieDetailControllerProvider),
+                    onPressed:
+                        () =>
+                            ref.refresh(movieDetailControllerProvider(movieId)),
                     child: const Text('Retry'),
                   ),
                   const SizedBox(height: 8),

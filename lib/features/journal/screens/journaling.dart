@@ -11,7 +11,6 @@ import 'package:movie_journal/features/journal/widgets/emotions_selector_button.
 import 'package:movie_journal/features/journal/widgets/scenes_selector.dart';
 import 'package:movie_journal/features/journal/widgets/section_separator.dart';
 import 'package:movie_journal/features/journal/widgets/thoughts_editor.dart';
-import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
@@ -44,8 +43,9 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
     super.initState();
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(journalModeProvider.notifier).set(
-          _isEditMode ? JournalMode.edit : JournalMode.create);
+      ref
+          .read(journalModeProvider.notifier)
+          .set(_isEditMode ? JournalMode.edit : JournalMode.create);
     });
   }
 
@@ -104,9 +104,11 @@ class _JournalingScreenState extends ConsumerState<JournalingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final movieAsync = ref.watch(movieDetailControllerProvider);
-    final movieId = movieAsync.hasValue ? movieAsync.value!.id : 0;
     final journal = ref.watch(journalControllerProvider);
+    // Both create (setMovie before push) and edit (loadJournal) set tmdbId
+    // before this screen builds, so the journal is the id's source of truth —
+    // no need to wait on the movie-detail fetch.
+    final movieId = journal.tmdbId;
     return ScreenViewTracker(
       screenName: 'Journaling',
       child: PopScope(

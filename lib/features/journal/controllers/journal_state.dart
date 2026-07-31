@@ -192,10 +192,12 @@ class JournalState {
     });
   }
 
-  static JournalState fromJson(String json) {
-    // Decode a given json string and return a JournalState object
-    final map = jsonDecode(json);
+  static JournalState fromJson(String json) => fromMap(jsonDecode(json));
 
+  /// The map counterpart of [fromJson]. Callers that already hold decoded
+  /// data (e.g. a Postgres row) use this directly instead of paying an
+  /// encode/decode round trip per row.
+  static JournalState fromMap(Map<String, dynamic> map) {
     // Parse selectedRefs with backward compatibility
     List<Review> parseSelectedRefs(dynamic refsData) {
       if (refsData == null) return [];

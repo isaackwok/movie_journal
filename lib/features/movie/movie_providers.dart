@@ -17,12 +17,26 @@ final searchMovieControllerProvider =
       SearchMovieController.new,
     );
 
+// Both are keyed by TMDB movie id. Deliberately NOT autoDispose: instances
+// act as a per-movie session cache, and the prefetch-then-navigate pattern
+// (journal_actions, share screens) relies on state surviving until the
+// destination screen starts watching.
+//
+// retry is disabled: Riverpod 3's default exponential-backoff retry keeps
+// `.future` pending across the whole retry schedule, so awaiters (e.g.
+// TicketPosterPickerScreen._initAndFetch) would hang minutes on a network
+// error instead of falling back. Errors surface immediately; the Retry
+// button on MoviePreview re-fetches explicitly.
+Duration? _noRetry(int retryCount, Object error) => null;
+
 final movieDetailControllerProvider =
-    AsyncNotifierProvider<MovieDetailController, DetailedMovie>(
+    AsyncNotifierProvider.family<MovieDetailController, DetailedMovie, int>(
       MovieDetailController.new,
+      retry: _noRetry,
     );
 
 final movieImagesControllerProvider =
-    AsyncNotifierProvider<MovieImagesController, MovieImagesState>(
+    AsyncNotifierProvider.family<MovieImagesController, MovieImagesState, int>(
       MovieImagesController.new,
+      retry: _noRetry,
     );

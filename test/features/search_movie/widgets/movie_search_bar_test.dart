@@ -128,5 +128,25 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expect(fake.searchCalls, ['matrix']);
     });
+
+    // The debounce does not serialize searches: a submit right after a
+    // debounced fire produces two overlapping search() calls. This pins the
+    // input sequence the controller's request-id/CancelToken guards exist for.
+    testWidgets('a quick edit + submit fires overlapping searches in order', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(container));
+
+      await tester.enterText(find.byType(TextField), 'aliens');
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(fake.searchCalls, ['aliens']);
+
+      await tester.enterText(find.byType(TextField), 'alien');
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pump();
+
+      expect(fake.searchCalls, ['aliens', 'alien']);
+    });
   });
 }
