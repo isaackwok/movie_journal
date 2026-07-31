@@ -6,6 +6,7 @@ import 'package:movie_journal/features/journal/screens/journaling.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 
 class MoviePreviewScreen extends ConsumerWidget {
   final int movieId;
@@ -39,33 +40,20 @@ class MoviePreviewScreen extends ConsumerWidget {
                                   curve: Curves.easeInOut,
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      tmdbImageUrl(
-                                        movie.posterPath!,
-                                        TmdbImageSize.original,
-                                      ),
-                                      fit: BoxFit.cover,
+                                    child: TmdbImage(
+                                      path: movie.posterPath!,
+                                      size: TmdbImageSize.original,
                                       width: double.infinity,
-                                      frameBuilder: (
-                                        context,
-                                        child,
-                                        frame,
-                                        wasSynchronouslyLoaded,
-                                      ) {
-                                        if (wasSynchronouslyLoaded) {
-                                          return child;
-                                        }
-                                        // Show skeleton while loading
-                                        if (frame == null) {
-                                          return Skeleton.replace(
-                                            height: 492,
-                                            width: double.infinity,
-                                            child: Container(),
-                                          );
-                                        }
-                                        // Show actual image at its natural aspect ratio
-                                        return child;
-                                      },
+                                      // The poster renders at its natural
+                                      // aspect ratio inside a scroll view, so
+                                      // the placeholder has to carry its own
+                                      // height — there is nothing to infer one
+                                      // from until the bytes arrive.
+                                      placeholder: Skeleton.replace(
+                                        height: 492,
+                                        width: double.infinity,
+                                        child: Container(),
+                                      ),
                                     ),
                                   ),
                                 ),

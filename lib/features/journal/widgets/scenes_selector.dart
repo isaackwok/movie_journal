@@ -7,17 +7,19 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 import 'package:movie_journal/themes.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 
 class SelectedSceneCard extends StatelessWidget {
   const SelectedSceneCard({
     super.key,
-    required this.imageUrl,
+    required this.imagePath,
     required this.onRemove,
     required this.sceneIndex,
     this.caption,
   });
 
-  final String imageUrl;
+  /// A TMDB `file_path`; the size bucket belongs to [TmdbImage], not the caller.
+  final String imagePath;
   final VoidCallback onRemove;
   final int sceneIndex;
   final String? caption;
@@ -41,9 +43,9 @@ class SelectedSceneCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
+              child: TmdbImage(
+                path: imagePath,
+                size: TmdbImageSize.w500,
                 width: 240,
                 height: 175,
               ),
@@ -151,14 +153,12 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(_borderRadius),
-            child: Image.network(
-              tmdbImageUrl(firstBackdropPath, TmdbImageSize.w342),
-              fit: BoxFit.cover,
+            child: TmdbImage(
+              path: firstBackdropPath,
+              size: TmdbImageSize.w342,
               width: double.infinity,
               height: double.infinity,
-              errorBuilder: (context, error, stackTrace) {
-                return const Center(child: Text('Error loading image'));
-              },
+              errorWidget: const Center(child: Text('Error loading image')),
             ),
           ),
           Positioned.fill(
@@ -209,7 +209,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
             itemBuilder: (context, index) {
               final scene = selectedScenes[index];
               return SelectedSceneCard(
-                imageUrl: tmdbImageUrl(scene.path, TmdbImageSize.w500),
+                imagePath: scene.path,
                 sceneIndex: index,
                 caption: scene.caption,
                 onRemove: () {

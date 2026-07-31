@@ -1,31 +1,30 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/movie/data/data_sources/movie_api.dart';
-import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 
-// Fallback URLs are const, so they can't go through tmdbImageUrl().
-const _imageBaseUrl = 'https://image.tmdb.org/t/p/w342';
-
+/// TMDB `poster_path` values, not URLs — the size bucket is chosen by the
+/// `TmdbImage` that renders them, so it stays in one place app-wide.
 const _fallbackPosters = <String>[
-  '$_imageBaseUrl/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg', // Fight Club
-  '$_imageBaseUrl/q6y0Go1ts8k9NnbdQqFEJVvEpoF.jpg', // Shawshank Redemption
-  '$_imageBaseUrl/9O7gLzmreU0nGkIB6K3BsJbzvNv.jpg', // The Godfather
-  '$_imageBaseUrl/qJ2tW6WMUDux911r6m7haRef0WH.jpg', // The Dark Knight
-  '$_imageBaseUrl/oXUWEc5i3wYyFnL1Ycu8ppxxPvs.jpg', // Pulp Fiction
-  '$_imageBaseUrl/rPdtLWNsZmAtoZl9PK7S2wE3qiS.jpg', // Parasite
-  '$_imageBaseUrl/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', // Inception
-  '$_imageBaseUrl/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg', // The Matrix
+  '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg', // Fight Club
+  '/q6y0Go1ts8k9NnbdQqFEJVvEpoF.jpg', // Shawshank Redemption
+  '/9O7gLzmreU0nGkIB6K3BsJbzvNv.jpg', // The Godfather
+  '/qJ2tW6WMUDux911r6m7haRef0WH.jpg', // The Dark Knight
+  '/oXUWEc5i3wYyFnL1Ycu8ppxxPvs.jpg', // Pulp Fiction
+  '/rPdtLWNsZmAtoZl9PK7S2wE3qiS.jpg', // Parasite
+  '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', // Inception
+  '/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg', // The Matrix
 ];
 
 final splashPostersProvider = FutureProvider<List<String>>((ref) async {
   try {
     final response = await MovieAPI().popularMovies(page: 1);
-    final urls =
+    final paths =
         response.results
-            .where((m) => m.posterPath != null && m.posterPath!.isNotEmpty)
-            .map((m) => tmdbImageUrl(m.posterPath!, TmdbImageSize.w342))
+            .map((m) => m.posterPath)
+            .whereType<String>()
+            .where((p) => p.isNotEmpty)
             .take(20)
             .toList();
-    return urls.isEmpty ? _fallbackPosters : urls;
+    return paths.isEmpty ? _fallbackPosters : paths;
   } catch (_) {
     return _fallbackPosters;
   }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gal/gal.dart';
 import 'package:movie_journal/analytics_manager.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
@@ -16,6 +17,7 @@ import 'package:movie_journal/features/share/widgets/ticket_back.dart';
 import 'package:movie_journal/features/share/widgets/ticket_front.dart';
 import 'package:movie_journal/features/toast/custom_toast.dart';
 import 'package:movie_journal/shared_widgets/circled_icon_button.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 
 class ShareTicketScreen extends ConsumerStatefulWidget {
   final JournalState journal;
@@ -37,6 +39,12 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
   final _repaintKey = GlobalKey();
   bool _saving = false;
 
+  /// The ticket is rasterised through [_repaintKey], so it must never be built
+  /// while the poster is still a placeholder — that placeholder would be baked
+  /// into the saved PNG. Decoding the poster up front makes the first frame of
+  /// the ticket already contain it.
+  bool _posterReady = false;
+
   @override
   void initState() {
     super.initState();
@@ -47,7 +55,27 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
       ref
           .read(movieImagesControllerProvider.notifier)
           .getMovieImages(id: widget.journal.tmdbId);
+      _precachePoster();
     });
+  }
+
+  /// Warms Flutter's `imageCache` for the entry `TicketFront`'s [TmdbImage]
+  /// resolves — `CachedNetworkImageProvider` equality is by URL, so the same
+  /// path and size bucket is the same cache key.
+  Future<void> _precachePoster() async {
+    try {
+      await precacheImage(
+        tmdbImageProvider(
+          widget.posterPath ?? widget.journal.moviePoster,
+          TmdbImageSize.w780,
+        ),
+        context,
+      );
+    } catch (_) {
+      // A poster that will never load must not strand the screen on its
+      // spinner; TicketFront's errorWidget takes over from here.
+    }
+    if (mounted) setState(() => _posterReady = true);
   }
 
   void _showShareBottomSheet() {
@@ -141,7 +169,8 @@ class _ShareTicketScreenState extends ConsumerState<ShareTicketScreen> {
     final isLoading =
         asyncMovie.isLoading ||
         asyncImages.isLoading ||
-        asyncJournals.isLoading;
+        asyncJournals.isLoading ||
+        !_posterReady;
 
     // Extract movie details
     final movie = asyncMovie.hasValue ? asyncMovie.value : null;

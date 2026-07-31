@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:movie_journal/core/utils/tmdb_image_url.dart';
 import 'package:movie_journal/features/home/widgets/journal_card.dart';
+import 'package:movie_journal/shared_widgets/tmdb_image.dart';
 
 import '../../../helpers/test_journal.dart';
 import '../../../helpers/widget_test_setup.dart';
@@ -43,16 +45,16 @@ void main() {
       expect(find.textContaining('Mar'), findsOneWidget);
     });
 
-    testWidgets('renders poster Image.network with TMDB URL', (tester) async {
+    testWidgets('renders the poster at the w342 bucket', (tester) async {
       await tester.pumpWidget(buildSubject(moviePoster: '/abc.jpg'));
-      final image = tester.widget<Image>(find.byType(Image));
-      final networkImage = image.image as NetworkImage;
-      expect(networkImage.url, 'https://image.tmdb.org/t/p/w342/abc.jpg');
+      final image = tester.widget<TmdbImage>(find.byType(TmdbImage));
+      expect(image.path, '/abc.jpg');
+      expect(image.size, TmdbImageSize.w342);
     });
 
     testWidgets('poster uses BoxFit.cover', (tester) async {
       await tester.pumpWidget(buildSubject());
-      final image = tester.widget<Image>(find.byType(Image));
+      final image = tester.widget<TmdbImage>(find.byType(TmdbImage));
       expect(image.fit, BoxFit.cover);
     });
 

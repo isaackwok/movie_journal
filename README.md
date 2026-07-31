@@ -87,6 +87,7 @@ A Flutter movie journal app for capturing how films make you feel. Search for mo
 | Analytics | Firebase Analytics |
 | Networking | Dio |
 | Movie Data | TMDB API |
+| Image Caching | `cached_network_image` — posters and backdrops are cached to disk, so they survive a cold start instead of re-downloading |
 | AI Reviews | Custom review generation API |
 
 ## Development
