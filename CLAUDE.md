@@ -454,6 +454,7 @@ Feature lives under `lib/features/share/`. Flow: callers → `TicketPosterPicker
 - Uses `flutter_lints`, `custom_lint`, and `riverpod_lint`
 - Run `flutter analyze` to check for issues
 - Lint configuration in `analysis_options.yaml`
+- **`analyzer.exclude: build/**` is load-bearing.** Swift Package Manager checks out the *full pub source* of the Firebase plugins — including their own mockito-based `test/` dirs — into `build/{ios,macos}/SourcePackages/`. Without the exclude, `flutter analyze` reports ~950 errors from third-party test files (`undefined_function: when/verify/anyNamed`) after any iOS/macOS build. Deleting `build/` also clears them, but they come back on the next build.
 
 ## Claude Code Configuration
 

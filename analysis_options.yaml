@@ -12,6 +12,11 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   plugins:
     - custom_lint
+  # Swift Package Manager checks out the *full pub source* of Firebase plugins
+  # (including their own `test/` dirs, which use mockito) into
+  # build/{ios,macos}/SourcePackages. Those are third-party sources, not ours.
+  exclude:
+    - build/**
 
 linter:
   # The lint rules applied to this project can be customized in the
