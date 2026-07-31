@@ -62,7 +62,7 @@ class CustomToast {
         margin: const EdgeInsets.only(bottom: 32, left: 16, right: 16),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.white.withAlpha(76), width: 1),
-          color: const Color(0xFF151515),
+          color: DarkSurfaces.card,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(

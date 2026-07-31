@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/journal/controllers/journal.dart';
 import 'package:movie_journal/features/journal/widgets/review_item.dart';
 import 'package:movie_journal/features/quesgen/provider.dart';
+import 'package:movie_journal/themes.dart';
 
 class ReviewsBottomSheet extends ConsumerWidget {
   const ReviewsBottomSheet({super.key});
@@ -14,7 +15,7 @@ class ReviewsBottomSheet extends ConsumerWidget {
       useSafeArea: true,
       isScrollControlled: true,
       context: context,
-      backgroundColor: const Color(0xFF171717),
+      backgroundColor: DarkSurfaces.sheet,
       builder: (context) => const Wrap(children: [ReviewsBottomSheet()]),
     );
   }
@@ -32,7 +33,7 @@ class ReviewsBottomSheet extends ConsumerWidget {
         maxHeight: MediaQuery.of(context).size.height * 0.95,
       ),
       decoration: const BoxDecoration(
-        color: Color(0xFF171717),
+        color: DarkSurfaces.sheet,
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Column(

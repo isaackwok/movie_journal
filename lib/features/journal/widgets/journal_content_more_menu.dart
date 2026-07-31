@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movie_journal/features/journal/controllers/journals.dart';
 import 'package:movie_journal/features/journal/widgets/journal_actions.dart';
+import 'package:movie_journal/themes.dart';
 
 enum MoreOptionsItem { delete, edit }
 
@@ -29,16 +30,24 @@ class JournalContentMoreMenu extends ConsumerWidget {
             const PopupMenuItem<MoreOptionsItem>(
               value: MoreOptionsItem.delete,
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Text('Delete', style: TextStyle(color: Color(0xFFFF615D))),
+              child: Text(
+                'Delete',
+                style: TextStyle(color: StatusColors.error),
+              ),
             ),
           ],
     );
   }
 
-  void onSelected(BuildContext context, WidgetRef ref, MoreOptionsItem item) async {
+  void onSelected(
+    BuildContext context,
+    WidgetRef ref,
+    MoreOptionsItem item,
+  ) async {
     switch (item) {
       case MoreOptionsItem.edit:
-        final journals = ref.read(journalsControllerProvider).value?.journals ?? [];
+        final journals =
+            ref.read(journalsControllerProvider).value?.journals ?? [];
         final journal = journals.where((j) => j.id == journalId).firstOrNull;
         if (journal == null) return;
         editJournal(context, ref, journal);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movie_journal/features/share/widgets/film_strip_clipper.dart';
 import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/themes.dart';
 
 class TicketFront extends StatelessWidget {
   final String posterPath;
@@ -18,7 +19,7 @@ class TicketFront extends StatelessWidget {
         height: double.infinity,
         errorBuilder:
             (context, error, stackTrace) => Container(
-              color: const Color(0xFF2C2C2E),
+              color: DarkSurfaces.imagePlaceholder,
               child: const Center(
                 child: Icon(Icons.movie, color: Colors.white54, size: 64),
               ),

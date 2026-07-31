@@ -28,7 +28,7 @@ class SecureAccountSheet extends ConsumerStatefulWidget {
   static Future<void> show(BuildContext context, {int? journalCount}) {
     return showModalBottomSheet<void>(
       context: context,
-      backgroundColor: const Color(0xFF151515),
+      backgroundColor: DarkSurfaces.card,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),

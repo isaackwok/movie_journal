@@ -7,6 +7,7 @@ import 'package:movie_journal/features/journal/widgets/review_item.dart';
 import 'package:movie_journal/features/journal/widgets/reviews_bottom_sheet.dart';
 import 'package:movie_journal/features/journal/widgets/reviews_floating_button.dart';
 import 'package:movie_journal/shared_widgets/sheet_app_bar.dart';
+import 'package:movie_journal/themes.dart';
 
 class ThoughtsScreen extends ConsumerStatefulWidget {
   const ThoughtsScreen({super.key});
@@ -137,7 +138,7 @@ class _ThoughtsScreenState extends ConsumerState<ThoughtsScreen> {
         width: 100,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: const Color(0xFF202020),
+          color: DarkSurfaces.raisedCard,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

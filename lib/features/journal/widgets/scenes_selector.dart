@@ -6,6 +6,7 @@ import 'package:movie_journal/features/journal/widgets/scenes_select_sheet.dart'
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/themes.dart';
 
 class SelectedSceneCard extends StatelessWidget {
   const SelectedSceneCard({
@@ -54,7 +55,7 @@ class SelectedSceneCard extends StatelessWidget {
                 style: IconButton.styleFrom(
                   minimumSize: const Size(24, 24),
                   padding: EdgeInsets.zero,
-                  backgroundColor: const Color(0xFF151515).withAlpha(204),
+                  backgroundColor: DarkSurfaces.card.withAlpha(204),
                   shape: const CircleBorder(),
                 ),
                 onPressed: onRemove,
@@ -252,7 +253,7 @@ class _ScenesSelectorState extends ConsumerState<ScenesSelector> {
     return Container(
       height: _minMaxHeight,
       decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1E),
+        color: DarkSurfaces.sheetSecondary,
         borderRadius: BorderRadius.circular(_borderRadius),
       ),
       child: const Center(

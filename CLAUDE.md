@@ -266,6 +266,7 @@ feature_name/
 - Supports light and dark themes (default: dark mode)
 - Theme definitions in `lib/themes.dart`
 - Access colors via `Theme.of(context).colorScheme`
+- **Dark surfaces**: `DarkSurfaces` (in `themes.dart`) names the dark-grey ramp — `card` `#151515` (dialogs/toasts/filled fields), `sheet` `#171717` (reviews sheet), `sheetSecondary` `#1C1C1E` (selector sheets), `raisedCard` `#202020` (review/"Add" cards), `tile` `#222222` (home journal tile), `imagePlaceholder` `#2C2C2E` (poster loading). Don't hardcode a new dark hex — pick the closest step or add it to the class first. `journal_card_test.dart` / `review_item_test.dart` pin their widgets to the named steps.
 - **Status colors**: `StatusColors` (in `themes.dart`) holds `success` (= primary `#A8DADD`), `error` (`#FF615D`), `warning` (`#FF9F1C`) as context-free constants — used as icon backgrounds (e.g. toasts), with a black inner glyph. They're constants rather than a `ThemeExtension` because they're identical in every theme and consumers shouldn't need a `BuildContext` just to pick an accent.
 
 ### Loading States

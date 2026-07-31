@@ -6,6 +6,7 @@ import 'package:movie_journal/features/movie/movie_providers.dart';
 import 'package:movie_journal/features/share/screens/share_ticket_screen.dart';
 import 'package:movie_journal/analytics_manager.dart';
 import 'package:movie_journal/core/utils/tmdb_image_url.dart';
+import 'package:movie_journal/themes.dart';
 
 class TicketPosterPickerScreen extends ConsumerStatefulWidget {
   final JournalState journal;
@@ -313,7 +314,7 @@ class _TicketPosterPickerScreenState
                             fit: BoxFit.cover,
                             errorBuilder:
                                 (context, error, stackTrace) => Container(
-                                  color: const Color(0xFF2C2C2E),
+                                  color: DarkSurfaces.imagePlaceholder,
                                   child: const Center(
                                     child: Icon(
                                       Icons.movie,
