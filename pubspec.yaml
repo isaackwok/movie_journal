@@ -20,6 +20,10 @@ version: 1.0.0+1
 
 environment:
   sdk: ^3.7.2
+  # Floored by sign_in_with_apple 8.x. Stated explicitly so an older toolchain
+  # fails with "requires Flutter >=3.41.0" instead of an opaque solver error
+  # naming a transitive package.
+  flutter: ">=3.41.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -41,7 +45,9 @@ dependencies:
   flutter_riverpod: ^3.0.3
   skeletonizer: ^2.0.1
   jiffy: ^6.4.3
-  fluttertoast: ^9.0.0
+  # 9.1.0 is "Migrated ios to SPM" and nothing else — floor it so the
+  # SPM-capable build is what resolves.
+  fluttertoast: ^9.1.0
   uuid: ^4.5.1
   firebase_core: ^4.2.0
   # Permanent: Analytics stays on Firebase (plan decision 6).
@@ -55,10 +61,21 @@ dependencies:
   google_sign_in: ^7.2.0
   # Supabase — the data layer as of the Phase 5 call-site swap.
   supabase_flutter: ^2.8.0
-  sign_in_with_apple: ^6.1.3
+  # 8.x is a two-major bump from 6.1.x, taken for SPM support (the plugin's
+  # Apple sources moved to darwin/sign_in_with_apple/Package.swift). Neither
+  # breaking change lands here: 8.0.0 renamed IconAlignment ->
+  # SignInWithAppleIconAlignment, which only affects SignInWithAppleButton
+  # (we render our own ProviderSignInButton), and 7.0.0 added
+  # AuthorizationErrorCode cases, which only breaks exhaustive switches
+  # (cancellable() does a single == check).
+  sign_in_with_apple: ^8.1.0
   crypto: ^3.0.6
   gal: ^2.3.0
   share_plus: ^12.0.1
+  # No SPM support and no release since 2024-08 — 0.3.2 is the latest. Flutter
+  # still falls back to CocoaPods for it, so the iOS build works, but this is
+  # the one plugin keeping the "plugins not using SPM" warning alive. See
+  # ISA-17 for the three exit routes (own the ~40 lines, vendor a fork, wait).
   appinio_social_share: ^0.3.2
   url_launcher: ^6.3.1
 

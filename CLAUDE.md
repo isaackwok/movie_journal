@@ -201,7 +201,7 @@ Uses **Riverpod** for state management:
 - **flutter_riverpod** (3.0.3) - State management framework
 - **dio** (5.8.0+1) - HTTP client for API calls
 - **supabase_flutter** (2.16.0) - Auth + Postgres data layer (replaced `cloud_firestore`)
-- **sign_in_with_apple** (6.1.4) - Native Apple credential for `signInWithIdToken`
+- **sign_in_with_apple** (8.1.0) - Native Apple credential for `signInWithIdToken`. 8.x moved the Apple sources to `darwin/sign_in_with_apple/` and added a `Package.swift`, so this plugin builds via SPM rather than the CocoaPods fallback. It is why `pubspec.yaml` now declares `environment.flutter: ">=3.41.0"`. Neither major-version break touches this app: the 8.0.0 `IconAlignment` → `SignInWithAppleIconAlignment` rename only affects `SignInWithAppleButton` (we render `ProviderSignInButton`), and the 7.0.0 `AuthorizationErrorCode` additions (`notInteractive`, `credentialExport`) only break exhaustive switches — `cancellable()` does a single `== canceled` check, so new codes correctly `rethrow`.
 - **firebase_core** (4.10.0) - Firebase initialization
 - **firebase_auth** (6.5.2) - **Transitional.** Only the anonymous-account bridge uses this; not for auth in new code. Removed at the Firestore freeze.
 - **firebase_analytics** (12.4.2) - Google Analytics for Firebase (screen views, custom events, user properties)
@@ -212,12 +212,12 @@ Uses **Riverpod** for state management:
 - **google_fonts** (6.2.1) - Custom typography (e.g., Nothing You Could Do font)
 - **flutter_svg** (2.1.0) - SVG rendering support
 - **jiffy** (6.4.3) - Date formatting and manipulation
-- **fluttertoast** (9.0.0) - Toast notifications
+- **fluttertoast** (9.1.0) - Toast notifications. 9.1.0's entire changelog is "Migrated ios to SPM"; no API change.
 - **uuid** (4.5.1) - Unique ID generation for journal entries
 - **cupertino_icons** (1.0.8) - iOS-style icons
 - **gal** (2.3.0) - Save images/videos to device gallery (used by share ticket feature)
 - **share_plus** (12.0.1) - Native share sheet for sharing files/text (used by share ticket feature)
-- **appinio_social_share** (0.3.2) - Instagram Story sticker sharing via pasteboard/intent (requires Facebook App ID)
+- **appinio_social_share** (0.3.2) - Instagram Story sticker sharing via pasteboard/intent (requires Facebook App ID). **The last non-SPM plugin** and unmaintained (0.3.2 is the latest; no release since 2024-08). Its archive ships only `ios/*.podspec` + `ios/Classes/`, no `Package.swift` — Flutter detects SPM by that exact file layout (`<platform>/<plugin_name>/Package.swift`), not by pub.dev metadata, so the package page's mention of "Swift Package" (which refers to adding the TikTok SDK) is irrelevant. Flutter still falls back to CocoaPods for it, so iOS builds fine; it is the sole reason the "plugins not using SPM" warning persists. Options if that ever matters: own the ~40 lines of Instagram Story code directly (pasteboard + `instagram-stories://` URL scheme), vendor a fork with a `Package.swift`, or wait.
 - **url_launcher** (6.3.1) - Opens URLs externally (used for Threads Web Intent sharing)
 
 ### Dev Dependencies
