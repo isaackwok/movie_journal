@@ -465,6 +465,34 @@ Feature lives under `lib/features/share/`. Flow: callers → `TicketPosterPicker
 - Access emotions via `emotionList` map using `EmotionType` enum keys
 - Users can select multiple emotions per journal entry
 
+### iOS console noise
+
+`AppDelegate.silenceSystemKeyboardConstraintLogs()` sets the private
+`_UIConstraintBasedLayoutLogUnsatisfiable` default to `false` **in debug builds only**.
+
+- **What it silences (ISA-40):** every keyboard presentation — most visibly opening
+  `CaptionEditor` from a selected scene, which auto-focuses a `TextField` in
+  `initState` — dumped several "Unable to simultaneously satisfy constraints" blocks
+  naming `TUIPredictionViewCell` / `TUICandidateGradientContentLabel`. Those are
+  Apple's TextInputUI framework, which loads **into this process** to lay out the
+  keyboard's candidate / QuickType bar; the broken constraint set is Apple's
+  (a prediction cell of width 0 whose label is pinned 6pt from both edges). No Flutter
+  widget can produce or prevent it — Flutter draws layers, not constrained `UIView`s.
+- **Rejected alternative:** `autocorrect: false` / `enableSuggestions: false` on the
+  caption field suppresses the QuickType bar on Latin keyboards, but it is a real UX
+  regression, and it does nothing for the CJK candidate bar (which is *how you type* —
+  and the reporter's keyboard). Don't degrade input to quiet a log.
+- **Cost:** it mutes *all* unsatisfiable-constraint logging, including any from native
+  plugin UI (share sheets, sign-in). To get it back for one run, pass
+  `-_UIConstraintBasedLayoutLogUnsatisfiable YES` in the Xcode scheme's launch
+  arguments — `NSArgumentDomain` outranks what `AppDelegate` writes.
+- **`SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG"` on the Runner target's
+  Debug config is load-bearing.** The Flutter template never defined it for `Runner`
+  (only for `RunnerTests`), so before ISA-40 a `#if DEBUG` block in `AppDelegate.swift`
+  compiled to nothing — silently, in every configuration. **Any Swift `#if DEBUG` in
+  this app depends on that setting**; `$(inherited)` rather than a bare `DEBUG` because
+  the target builds on top of `Flutter/Debug.xcconfig`.
+
 ### Linting
 - Uses `flutter_lints`, `custom_lint`, and `riverpod_lint`
 - Run `flutter analyze` to check for issues
